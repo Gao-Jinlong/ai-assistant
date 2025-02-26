@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ChatAlibabaTongyi } from '@langchain/community/chat_models/alibaba_tongyi';
 import { AIMessage, HumanMessage } from '@langchain/core/messages';
-import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class AppService {
+export class ChatService {
   private model: ChatAlibabaTongyi;
 
   constructor(private configService: ConfigService) {
