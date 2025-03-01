@@ -10,6 +10,8 @@
     "dev": "npm-run-all2 --parallel prisma:migrate prisma:generate start:debug",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:push": "prisma db push",
+    "prisma:reset": "prisma migrate reset",
     "prisma:studio": "prisma studio",
     "build": "nest build",
     "start": "nest start",

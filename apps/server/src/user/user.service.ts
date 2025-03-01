@@ -1,11 +1,26 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-
+import { PrismaService } from '@server/prisma/prisma.service';
 @Injectable()
 export class UserService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  constructor(private readonly prisma: PrismaService) {}
+  async create(createUserDto: CreateUserDto) {
+    const find = await this.prisma.user.findUnique({
+      where: {
+        email: createUserDto.email,
+      },
+    });
+
+    if (find) {
+      throw new BadRequestException('用户已存在');
+    }
+
+    const user = await this.prisma.user.create({
+      data: createUserDto,
+    });
+
+    return user;
   }
 
   findAll() {

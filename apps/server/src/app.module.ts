@@ -6,8 +6,10 @@ import { TrpcModule } from './trpc/trpc.module';
 import { ChatModule } from './chat/chat.module';
 import { UserModule } from './user/user.module';
 import configuration from './config/configuration';
-import { APP_PIPE } from '@nestjs/core';
+import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { ZodValidationPipe } from 'nestjs-zod';
+import { PrismaModule } from './prisma/prisma.module';
+import { ZodValidationExceptionFilter } from './middleware/ZodValidationException.filter';
 
 @Module({
   imports: [
@@ -19,6 +21,7 @@ import { ZodValidationPipe } from 'nestjs-zod';
     TrpcModule,
     ChatModule,
     UserModule,
+    PrismaModule,
   ],
   controllers: [AppController],
   providers: [
@@ -26,6 +29,10 @@ import { ZodValidationPipe } from 'nestjs-zod';
     {
       provide: APP_PIPE,
       useClass: ZodValidationPipe,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: ZodValidationExceptionFilter,
     },
   ],
 })
