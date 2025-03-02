@@ -9,6 +9,7 @@ import configuration from './config/configuration';
 import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { PrismaModule } from './prisma/prisma.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { PrismaModule } from './prisma/prisma.module';
     ChatModule,
     UserModule,
     PrismaModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [
