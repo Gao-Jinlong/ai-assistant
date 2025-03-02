@@ -9,7 +9,6 @@ import configuration from './config/configuration';
 import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { PrismaModule } from './prisma/prisma.module';
-import { ZodValidationExceptionFilter } from './middleware/ZodValidationException.filter';
 
 @Module({
   imports: [
@@ -29,10 +28,6 @@ import { ZodValidationExceptionFilter } from './middleware/ZodValidationExceptio
     {
       provide: APP_PIPE,
       useClass: ZodValidationPipe,
-    },
-    {
-      provide: APP_FILTER,
-      useClass: ZodValidationExceptionFilter,
     },
   ],
 })
