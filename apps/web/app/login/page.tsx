@@ -1,12 +1,9 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { trpc } from '../trpc';
-import { TRPCClientError } from '@trpc/client';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-
 import { Button } from '@web/components/ui/button';
 import { Input } from '@web/components/ui/input';
 import {
@@ -29,7 +26,9 @@ import { Alert, AlertDescription, AlertTitle } from '@web/components/ui/alert';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Checkbox } from '@web/components/ui/checkbox';
 import Link from 'next/link';
-
+import { AuthService } from '@web/lib/auth';
+import { useAuth } from '@web/contexts/auth-context';
+import { useRouter } from 'next/navigation';
 // 定义表单验证模式
 const formSchema = z.object({
   email: z.string().email('请输入有效的电子邮箱地址'),
@@ -38,6 +37,8 @@ const formSchema = z.object({
 });
 
 export default function Login() {
+  const { login } = useAuth();
+  const router = useRouter();
   const [message, setMessage] = useState<{
     type: 'success' | 'error';
     text: string;
@@ -59,67 +60,26 @@ export default function Login() {
       setLoading(true);
       setMessage(null);
 
-      const data = {
-        email: values.email,
-        password: values.password,
-      };
+      const result = await login(
+        values.email,
+        values.password,
+        values.rememberMe,
+      );
 
-      try {
-        // 假设后端有登录的 API
-        const loginResult = await trpc.user.login.mutate(data);
-        console.log('登录成功:', loginResult);
+      setMessage({
+        type: result.type,
+        text: result.message,
+      });
 
-        // 保存token和记住用户选项
-        if (values.rememberMe) {
-          localStorage.setItem('token', loginResult.access_token);
-        } else {
-          sessionStorage.setItem('token', loginResult.access_token);
-        }
-
-        // 可选：保存用户基本信息
-        const userInfo = {
-          id: loginResult.user.id,
-          name: loginResult.user.name,
-          email: loginResult.user.email,
-          avatar: loginResult.user.avatar,
-        };
-        localStorage.setItem('userInfo', JSON.stringify(userInfo));
-
-        setMessage({ type: 'success', text: '登录成功！正在跳转...' });
-
-        // 跳转到首页或仪表盘
+      if (result.type === 'success' && result.data) {
         setTimeout(() => {
-          window.location.href = '/dashboard'; // 或使用 router.push('/dashboard')
-        }, 1500);
-      } catch (error) {
-        console.error('登录失败:', error);
-
-        let errorMessage = '登录失败，请检查邮箱和密码';
-
-        // 处理 TRPC 错误
-        if (error instanceof TRPCClientError) {
-          const trpcError = error;
-          try {
-            const errorData = trpcError.data;
-            // 处理特定错误类型
-            if (errorData?.code === 'UNAUTHORIZED') {
-              errorMessage = '邮箱或密码错误';
-            } else if (errorData?.formErrors) {
-              errorMessage = '请检查输入信息';
-            } else {
-              errorMessage = trpcError.message || errorMessage;
-            }
-          } catch (e) {
-            console.log('错误处理异常:', e);
-          }
-        }
-
-        setMessage({ type: 'error', text: errorMessage });
-      } finally {
-        setLoading(false);
+          router.push('/dashboard');
+        }, 1000);
       }
+
+      setLoading(false);
     },
-    [form],
+    [login],
   );
 
   return (

@@ -2,7 +2,8 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '@server/prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
-
+import { User } from '@prisma/client';
+import { LoginDto } from '@server/user/dto/login.dto';
 @Injectable()
 export class AuthService {
   constructor(
@@ -10,18 +11,16 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(email: string, password: string) {
-    // 查找用户
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-    });
-
+  async validateUser(user: User, loginDto: LoginDto) {
     if (!user) {
       return null;
     }
 
     // 验证密码
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      loginDto.password,
+      user.password,
+    );
     if (!isPasswordValid) {
       return null;
     }
@@ -31,19 +30,12 @@ export class AuthService {
     return result;
   }
 
-  async login(email: string, password: string) {
-    // 验证用户
-    const user = await this.validateUser(email, password);
-    if (!user) {
-      throw new UnauthorizedException('邮箱或密码错误');
-    }
-
+  async generateToken(user: User) {
     // 生成JWT令牌
     const payload = { email: user.email, sub: user.id };
     const token = this.jwtService.sign(payload);
 
     return {
-      user,
       access_token: token,
     };
   }

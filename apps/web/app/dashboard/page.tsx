@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Button } from '@web/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@web/components/ui/avatar';
 import {
@@ -10,40 +10,18 @@ import {
   CardDescription,
   CardContent,
 } from '@web/components/ui/card';
-
-interface UserInfo {
-  id: number;
-  name: string;
-  email: string;
-  avatar: string;
-}
+import { useAuth } from '@web/contexts/auth-context';
+import { useRouter } from 'next/navigation';
 
 export default function Dashboard() {
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { payload, loading, logout, getUserPayload } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
-    // 从localStorage获取用户信息
-    const storedInfo = localStorage.getItem('userInfo');
-    if (storedInfo) {
-      try {
-        setUserInfo(JSON.parse(storedInfo));
-      } catch (error) {
-        console.error('解析用户信息失败:', error);
-      }
+    if (!loading && !payload && !getUserPayload()) {
+      router.push('/login');
     }
-    setLoading(false);
-  }, []);
-
-  const handleLogout = () => {
-    // 清除token和用户信息
-    localStorage.removeItem('token');
-    sessionStorage.removeItem('token');
-    localStorage.removeItem('userInfo');
-
-    // 重定向到首页
-    window.location.href = '/';
-  };
+  }, [loading, payload, router, getUserPayload]);
 
   if (loading) {
     return (
@@ -53,11 +31,11 @@ export default function Dashboard() {
     );
   }
 
-  if (!userInfo) {
-    // 如果没有用户信息，重定向到登录页面
-    if (typeof window !== 'undefined') {
-      window.location.href = '/login';
-    }
+  const user = useMemo(() => {
+    return payload?.user;
+  }, [payload]);
+
+  if (!user) {
     return null;
   }
 
@@ -65,7 +43,7 @@ export default function Dashboard() {
     <div className="p-8 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">用户仪表盘</h1>
-        <Button variant="outline" onClick={handleLogout}>
+        <Button variant="outline" onClick={logout}>
           退出登录
         </Button>
       </div>
@@ -74,13 +52,16 @@ export default function Dashboard() {
         <Card>
           <CardHeader className="flex flex-col items-center">
             <Avatar className="h-24 w-24 mb-4">
-              <AvatarImage src={userInfo.avatar} alt={userInfo.name} />
+              <AvatarImage
+                src={user.avatar ?? undefined}
+                alt={user.name ?? undefined}
+              />
               <AvatarFallback>
-                {userInfo.name.slice(0, 2).toUpperCase()}
+                {user.name?.slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <CardTitle>{userInfo.name}</CardTitle>
-            <CardDescription>{userInfo.email}</CardDescription>
+            <CardTitle>{user.name}</CardTitle>
+            <CardDescription>{user.email}</CardDescription>
           </CardHeader>
           <CardContent className="text-center">
             <p>欢迎回来！这是您的个人仪表盘。</p>
@@ -104,7 +85,7 @@ export default function Dashboard() {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-gray-500">用户ID:</span>
-                <span>{userInfo.id}</span>
+                <span>{user.id}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">账号状态:</span>

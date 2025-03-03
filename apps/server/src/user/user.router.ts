@@ -7,11 +7,7 @@ import { updateUserSchema } from './dto/update-user.dto';
 import { zodToOpenAPI } from 'nestjs-zod';
 import { AuthService } from '../auth/auth.service';
 import { TRPCError } from '@trpc/server';
-
-const loginSchema = z.object({
-  email: z.string().email('请输入有效的电子邮箱'),
-  password: z.string().min(1, '请输入密码'),
-});
+import { loginSchema } from './dto/login.dto';
 
 @Injectable()
 export class UserRouter {
@@ -23,10 +19,10 @@ export class UserRouter {
     private readonly authService: AuthService,
   ) {
     this.router = this.trpc.router({
-      create: this.trpc.procedure
+      register: this.trpc.procedure
         .input(createUserSchema)
         .mutation(({ input }) => {
-          return this.userService.create(input);
+          return this.userService.register(input);
         }),
       findAll: this.trpc.procedure.query(() => {
         return this.userService.findAll();
@@ -45,25 +41,8 @@ export class UserRouter {
       login: this.trpc.procedure
         .input(loginSchema)
         .mutation(async ({ input }) => {
-          try {
-            const result = await this.authService.login(
-              input.email,
-              input.password,
-            );
-            return result;
-          } catch (error) {
-            if (error instanceof UnauthorizedException) {
-              throw new TRPCError({
-                code: 'UNAUTHORIZED',
-                message: '邮箱或密码错误',
-              });
-            }
-            throw new TRPCError({
-              code: 'INTERNAL_SERVER_ERROR',
-              message: '登录过程中发生错误',
-              cause: error,
-            });
-          }
+          const result = await this.userService.login(input);
+          return result;
         }),
     });
   }
