@@ -4,11 +4,13 @@ import { PrismaService } from '@server/prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
 import { User } from '@prisma/client';
 import { LoginDto } from '@server/user/dto/login.dto';
+import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private config: ConfigService,
   ) {}
 
   async validateUser(user: User, loginDto: LoginDto) {
@@ -16,7 +18,6 @@ export class AuthService {
       return null;
     }
 
-    // 验证密码
     const isPasswordValid = await bcrypt.compare(
       loginDto.password,
       user.password,
@@ -25,18 +26,25 @@ export class AuthService {
       return null;
     }
 
-    // 返回用户信息，但排除密码字段
     const { password: _, ...result } = user;
     return result;
   }
 
   async generateToken(user: User) {
-    // 生成JWT令牌
     const payload = { email: user.email, sub: user.id };
     const token = this.jwtService.sign(payload);
 
     return {
       access_token: token,
     };
+  }
+
+  async validateToken(token: string) {
+    try {
+      const decoded = this.jwtService.verify(token);
+      return decoded;
+    } catch (error) {
+      throw new UnauthorizedException('Invalid token');
+    }
   }
 }

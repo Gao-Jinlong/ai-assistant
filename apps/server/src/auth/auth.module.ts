@@ -13,8 +13,8 @@ import { PrismaService } from '@server/prisma/prisma.service';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET') || 'hard_coded_secret_for_dev',
-        signOptions: { expiresIn: '24h' },
+        secret: configService.get('jwt.secret'),
+        signOptions: { expiresIn: configService.get('jwt.expiresIn') },
       }),
     }),
     forwardRef(() => UserModule),
