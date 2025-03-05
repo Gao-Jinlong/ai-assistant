@@ -10,6 +10,7 @@ import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { AuthService } from '@server/auth/auth.service';
 import { LoginDto } from './dto/login.dto';
+import { omit, pick } from 'es-toolkit';
 
 @Injectable()
 export class UserService {
@@ -52,7 +53,6 @@ export class UserService {
     return user;
   }
 
-  // TODO token 过期机制
   async login(loginDto: LoginDto) {
     const user = await this.prisma.user.findUnique({
       where: { email: loginDto.email },
@@ -71,7 +71,7 @@ export class UserService {
     const token = await this.authService.generateToken(user);
 
     return {
-      user,
+      user: pick(user, ['id', 'name', 'email', 'avatar']),
       token,
     };
   }

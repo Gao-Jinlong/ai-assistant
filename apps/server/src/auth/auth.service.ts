@@ -5,6 +5,12 @@ import * as bcrypt from 'bcryptjs';
 import { User } from '@prisma/client';
 import { LoginDto } from '@server/user/dto/login.dto';
 import { ConfigService } from '@nestjs/config';
+
+export interface JwtPayload {
+  email: string;
+  id: string;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -15,7 +21,7 @@ export class AuthService {
 
   async validateUser(user: User, loginDto: LoginDto) {
     if (!user) {
-      return null;
+      throw new UnauthorizedException();
     }
 
     const isPasswordValid = await bcrypt.compare(
@@ -23,7 +29,7 @@ export class AuthService {
       user.password,
     );
     if (!isPasswordValid) {
-      return null;
+      throw new UnauthorizedException();
     }
 
     const { password: _, ...result } = user;
@@ -31,7 +37,7 @@ export class AuthService {
   }
 
   async generateToken(user: User) {
-    const payload = { email: user.email, sub: user.id };
+    const payload = { email: user.email, id: user.id };
     const token = this.jwtService.sign(payload);
 
     return {
@@ -39,11 +45,17 @@ export class AuthService {
     };
   }
 
+  /**
+   * 验证 token
+   * @param token
+   * @returns
+   */
   async validateToken(token: string) {
     try {
-      const decoded = this.jwtService.verify(token);
+      const decoded = this.jwtService.verify<JwtPayload>(token);
       return decoded;
     } catch (error) {
+      // TODO 记录日志
       throw new UnauthorizedException('Invalid token');
     }
   }

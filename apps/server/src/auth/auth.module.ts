@@ -8,8 +8,8 @@ import { PrismaService } from '@server/prisma/prisma.service';
 
 @Module({
   imports: [
-    // 动态配置JWT模块
     JwtModule.registerAsync({
+      global: true,
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
@@ -19,6 +19,7 @@ import { PrismaService } from '@server/prisma/prisma.service';
     }),
     forwardRef(() => UserModule),
   ],
+
   controllers: [AuthController],
   providers: [AuthService, PrismaService],
   exports: [AuthService],

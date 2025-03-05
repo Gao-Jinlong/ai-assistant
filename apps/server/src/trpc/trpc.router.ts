@@ -2,6 +2,7 @@ import { INestApplication, Injectable } from '@nestjs/common';
 import { TrpcService } from '@server/trpc/trpc.service';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { UserRouter } from '@server/user/user.router';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 @Injectable()
 export class TrpcRouter {
@@ -15,11 +16,12 @@ export class TrpcRouter {
     });
   }
 
-  async applyMiddleware(app: INestApplication) {
+  async applyMiddleware(app: NestExpressApplication) {
     app.use(
       `/api`,
       trpcExpress.createExpressMiddleware({
         router: this.appRouter,
+        createContext: this.trpc.createContext,
       }),
     );
   }

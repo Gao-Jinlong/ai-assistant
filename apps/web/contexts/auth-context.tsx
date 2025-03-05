@@ -20,8 +20,8 @@ interface AuthContextType {
   loading: boolean;
   getUserPayload: () => UsePayload | null;
   logout: () => void;
-  login: (...args: LoginDto) => Promise<AuthResult>;
-  register: (...args: RegisterDto) => Promise<RegisterResult>;
+  login: (...args: LoginDto) => Promise<AuthResult | undefined>;
+  register: (...args: RegisterDto) => Promise<RegisterResult | undefined>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

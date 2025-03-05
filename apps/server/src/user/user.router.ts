@@ -16,10 +16,9 @@ export class UserRouter {
   constructor(
     private readonly trpc: TrpcService,
     private readonly userService: UserService,
-    private readonly authService: AuthService,
   ) {
     this.router = this.trpc.router({
-      register: this.trpc.procedure
+      register: this.trpc.publicProcedure
         .input(createUserSchema)
         .mutation(({ input }) => {
           return this.userService.register(input);
@@ -38,7 +37,7 @@ export class UserRouter {
       remove: this.trpc.procedure.input(z.number()).mutation(({ input }) => {
         return this.userService.remove(input);
       }),
-      login: this.trpc.procedure
+      login: this.trpc.publicProcedure
         .input(loginSchema)
         .mutation(async ({ input }) => {
           const result = await this.userService.login(input);
