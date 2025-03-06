@@ -9,12 +9,14 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // 用于直接连接数据库，绕过连接池
 }
 
 model User {
   id       Int     @id @default(autoincrement())
+  uid      String  @unique // 用户唯一标识
   email    String  @unique
   name     String?
   password String
@@ -22,4 +24,50 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+/// 测评类型
+model AssessmentType {
+  id          Int     @id @default(autoincrement())
+  uid         String  @unique // 测评类型唯一标识
+  name        String // 测评类型名称
+  description String? // 测评类型描述
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// 测评
+model Assessment {
+  id          Int     @id @default(autoincrement())
+  uid         String  @unique // 测评唯一标识
+  title       String // 测评标题
+  description String? // 测评描述
+  timeLimit   Int? // 时间限制（分钟）
+  questions   Json // 测评题目，使用 JSON 存储题目内容
+  typeUid     String // 关联的测评类型UID
+  userUid     String // 创建者UID
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// 用户测评结果
+model AssessmentResult {
+  id            Int       @id @default(autoincrement())
+  uid           String    @unique // 用户测评结果唯一标识
+  userUid       String // 用户UID
+  assessmentUid String // 测评UID
+  answers       Json // 用户的答题记录
+  score         Float? // 分数（如果适用）
+  result        Json? // 测评结果（可能包含多个维度的评分或分析）
+  startTime     DateTime // 开始时间
+  endTime       DateTime? // 结束时间
+  status        String // 状态：进行中/已完成/已中断
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userUid])
+  @@index([assessmentUid])
 }

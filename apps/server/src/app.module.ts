@@ -11,6 +11,7 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { AuthGuard } from './auth/auth.guard';
+import { AssessmentModule } from './assessment/assessment.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { AuthGuard } from './auth/auth.guard';
     UserModule,
     PrismaModule,
     AuthModule,
+    AssessmentModule,
   ],
   controllers: [AppController],
   providers: [

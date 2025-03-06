@@ -2,6 +2,7 @@ import { INestApplication, Injectable } from '@nestjs/common';
 import { TrpcService } from '@server/trpc/trpc.service';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { UserRouter } from '@server/user/user.router';
+import { AssessmentRouter } from '@server/assessment/assessment.router';
 import { NestExpressApplication } from '@nestjs/platform-express';
 
 @Injectable()
@@ -10,9 +11,11 @@ export class TrpcRouter {
   constructor(
     private readonly trpc: TrpcService,
     private readonly userRouter: UserRouter,
+    private readonly assessmentRouter: AssessmentRouter,
   ) {
     this.appRouter = this.trpc.router({
       user: this.userRouter.router,
+      assessment: this.assessmentRouter.router,
     });
   }
 
