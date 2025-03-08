@@ -109,7 +109,9 @@ export class UserService {
     return `This action updates a #${id} user`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  delete(uid: string) {
+    return this.prisma.db.user.delete({
+      where: { uid },
+    });
   }
 }

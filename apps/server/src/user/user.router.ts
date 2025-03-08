@@ -34,8 +34,8 @@ export class UserRouter {
         .mutation(({ input }) => {
           return this.userService.update(input.id, input);
         }),
-      remove: this.trpc.procedure.input(z.number()).mutation(({ input }) => {
-        return this.userService.remove(input);
+      delete: this.trpc.procedure.input(z.string()).mutation(({ input }) => {
+        return this.userService.delete(input);
       }),
       login: this.trpc.publicProcedure
         .input(loginSchema)

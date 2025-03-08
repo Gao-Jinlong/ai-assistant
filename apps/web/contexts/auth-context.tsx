@@ -13,7 +13,7 @@ import { trpc } from '@web/app/trpc';
 import { useRouter } from 'next/navigation';
 type LoginDto = Parameters<typeof AuthService.login>;
 type RegisterDto = Parameters<typeof AuthService.register>;
-type UsePayload = Awaited<ReturnType<typeof trpc.user.login.mutate>>;
+type UsePayload = Awaited<ReturnType<typeof trpc.user.login.useMutation>>;
 
 interface AuthContextType {
   payload: UsePayload | null;
@@ -26,7 +26,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function InnerAuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   const [payload, setPayload] = useState<UsePayload | null>(null);
@@ -104,6 +104,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+const AuthPrfovider = trpc.withTRPC(InnerAuthProvider);
+
+export { AuthProvider };
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {

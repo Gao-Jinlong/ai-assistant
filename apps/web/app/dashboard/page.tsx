@@ -12,6 +12,7 @@ import {
 } from '@web/components/ui/card';
 import { useAuth } from '@web/contexts/auth-context';
 import { useRouter } from 'next/navigation';
+import { trpc } from '../trpc';
 
 export default function Dashboard() {
   const { payload, loading, logout, getUserPayload } = useAuth();
@@ -22,6 +23,8 @@ export default function Dashboard() {
       router.push('/login');
     }
   }, [loading, payload, router, getUserPayload]);
+
+  const { mutate: deleteUser } = trpc.user.delete.useMutation();
 
   if (loading) {
     return (
@@ -91,9 +94,16 @@ export default function Dashboard() {
                 <span className="text-gray-500">账号状态:</span>
                 <span className="text-green-600">正常</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">注册日期:</span>
-                <span>2023年1月1日</span>
+
+              <div>
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    deleteUser(user.uid);
+                  }}
+                >
+                  删除账号
+                </Button>
               </div>
             </div>
           </CardContent>
