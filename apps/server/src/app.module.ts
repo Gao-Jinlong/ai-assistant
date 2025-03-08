@@ -12,6 +12,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { AuthGuard } from './auth/auth.guard';
 import { AssessmentModule } from './assessment/assessment.module';
+import { PrismaService } from './prisma/prisma.service';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { AssessmentModule } from './assessment/assessment.module';
     UserModule,
     PrismaModule,
     AuthModule,
-    AssessmentModule,
+    // AssessmentModule,
   ],
   controllers: [AppController],
   providers: [
@@ -38,6 +39,8 @@ import { AssessmentModule } from './assessment/assessment.module';
       provide: APP_PIPE,
       useClass: ZodValidationPipe,
     },
+    PrismaService,
   ],
+  exports: [PrismaService],
 })
 export class AppModule {}

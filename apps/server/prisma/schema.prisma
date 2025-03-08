@@ -22,6 +22,7 @@ model User {
   password String
   avatar   String?
 
+  deleted   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -33,6 +34,7 @@ model AssessmentType {
   name        String // 测评类型名称
   description String? // 测评类型描述
 
+  deleted   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -48,6 +50,7 @@ model Assessment {
   typeUid     String // 关联的测评类型UID
   userUid     String // 创建者UID
 
+  deleted   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -55,7 +58,7 @@ model Assessment {
 /// 用户测评结果
 model AssessmentResult {
   id            Int       @id @default(autoincrement())
-  uid           String    @unique // 用户测评结果唯一标识
+  uid           String?   @unique // 用户测评结果唯一标识
   userUid       String // 用户UID
   assessmentUid String // 测评UID
   answers       Json // 用户的答题记录
@@ -65,6 +68,7 @@ model AssessmentResult {
   endTime       DateTime? // 结束时间
   status        String // 状态：进行中/已完成/已中断
 
+  deleted   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

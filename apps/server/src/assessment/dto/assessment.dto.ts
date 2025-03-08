@@ -80,7 +80,8 @@ export const createAssessmentSchema = z.object({
   title: z.string(),
   description: z.string().optional(),
   timeLimit: z.number().optional(), // 单位：分钟
-  typeId: z.number(),
+  typeUid: z.string(),
+  userUid: z.string(),
   totalScore: z.number(),
   passingScore: z.number().optional(),
   questions: z.array(questionSchema),

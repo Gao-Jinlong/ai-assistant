@@ -1,6 +1,9 @@
 import { TrpcService } from '@server/trpc/trpc.service';
 import { AssessmentService } from './assessment.service';
-import { createAssessmentSchema } from './dto/assessment.dto';
+import {
+  CreateAssessmentDto,
+  createAssessmentSchema,
+} from './dto/assessment.dto';
 
 export class AssessmentRouter {
   public readonly router;

@@ -9,7 +9,7 @@ import { AuthModule } from '@server/auth/auth.module';
 @Module({
   imports: [forwardRef(() => TrpcModule), forwardRef(() => AuthModule)],
   controllers: [UserController],
-  providers: [UserService, UserRouter, TrpcService],
+  providers: [UserService, UserRouter],
   exports: [UserService, UserRouter],
 })
 export class UserModule {}

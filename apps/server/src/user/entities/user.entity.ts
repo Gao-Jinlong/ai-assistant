@@ -1,6 +1,7 @@
 import { User as UserModel } from '@prisma/client';
 
 export class User implements UserModel {
+  uid!: string;
   id!: number;
   email!: string;
   name!: string | null;
@@ -9,4 +10,5 @@ export class User implements UserModel {
 
   createdAt!: Date;
   updatedAt!: Date;
+  deleted!: boolean;
 }

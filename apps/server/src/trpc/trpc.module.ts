@@ -9,7 +9,7 @@ import { AssessmentModule } from '@server/assessment/assessment.module';
 @Module({
   imports: [
     forwardRef(() => UserModule),
-    forwardRef(() => AssessmentModule),
+    // forwardRef(() => AssessmentModule),
     AuthModule,
   ],
   providers: [TrpcService, TrpcRouter],

@@ -20,7 +20,7 @@ export class UserService {
   ) {}
 
   async register(data: CreateUserDto) {
-    const find = await this.prisma.user.findUnique({
+    const find = await this.prisma.db.user.findUnique({
       where: {
         email: data.email,
       },
@@ -33,8 +33,9 @@ export class UserService {
     // bcryptjs 用法与 bcrypt 相同
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
-    const user = await this.prisma.user.create({
+    const user = await this.prisma.db.user.create({
       data: {
+        uid: '',
         name: `${data.email.split('@')[0]}`,
         ...data,
         password: hashedPassword,
@@ -42,6 +43,7 @@ export class UserService {
       // 添加 select 确保不返回密码
       select: {
         id: true,
+
         name: true,
         email: true,
         avatar: true,
@@ -54,7 +56,7 @@ export class UserService {
   }
 
   async login(loginDto: LoginDto) {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.db.user.findUnique({
       where: { email: loginDto.email },
     });
 
@@ -77,7 +79,7 @@ export class UserService {
   }
 
   async findAll() {
-    return this.prisma.user.findMany({
+    return this.prisma.db.user.findMany({
       select: {
         id: true,
         name: true,
@@ -90,7 +92,7 @@ export class UserService {
   }
 
   async findOne(id: number) {
-    return this.prisma.user.findUnique({
+    return this.prisma.db.user.findUnique({
       where: { id },
       select: {
         id: true,

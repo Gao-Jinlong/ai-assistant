@@ -24,6 +24,7 @@ async function setupDatabase() {
       // 添加测试数据
       await prisma.assessmentType.create({
         data: {
+          uid: '',
           name: '性格测试',
           description: '用于测试性格特征的评估',
         },

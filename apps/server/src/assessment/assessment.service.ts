@@ -7,8 +7,11 @@ export class AssessmentService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateAssessmentDto) {
-    return this.prisma.assessment.create({
-      data,
+    return this.prisma.db.assessment.create({
+      data: {
+        uid: '',
+        ...data,
+      },
     });
   }
 }

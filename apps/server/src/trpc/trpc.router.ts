@@ -11,11 +11,11 @@ export class TrpcRouter {
   constructor(
     private readonly trpc: TrpcService,
     private readonly userRouter: UserRouter,
-    private readonly assessmentRouter: AssessmentRouter,
+    // private readonly assessmentRouter: AssessmentRouter,
   ) {
     this.appRouter = this.trpc.router({
       user: this.userRouter.router,
-      assessment: this.assessmentRouter.router,
+      // assessment: this.assessmentRouter.router,
     });
   }
 
