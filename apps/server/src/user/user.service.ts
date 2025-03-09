@@ -20,9 +20,10 @@ export class UserService {
   ) {}
 
   async register(data: CreateUserDto) {
-    const find = await this.prisma.db.user.findUnique({
+    const find = await this.prisma.db.user.findFirst({
       where: {
         email: data.email,
+        deleted: false,
       },
     });
 
@@ -30,7 +31,6 @@ export class UserService {
       throw new BadRequestException('用户已存在');
     }
 
-    // bcryptjs 用法与 bcrypt 相同
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
     const user = await this.prisma.db.user.create({
@@ -56,7 +56,7 @@ export class UserService {
   }
 
   async login(loginDto: LoginDto) {
-    const user = await this.prisma.db.user.findUnique({
+    const user = await this.prisma.db.user.findFirst({
       where: { email: loginDto.email },
     });
 
@@ -73,7 +73,7 @@ export class UserService {
     const token = await this.authService.generateToken(user);
 
     return {
-      user: pick(user, ['id', 'name', 'email', 'avatar']),
+      user: pick(user, ['id', 'uid', 'name', 'email', 'avatar']),
       token,
     };
   }

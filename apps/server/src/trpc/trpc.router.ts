@@ -24,7 +24,7 @@ export class TrpcRouter {
       `/api`,
       trpcExpress.createExpressMiddleware({
         router: this.appRouter,
-        createContext: this.trpc.createContext,
+        createContext: (opts) => this.trpc.createContext(opts),
       }),
     );
   }

@@ -29,6 +29,7 @@ async function bootstrap() {
   app.enableCors();
 
   const trpcRouter = app.get(TrpcRouter);
+
   trpcRouter.applyMiddleware(app);
 
   await app.listen(port);

@@ -26,6 +26,7 @@ import { Alert, AlertDescription, AlertTitle } from '@web/components/ui/alert';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '@web/contexts/auth-context';
 import { useRouter } from 'next/navigation';
+import { TRPCClientError } from '@trpc/client';
 // 定义表单验证模式
 const formSchema = z.object({
   email: z.string().email('请输入有效的电子邮箱地址'),
@@ -54,31 +55,23 @@ export default function Register() {
     async (values: z.infer<typeof formSchema>) => {
       setLoading(true);
       setMessage(null);
-      // TODO 重构接口解析
-      const registerResult = await register(values.email, values.password);
 
-      if (registerResult.type === 'error') {
-        setMessage({
-          type: registerResult.type,
-          text: registerResult.message,
-        });
+      try {
+        await register(values);
+
+        await login(values);
+
+        router.push('/dashboard');
 
         setLoading(false);
-        return;
+      } catch (error) {
+        if (error instanceof TRPCClientError) {
+          setMessage({
+            type: 'error',
+            text: error.message,
+          });
+        }
       }
-
-      const loginResult = await login(values.email, values.password);
-
-      if (loginResult.type === 'success') {
-        router.push('/dashboard');
-      } else {
-        setMessage({
-          type: loginResult.type,
-          text: loginResult.message,
-        });
-      }
-
-      setLoading(false);
     },
     [],
   );

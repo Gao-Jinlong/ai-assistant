@@ -6,11 +6,12 @@ import {
   ReactNode,
   useCallback,
   useMemo,
+  useEffect,
 } from 'react';
-import { AuthResult, AuthService, RegisterResult } from '@web/lib/auth';
 import { trpc } from '@web/app/trpc';
 import { useRouter } from 'next/navigation';
 import { useLocalStorage } from 'usehooks-ts';
+import { useMutation } from '@tanstack/react-query';
 type LoginDto = Parameters<
   ReturnType<typeof trpc.user.login.useMutation>['mutate']
 >[0];
@@ -33,7 +34,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const USER_PAYLOAD_KEY = 'userPayload';
+export const USER_PAYLOAD_KEY = 'userPayload';
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
@@ -45,6 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const userMutation = trpc.user.login.useMutation({
     onSuccess: (data) => {
       setStorage(data);
+      return data;
     },
   });
 
@@ -53,15 +55,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(async (params: LoginDto) => {
     if (typeof window === 'undefined') return;
 
-    await userMutation.mutateAsync(params);
+    const data = await userMutation.mutateAsync(params);
 
-    return userMutation.data;
+    return data;
   }, []);
 
   const logout = useCallback(() => {
     if (typeof window === 'undefined') return;
 
     userMutation.reset();
+    setStorage(null);
     router.push('/');
   }, []);
 
@@ -94,4 +97,16 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
+}
+
+export function getUserPayload() {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    const userPayload = localStorage.getItem(USER_PAYLOAD_KEY);
+    return userPayload ? JSON.parse(userPayload) : null;
+  } catch (error) {
+    console.error('getUserPayload error:', error);
+    return null;
+  }
 }

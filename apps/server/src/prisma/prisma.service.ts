@@ -85,7 +85,7 @@ export class PrismaService implements OnModuleInit {
             },
             delete: async ({ model, args }) => {
               return (this.client[toCamelCase(model)] as any).update({
-                where: { id: args.where.id },
+                where: args.where,
                 data: { deleted: true },
               });
             },

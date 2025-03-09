@@ -26,9 +26,9 @@ import { Alert, AlertDescription, AlertTitle } from '@web/components/ui/alert';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Checkbox } from '@web/components/ui/checkbox';
 import Link from 'next/link';
-import { AuthService } from '@web/lib/auth';
 import { useAuth } from '@web/contexts/auth-context';
 import { useRouter } from 'next/navigation';
+import { TRPCClientError } from '@trpc/client';
 // 定义表单验证模式
 const formSchema = z.object({
   email: z.string().email('请输入有效的电子邮箱地址'),
@@ -60,21 +60,25 @@ export default function Login() {
       setLoading(true);
       setMessage(null);
 
-      const result = await login(
-        values.email,
-        values.password,
-        values.rememberMe,
-      );
+      try {
+        const result = await login(values);
 
-      setMessage({
-        type: result.type,
-        text: result.message,
-      });
-
-      if (result.type === 'success' && result.data) {
-        setTimeout(() => {
-          router.push('/dashboard');
-        }, 1000);
+        if (result) {
+          setMessage({
+            type: 'success',
+            text: '登录成功，正在跳转...',
+          });
+          setTimeout(() => {
+            router.push('/dashboard');
+          }, 1000);
+        }
+      } catch (error) {
+        if (error instanceof TRPCClientError) {
+          setMessage({
+            type: 'error',
+            text: error.message,
+          });
+        }
       }
 
       setLoading(false);

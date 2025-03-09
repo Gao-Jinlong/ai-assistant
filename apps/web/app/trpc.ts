@@ -1,7 +1,7 @@
-import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
+import { httpBatchLink } from '@trpc/client';
 import type { AppRouter } from '@server/trpc/trpc.router';
-import { AuthService } from '@web/lib/auth';
 import { createTRPCNext } from '@trpc/next';
+import { getUserPayload } from '@web/contexts/auth-context';
 
 export const trpc = createTRPCNext<AppRouter>({
   config(opts) {
@@ -10,7 +10,11 @@ export const trpc = createTRPCNext<AppRouter>({
         httpBatchLink({
           url: `${process.env.NEXT_PUBLIC_NESTJS_SERVER}/api`,
           async headers() {
-            const userPayload = AuthService.getUserPayload();
+            const userPayload = getUserPayload() as {
+              token: {
+                access_token: string;
+              };
+            };
             if (userPayload?.token?.access_token) {
               return {
                 Authorization: `Bearer ${userPayload.token.access_token}`,

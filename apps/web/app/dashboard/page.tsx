@@ -10,12 +10,12 @@ import {
   CardDescription,
   CardContent,
 } from '@web/components/ui/card';
-import { useAuth } from '@web/contexts/auth-context';
+import { getUserPayload, useAuth } from '@web/contexts/auth-context';
 import { useRouter } from 'next/navigation';
 import { trpc } from '../trpc';
 
 export default function Dashboard() {
-  const { payload, loading, logout, getUserPayload } = useAuth();
+  const { payload, loading, logout } = useAuth();
   const router = useRouter();
 
   useEffect(() => {

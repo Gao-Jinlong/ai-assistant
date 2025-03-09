@@ -19,6 +19,7 @@ export class TrpcService implements OnModuleInit {
     if (!ctx.user) {
       throw new UnauthorizedException();
     }
+
     return next({ ctx });
   });
 
@@ -40,12 +41,13 @@ export class TrpcService implements OnModuleInit {
   }
 
   async createContext(opts: trpcExpress.CreateExpressContextOptions) {
-    const token = opts.req.headers.authorization;
-    if (!token) {
+    const authorization = opts.req.headers.authorization;
+    if (!authorization) {
       return {
         user: null,
       };
     }
+    const token = authorization.split(' ')[1];
     const decoded = await this.auth.validateToken(token);
     return {
       user: decoded,
