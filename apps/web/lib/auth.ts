@@ -25,7 +25,7 @@ export class AuthService {
   // TODO 重构接口解析
   static async login(email: string, password: string, rememberMe = false) {
     try {
-      const loginResult = await trpc.user.login.mutate({
+      const loginResult = await trpc.user.login.useMutation().mutate({
         email,
         password,
       });
@@ -53,7 +53,7 @@ export class AuthService {
     password: string,
   ): Promise<RegisterResult> {
     try {
-      const result = await trpc.user.register.mutate({
+      const result = await trpc.user.register.useMutation().mutate({
         email,
         password,
       });

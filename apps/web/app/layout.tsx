@@ -1,10 +1,8 @@
 'use client';
-
-import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@web/contexts/auth-context';
-import { trpc } from './trpc';
+import { TrpcProvider } from '@web/contexts/trpc-context';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -26,7 +24,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>{children}</AuthProvider>
+        <TrpcProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </TrpcProvider>
       </body>
     </html>
   );

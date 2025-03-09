@@ -3,99 +3,83 @@
 import {
   createContext,
   useContext,
-  useEffect,
-  useState,
   ReactNode,
   useCallback,
+  useMemo,
 } from 'react';
 import { AuthResult, AuthService, RegisterResult } from '@web/lib/auth';
 import { trpc } from '@web/app/trpc';
 import { useRouter } from 'next/navigation';
-type LoginDto = Parameters<typeof AuthService.login>;
-type RegisterDto = Parameters<typeof AuthService.register>;
-type UsePayload = Awaited<ReturnType<typeof trpc.user.login.useMutation>>;
+import { useLocalStorage } from 'usehooks-ts';
+type LoginDto = Parameters<
+  ReturnType<typeof trpc.user.login.useMutation>['mutate']
+>[0];
+type RegisterDto = Parameters<
+  ReturnType<typeof trpc.user.register.useMutation>['mutate']
+>[0];
+type UsePayload = ReturnType<typeof trpc.user.login.useMutation>['data'];
+
+type RegisterPayload = ReturnType<
+  typeof trpc.user.register.useMutation
+>['data'];
 
 interface AuthContextType {
   payload: UsePayload | null;
   loading: boolean;
-  getUserPayload: () => UsePayload | null;
   logout: () => void;
-  login: (...args: LoginDto) => Promise<AuthResult | undefined>;
-  register: (...args: RegisterDto) => Promise<RegisterResult | undefined>;
+  login: (params: LoginDto) => Promise<UsePayload | undefined>;
+  register: (params: RegisterDto) => Promise<RegisterPayload | undefined>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function InnerAuthProvider({ children }: { children: ReactNode }) {
+const USER_PAYLOAD_KEY = 'userPayload';
+export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
-  const [payload, setPayload] = useState<UsePayload | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [storage, setStorage] = useLocalStorage<UsePayload | null>(
+    USER_PAYLOAD_KEY,
+    null,
+  );
 
-  const getUserPayload = useCallback(() => {
-    if (typeof window === 'undefined') return null;
-    if (payload) return payload;
+  const userMutation = trpc.user.login.useMutation({
+    onSuccess: (data) => {
+      setStorage(data);
+    },
+  });
 
-    const userPayload = AuthService.getUserPayload();
-    if (userPayload) {
-      setPayload(userPayload);
-    }
+  const registerMutation = trpc.user.register.useMutation();
 
-    return userPayload;
-  }, []);
-
-  const login = useCallback(async (...args: LoginDto) => {
+  const login = useCallback(async (params: LoginDto) => {
     if (typeof window === 'undefined') return;
 
-    const result = await AuthService.login(...args);
+    await userMutation.mutateAsync(params);
 
-    if (result.type === 'success') {
-      setPayload(result.data);
-    }
-
-    return result;
+    return userMutation.data;
   }, []);
 
   const logout = useCallback(() => {
     if (typeof window === 'undefined') return;
-    AuthService.logout();
-    setPayload(null);
+
+    userMutation.reset();
     router.push('/');
   }, []);
 
-  const register = useCallback(async (...args: RegisterDto) => {
+  const register = useCallback(async (params: RegisterDto) => {
     if (typeof window === 'undefined') return;
 
-    const result = await AuthService.register(...args);
+    await registerMutation.mutateAsync(params);
 
-    return result;
+    return registerMutation.data;
   }, []);
 
-  // 初始化时加载用户信息
-  useEffect(() => {
-    const loadUser = () => {
-      setLoading(true);
-      try {
-        const storedPayload = AuthService.getUserPayload();
-        if (storedPayload) {
-          setPayload(storedPayload);
-        }
-      } catch (error) {
-        console.error('加载用户信息失败:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (typeof window !== 'undefined') {
-      loadUser();
-    }
-  }, []);
+  const finalUserPayload = useMemo(() => {
+    return userMutation.data ?? storage;
+  }, [userMutation.data, storage]);
 
   const value = {
-    payload,
-    loading,
-    getUserPayload,
+    payload: finalUserPayload,
+    loading: userMutation.isLoading,
     login,
     logout,
     register,
@@ -104,9 +88,6 @@ export function InnerAuthProvider({ children }: { children: ReactNode }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-const AuthPrfovider = trpc.withTRPC(InnerAuthProvider);
-
-export { AuthProvider };
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
