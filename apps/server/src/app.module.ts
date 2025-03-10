@@ -13,6 +13,8 @@ import { AuthModule } from './auth/auth.module';
 import { AuthGuard } from './auth/auth.guard';
 import { AssessmentModule } from './assessment/assessment.module';
 import { PrismaService } from './prisma/prisma.service';
+import { ConversationModule } from './conversation/conversation.module';
+import { StorageModule } from './storage/storage.module';
 
 @Module({
   imports: [
@@ -26,7 +28,9 @@ import { PrismaService } from './prisma/prisma.service';
     UserModule,
     PrismaModule,
     AuthModule,
+    ConversationModule,
     // AssessmentModule,
+    StorageModule,
   ],
   controllers: [AppController],
   providers: [

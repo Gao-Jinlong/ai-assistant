@@ -77,3 +77,42 @@ model AssessmentResult {
   @@index([userUid])
   @@index([assessmentUid])
 }
+
+enum StorageType {
+  LOCAL
+  S3
+}
+
+enum ConversationStatus {
+  ACTIVE
+  ARCHIVED
+  DELETED
+}
+
+// 对话会话
+model Conversation {
+  id      Int     @id @default(autoincrement())
+  uid     String  @unique // 会话唯一标识
+  title   String? // 会话标题
+  userUid String // 所属用户
+
+  // 文件存储相关
+  storageType StorageType // LOCAL, S3 等存储类型
+  storagePath String // 存储路径
+
+  // 会话信息
+  messageCount Int                @default(0) // 消息数量
+  lastMessage  String? // 最后一条消息预览
+  status       ConversationStatus // ACTIVE, ARCHIVED, DELETED
+
+  // 性能统计
+  totalTokens  Int @default(0) // 总 token 数
+  totalLatency Int @default(0) // 总延迟(ms)
+
+  metadata  Json? // 其他元数据
+  deleted   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userUid])
+}

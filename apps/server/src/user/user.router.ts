@@ -1,12 +1,10 @@
-import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { TrpcService } from '@server/trpc/trpc.service';
 import { UserService } from './user.service';
-import { CreateUserDto, createUserSchema } from './dto/create-user.dto';
+import { createUserSchema } from './dto/create-user.dto';
 import { z } from 'zod';
 import { updateUserSchema } from './dto/update-user.dto';
 import { zodToOpenAPI } from 'nestjs-zod';
-import { AuthService } from '../auth/auth.service';
-import { TRPCError } from '@trpc/server';
 import { loginSchema } from './dto/login.dto';
 
 @Injectable()

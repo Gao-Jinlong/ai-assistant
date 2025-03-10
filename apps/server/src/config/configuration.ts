@@ -5,4 +5,8 @@ export default () => ({
     secret: process.env.JWT_SECRET || 'secret',
     expiresIn: process.env.JWT_EXPIRES_IN || '6h',
   },
+  storage: {
+    type: process.env.STORAGE_TYPE || 'local',
+    basePath: process.env.STORAGE_BASE_PATH || './data/storage',
+  },
 });
