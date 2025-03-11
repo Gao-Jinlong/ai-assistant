@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ChatAlibabaTongyi } from '@langchain/community/chat_models/alibaba_tongyi';
 import { AIMessage, HumanMessage } from '@langchain/core/messages';
+import { ClsService } from 'nestjs-cls';
 
 @Injectable()
 export class ChatService {

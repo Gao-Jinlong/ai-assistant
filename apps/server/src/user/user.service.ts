@@ -11,6 +11,7 @@ import * as bcrypt from 'bcryptjs';
 import { AuthService } from '@server/auth/auth.service';
 import { LoginDto } from './dto/login.dto';
 import { omit, pick } from 'es-toolkit';
+import { ClsService } from 'nestjs-cls';
 
 @Injectable()
 export class UserService {
@@ -109,9 +110,21 @@ export class UserService {
     return `This action updates a #${id} user`;
   }
 
-  delete(uid: string) {
-    return this.prisma.db.user.delete({
-      where: { uid },
-    });
+  async delete(uid: string) {
+    try {
+      const result = await this.prisma.db.user.update({
+        where: { uid },
+        data: { deleted: true },
+      });
+
+      return result.uid && 1;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new BadRequestException('用户不存在');
+        }
+      }
+      throw new BadRequestException('删除失败');
+    }
   }
 }

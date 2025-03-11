@@ -4,6 +4,7 @@ import * as trpcExpress from '@trpc/server/adapters/express';
 import { UserRouter } from '@server/user/user.router';
 import { AssessmentRouter } from '@server/assessment/assessment.router';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { ClsMiddleware } from 'nestjs-cls';
 
 @Injectable()
 export class TrpcRouter {
@@ -20,6 +21,9 @@ export class TrpcRouter {
   }
 
   async applyMiddleware(app: NestExpressApplication) {
+    // 使用 cls 中间件
+    app.use(new ClsMiddleware({}).use);
+
     app.use(
       `/api`,
       trpcExpress.createExpressMiddleware({

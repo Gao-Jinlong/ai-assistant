@@ -14,7 +14,6 @@ async function bootstrap() {
   const port = configService.get('port');
 
   if (isDev) {
-    // Swagger 配置
     const config = new DocumentBuilder()
       .setTitle('AI Assistant API')
       .setDescription('AI 助手服务 API 文档')

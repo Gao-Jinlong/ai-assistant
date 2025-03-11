@@ -15,6 +15,7 @@ import { AssessmentModule } from './assessment/assessment.module';
 import { PrismaService } from './prisma/prisma.service';
 import { ConversationModule } from './conversation/conversation.module';
 import { StorageModule } from './storage/storage.module';
+import { ClsModule } from 'nestjs-cls';
 
 @Module({
   imports: [
@@ -22,6 +23,10 @@ import { StorageModule } from './storage/storage.module';
       isGlobal: true, // 设置为全局模块
       load: [configuration],
       envFilePath: ['.env.local', '.env'], // 环境变量文件路径
+    }),
+    ClsModule.forRoot({
+      global: true,
+      middleware: { mount: false },
     }),
     TrpcModule,
     ChatModule,
@@ -35,10 +40,10 @@ import { StorageModule } from './storage/storage.module';
   controllers: [AppController],
   providers: [
     AppService,
-    {
-      provide: APP_GUARD,
-      useClass: AuthGuard,
-    },
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: AuthGuard,
+    // },
     {
       provide: APP_PIPE,
       useClass: ZodValidationPipe,
