@@ -35,7 +35,7 @@ const ChatWindow = () => {
   }, [renderKey]);
 
   return (
-    <div style={{ height: 100 }} key={renderKey}>
+    <div key={renderKey}>
       <Bubble
         typing
         content={text}

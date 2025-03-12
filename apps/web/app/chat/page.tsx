@@ -36,7 +36,7 @@ export default function ChatPage() {
 
   return (
     <XProvider>
-      <div className="flex">
+      <div className="flex flex-1">
         <ConversationList items={mockData} />
         <ChatWindow />
       </div>

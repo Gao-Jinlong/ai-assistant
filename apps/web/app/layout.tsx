@@ -22,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="zh">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} w-screen h-screen flex antialiased`}
       >
         <TrpcProvider>
           <AuthProvider>{children}</AuthProvider>
