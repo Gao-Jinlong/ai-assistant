@@ -12,6 +12,9 @@ import { trpc } from '@web/app/trpc';
 import { useRouter } from 'next/navigation';
 import { useLocalStorage } from 'usehooks-ts';
 import { useMutation } from '@tanstack/react-query';
+import { TRPCContext } from '@web/contexts/trpc-context';
+import { z } from 'zod';
+
 type LoginDto = Parameters<
   ReturnType<typeof trpc.user.login.useMutation>['mutate']
 >[0];
@@ -43,27 +46,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     null,
   );
 
-  const userMutation = trpc.user.login.useMutation({
-    onSuccess: (data) => {
-      setStorage(data);
-      return data;
-    },
-  });
+  const trpcContext = useContext(TRPCContext);
+
+  const userMutation = trpcContext?.client
+    ? trpcContext.client.user.login.useMutation({
+        onSuccess: (data) => {
+          setStorage(data);
+          return data;
+        },
+      })
+    : null;
 
   const registerMutation = trpc.user.register.useMutation();
 
   const login = useCallback(async (params: LoginDto) => {
     if (typeof window === 'undefined') return;
 
-    const data = await userMutation.mutateAsync(params);
-
-    return data;
+    try {
+      const result = await userMutation?.mutateAsync(params);
+      setStorage(result);
+      return result;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
   }, []);
 
   const logout = useCallback(() => {
     if (typeof window === 'undefined') return;
 
-    userMutation.reset();
+    userMutation?.reset();
     setStorage(null);
     router.push('/');
   }, []);
@@ -77,12 +89,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const finalUserPayload = useMemo(() => {
-    return userMutation.data ?? storage;
-  }, [userMutation.data, storage]);
+    return userMutation?.data ?? storage;
+  }, [userMutation?.data, storage]);
 
   const value = {
     payload: finalUserPayload,
-    loading: userMutation.isLoading,
+    loading: userMutation?.isLoading || false,
     login,
     logout,
     register,

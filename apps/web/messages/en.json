@@ -1,0 +1,55 @@
+{
+  "brand": {
+    "name": "ginlon's AI Coach"
+  },
+  "common": {
+    "login": "Login",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "loginButton": "Login",
+    "registerButton": "Register",
+    "noAccount": "Don't have an account?",
+    "createAccount": "Sign up now",
+    "loginSuccess": "Login successful, redirecting...",
+    "loginDescription": "Enter your email to sign in to your account"
+  },
+  "sender": {
+    "attachments": "Attachments",
+    "dropFileHere": "Drop file here",
+    "uploadFiles": "Upload files",
+    "dragToUpload": "Click or drag files to this area to upload"
+  },
+  "chat": {
+    "newChat": "New Chat",
+    "send": "Send",
+    "welcomeMessage": "Hello! I'm your AI assistant. How can I help you today?",
+    "errorMessage": "Sorry, there was an error processing your request.",
+    "typeMessage": "Type a message..."
+  },
+  "home": {
+    "welcome": "Welcome to our platform",
+    "description": "A modern application that makes your work easier",
+    "startNow": "Start experiencing now!",
+    "copyright": "All rights reserved",
+    "features": {
+      "easyToUse": "Easy to use",
+      "easyToUseDesc": "Intuitive user interface design to help you get started easily and improve efficiency.",
+      "powerful": "Powerful features",
+      "powerfulDesc": "Provides comprehensive tools and functions to meet your various complex needs.",
+      "secure": "Secure and reliable",
+      "secureDesc": "Strict data protection measures to ensure your information is safe."
+    }
+  },
+  "register": {
+    "description": "Create a new account",
+    "name": "Name",
+    "namePlaceholder": "Enter your name",
+    "confirmPassword": "Confirm Password",
+    "success": "Registration successful! Redirecting to login page...",
+    "unknownError": "An unknown error occurred during registration, please try again later",
+    "alreadyHaveAccount": "Already have an account?"
+  }
+}

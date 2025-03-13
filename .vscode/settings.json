@@ -1,3 +1,6 @@
 {
-  "cSpell.words": ["autoincrement", "TONGYI"]
+  "cSpell.words": ["autoincrement", "TONGYI"],
+  "i18n-ally.localesPaths": ["apps/web/messages"],
+  "i18n-ally.sourceLanguage": "zh",
+  "i18n-ally.keystyle": "nested"
 }

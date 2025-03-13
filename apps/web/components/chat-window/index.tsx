@@ -1,3 +1,4 @@
+'use client';
 import { UserOutlined } from '@ant-design/icons';
 import { Bubble } from '@ant-design/x';
 import type { BubbleProps } from '@ant-design/x';
@@ -9,6 +10,8 @@ import React from 'react';
 const md = markdownit({ html: true, breaks: true });
 
 const text = `
+## test
+
 > Render as markdown content to show rich text!
 
 Link: [Ant Design X](https://x.ant.design)
