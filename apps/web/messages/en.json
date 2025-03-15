@@ -25,9 +25,12 @@
   "chat": {
     "newChat": "New Chat",
     "send": "Send",
-    "welcomeMessage": "Hello! I'm your AI assistant. How can I help you today?",
+    "welcomeMessage": "Hello! I'm an AI assistant. How can I help you today?",
     "errorMessage": "Sorry, there was an error processing your request.",
-    "typeMessage": "Type a message..."
+    "typeMessage": "Type a message...",
+    "conversations": "Conversations",
+    "chatTitle": "AI Assistant",
+    "sending": "Sending..."
   },
   "home": {
     "welcome": "Welcome to our platform",
@@ -51,5 +54,22 @@
     "success": "Registration successful! Redirecting to login page...",
     "unknownError": "An unknown error occurred during registration, please try again later",
     "alreadyHaveAccount": "Already have an account?"
+  },
+  "dashboard": {
+    "title": "User Dashboard",
+    "logout": "Logout",
+    "welcome": "Welcome back! This is your personal dashboard.",
+    "recentActivity": "Recent Activity",
+    "noActivity": "No activity records",
+    "accountInfo": "Account Information",
+    "userId": "User ID",
+    "accountStatus": "Account Status",
+    "statusNormal": "Normal",
+    "deleteAccount": "Delete Account",
+    "loading": "Loading...",
+    "deleteAccountConfirm": "Are you sure you want to delete your account? This action cannot be undone!",
+    "deleteAccountTitle": "Delete Account",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
   }
 }

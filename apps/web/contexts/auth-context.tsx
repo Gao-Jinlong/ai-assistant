@@ -6,24 +6,21 @@ import {
   ReactNode,
   useCallback,
   useMemo,
-  useEffect,
 } from 'react';
 import { trpc } from '@web/app/trpc';
 import { useRouter } from 'next/navigation';
 import { useLocalStorage } from 'usehooks-ts';
-import { useMutation } from '@tanstack/react-query';
 import { TRPCContext } from '@web/contexts/trpc-context';
-import { z } from 'zod';
 
-type LoginDto = Parameters<
+export type LoginDto = Parameters<
   ReturnType<typeof trpc.user.login.useMutation>['mutate']
 >[0];
-type RegisterDto = Parameters<
+export type RegisterDto = Parameters<
   ReturnType<typeof trpc.user.register.useMutation>['mutate']
 >[0];
-type UsePayload = ReturnType<typeof trpc.user.login.useMutation>['data'];
+export type UsePayload = ReturnType<typeof trpc.user.login.useMutation>['data'];
 
-type RegisterPayload = ReturnType<
+export type RegisterPayload = ReturnType<
   typeof trpc.user.register.useMutation
 >['data'];
 
@@ -48,14 +45,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const trpcContext = useContext(TRPCContext);
 
-  const userMutation = trpcContext?.client
-    ? trpcContext.client.user.login.useMutation({
-        onSuccess: (data) => {
-          setStorage(data);
-          return data;
-        },
-      })
-    : null;
+  const userMutation = trpcContext?.client.user.login.useMutation({
+    onSuccess: (data) => {
+      setStorage(data);
+      return data;
+    },
+  });
 
   const registerMutation = trpc.user.register.useMutation();
 

@@ -5,7 +5,7 @@ import type { BubbleProps } from '@ant-design/x';
 import { Typography } from 'antd';
 import markdownit from 'markdown-it';
 /* eslint-disable react/no-danger */
-import React from 'react';
+import React, { FC } from 'react';
 
 const md = markdownit({ html: true, breaks: true });
 
@@ -19,12 +19,22 @@ Link: [Ant Design X](https://x.ant.design)
 
 const renderMarkdown: BubbleProps['messageRender'] = (content) => (
   <Typography>
-    {/* biome-ignore lint/security/noDangerouslySetInnerHtml: used in demo */}
     <div dangerouslySetInnerHTML={{ __html: md.render(content) }} />
   </Typography>
 );
 
-const ChatWindow = () => {
+export interface MessageType {
+  id: string;
+  content: string;
+  sender: 'user' | 'bot';
+  timestamp: Date;
+}
+
+export interface ChatWindowProps {
+  messages: MessageType[];
+}
+
+const ChatWindow: FC<ChatWindowProps> = ({ messages }) => {
   const [renderKey, setRenderKey] = React.useState(0);
 
   React.useEffect(() => {

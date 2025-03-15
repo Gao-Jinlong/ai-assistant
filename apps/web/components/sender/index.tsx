@@ -7,76 +7,108 @@ import {
   SenderProps,
 } from '@ant-design/x';
 import { Button, GetProp, GetRef } from 'antd';
-import React, { FC, useRef, useState } from 'react';
+import React, { FC, useRef, useState, forwardRef } from 'react';
 import { useTranslations } from 'next-intl';
 
-export interface SenderInputProps extends SenderProps {}
+// 创建一个扩展接口
+interface CustomSenderProps extends Omit<SenderProps, 'onSend'> {
+  onSend: (text: string) => void | Promise<void>;
+  disabled?: boolean;
+  isLoading?: boolean;
+}
 
-const SenderInput: FC<SenderProps> = ({ ...reset }) => {
-  const [open, setOpen] = useState(false);
-  const [items, setItems] = useState<GetProp<AttachmentsProps, 'items'>>([]);
-  const [text, setText] = useState('');
-  const t = useTranslations('sender');
+const SenderInput = forwardRef<GetRef<typeof Sender>, CustomSenderProps>(
+  ({ onSend, placeholder, disabled, isLoading, ...rest }, ref) => {
+    const [open, setOpen] = useState(false);
+    const [items, setItems] = useState<GetProp<AttachmentsProps, 'items'>>([]);
+    const [text, setText] = useState('');
+    const t = useTranslations('sender');
 
-  const attachmentsRef = useRef<GetRef<typeof Attachments>>(null);
+    const attachmentsRef = useRef<GetRef<typeof Attachments>>(null);
+    const senderRef = useRef<GetRef<typeof Sender>>(null);
 
-  const senderRef = useRef<GetRef<typeof Sender>>(null);
-
-  const senderHeader = (
-    <Sender.Header
-      title={t('attachments')}
-      styles={{
-        content: {
-          padding: 0,
-        },
-      }}
-      open={open}
-      onOpenChange={setOpen}
-      forceRender
-    >
-      <Attachments
-        ref={attachmentsRef}
-        // Mock not real upload file
-        beforeUpload={() => false}
-        items={items}
-        onChange={({ fileList }) => setItems(fileList)}
-        placeholder={(type) =>
-          type === 'drop'
-            ? {
-                title: t('dropFileHere'),
-              }
-            : {
-                icon: <CloudUploadOutlined />,
-                title: t('uploadFiles'),
-                description: t('dragToUpload'),
-              }
-        }
-        getDropContainer={() => senderRef.current?.nativeElement}
-      />
-    </Sender.Header>
-  );
-
-  return (
-    <Sender
-      header={senderHeader}
-      prefix={
-        <Button
-          type="text"
-          icon={<LinkOutlined />}
-          onClick={() => {
-            setOpen(!open);
-          }}
-        />
+    // 处理发送逻辑
+    const handleSend = () => {
+      if (text.trim() && !disabled && !isLoading) {
+        onSend(text);
+        setText('');
       }
-      value={text}
-      onChange={setText}
-      onPasteFile={(file) => {
-        attachmentsRef.current?.upload(file);
-        setOpen(true);
-      }}
-      {...reset}
-    ></Sender>
-  );
-};
+    };
+
+    const senderHeader = (
+      <Sender.Header
+        title={t('attachments')}
+        styles={{
+          content: {
+            padding: 0,
+          },
+        }}
+        open={open}
+        onOpenChange={setOpen}
+        forceRender
+      >
+        <Attachments
+          ref={attachmentsRef}
+          beforeUpload={() => false}
+          items={items}
+          onChange={({ fileList }) => setItems(fileList)}
+          placeholder={(type) =>
+            type === 'drop'
+              ? {
+                  title: t('dropFileHere'),
+                }
+              : {
+                  icon: <CloudUploadOutlined />,
+                  title: t('uploadFiles'),
+                  description: t('dragToUpload'),
+                }
+          }
+          getDropContainer={() => senderRef.current?.nativeElement}
+        />
+      </Sender.Header>
+    );
+
+    return (
+      <Sender
+        {...rest}
+        header={senderHeader}
+        prefix={
+          <Button
+            type="text"
+            icon={<LinkOutlined />}
+            onClick={() => {
+              setOpen(!open);
+            }}
+          />
+        }
+        value={text}
+        onChange={setText}
+        onPasteFile={(file) => {
+          attachmentsRef.current?.upload(file);
+          setOpen(true);
+        }}
+        actions={
+          <Button
+            type="primary"
+            onClick={handleSend}
+            disabled={!text.trim() || disabled || isLoading}
+            loading={isLoading}
+          >
+            {t('send')}
+          </Button>
+        }
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+          }
+        }}
+        placeholder={placeholder}
+        disabled={disabled}
+        ref={ref}
+      />
+    );
+  },
+);
 
 export default SenderInput;

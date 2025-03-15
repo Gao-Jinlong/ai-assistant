@@ -10,13 +10,6 @@ export interface ConversationListProps {
 export default function ConversationList({ items }: ConversationListProps) {
   const { token } = theme.useToken();
 
-  // Customize the style of the container
-  const style = {
-    width: 256,
-    background: token.colorBgContainer,
-    borderRadius: token.borderRadius,
-  };
-
   const groupable: GetProp<typeof Conversations, 'groupable'> = {
     sort(a, b) {
       if (a === b) return 0;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@web/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@web/components/ui/avatar';
 import {
@@ -10,26 +10,46 @@ import {
   CardDescription,
   CardContent,
 } from '@web/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@web/components/ui/dialog';
 import { getUserPayload, useAuth } from '@web/contexts/auth-context';
 import { useRouter } from 'next/navigation';
-import { trpc } from '../trpc';
+import { trpc } from '../../trpc';
+import { useTranslations, useLocale } from 'next-intl';
 
 export default function Dashboard() {
   const { payload, loading, logout } = useAuth();
   const router = useRouter();
+  const locale = useLocale();
+  const t = useTranslations('dashboard');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !payload && !getUserPayload()) {
-      router.push('/login');
+      router.push(`/${locale}/login`);
     }
-  }, [loading, payload, router, getUserPayload]);
+  }, [loading, payload, router, locale, getUserPayload]);
 
-  const { mutate: deleteUser } = trpc.user.delete.useMutation();
+  const { mutate: deleteUser } = trpc.user.delete.useMutation({
+    onSuccess: () => {
+      logout();
+      router.push(`/${locale}`);
+    },
+    onError: (error) => {
+      console.error('删除账号失败:', error);
+    },
+  });
 
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        加载中...
+        {t('loading')}
       </div>
     );
   }
@@ -45,9 +65,9 @@ export default function Dashboard() {
   return (
     <div className="p-8 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">用户仪表盘</h1>
+        <h1 className="text-3xl font-bold">{t('title')}</h1>
         <Button variant="outline" onClick={logout}>
-          退出登录
+          {t('logout')}
         </Button>
       </div>
 
@@ -67,48 +87,72 @@ export default function Dashboard() {
             <CardDescription>{user.email}</CardDescription>
           </CardHeader>
           <CardContent className="text-center">
-            <p>欢迎回来！这是您的个人仪表盘。</p>
+            <p>{t('welcome')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>最近活动</CardTitle>
+            <CardTitle>{t('recentActivity')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-500">暂无活动记录</p>
+            <p className="text-gray-500">{t('noActivity')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>账户信息</CardTitle>
+            <CardTitle>{t('accountInfo')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-gray-500">用户ID:</span>
+                <span className="text-gray-500">{t('userId')}:</span>
                 <span>{user.id}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">账号状态:</span>
-                <span className="text-green-600">正常</span>
+                <span className="text-gray-500">{t('accountStatus')}:</span>
+                <span className="text-green-600">{t('statusNormal')}</span>
               </div>
 
               <div>
                 <Button
                   variant="destructive"
-                  onClick={() => {
-                    deleteUser(user.uid);
-                  }}
+                  onClick={() => setDeleteDialogOpen(true)}
                 >
-                  删除账号
+                  {t('deleteAccount')}
                 </Button>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('deleteAccountTitle')}</DialogTitle>
+            <DialogDescription>{t('deleteAccountConfirm')}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex items-center justify-end space-x-2">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              {t('cancel')}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                deleteUser(user.uid);
+                setDeleteDialogOpen(false);
+              }}
+            >
+              {t('confirm')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
