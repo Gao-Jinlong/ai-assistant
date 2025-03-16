@@ -13,6 +13,7 @@ import { Skeleton } from '@web/components/ui/skeleton';
 import { Button } from '@web/components/ui/button';
 import { GetRef } from 'antd';
 import { Sender } from '@ant-design/x';
+import { cn } from '@web/lib/utils';
 
 export default function ChatPage() {
   const { payload, loading: authLoading } = useAuth();
@@ -126,8 +127,8 @@ export default function ChatPage() {
 
   if (authLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="space-y-4 w-full max-w-md">
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="w-full max-w-md space-y-4">
           <Skeleton className="h-12 w-full" />
           <Skeleton className="h-32 w-full" />
           <Skeleton className="h-12 w-full" />
@@ -137,14 +138,15 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-1 h-screen bg-gray-50">
+    <div className="flex h-screen flex-1 bg-gray-50">
       {/* 侧边栏 */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 transition-transform transform bg-white border-r border-gray-200 md:relative md:translate-x-0 ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={cn(
+          'fixed inset-y-0 left-0 z-50 flex w-64 transform flex-col border-r border-gray-200 bg-white transition-transform md:relative md:translate-x-0',
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full',
+        )}
       >
-        <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center justify-between border-b p-4">
           <h2 className="text-xl font-semibold">{t('conversations')}</h2>
           <Button
             variant="ghost"
@@ -167,15 +169,15 @@ export default function ChatPage() {
           </Button>
         </div>
 
-        <div className="overflow-y-auto h-[calc(100%-120px)]">
+        <div className="h-full flex-1 overflow-y-auto">
           <ConversationList items={[]} />
         </div>
       </div>
 
       {/* 主内容区 */}
-      <div className="flex flex-col flex-1 h-full overflow-hidden">
+      <div className="flex h-full flex-1 flex-col items-center justify-center overflow-hidden">
         {/* 顶部栏 */}
-        <div className="flex items-center p-4 border-b bg-white">
+        <div className="flex w-full items-center border-b bg-white p-4">
           <Button
             variant="ghost"
             size="icon"
@@ -188,23 +190,22 @@ export default function ChatPage() {
         </div>
 
         {/* 聊天窗口 */}
-        <div className="flex-1 overflow-hidden">
+        <div className="w-full flex-1 overflow-hidden p-4">
           <ChatWindow messages={messages} />
           <div ref={messagesEndRef} />
         </div>
 
         {/* 输入区域 */}
-        <div className="border-t border-gray-200 p-4 bg-white">
-          <SenderInput
-            onSend={handleSend}
-            placeholder={t('typeMessage', {
-              defaultValue: 'Type a message...',
-            })}
-            ref={senderRef}
-            disabled={isSending}
-            isLoading={isSending}
-          />
-        </div>
+        <SenderInput
+          className="mb-12 w-1/2 rounded-lg border border-gray-200 bg-white p-4"
+          onSend={handleSend}
+          placeholder={t('typeMessage', {
+            defaultValue: 'Type a message...',
+          })}
+          ref={senderRef}
+          disabled={isSending}
+          isLoading={isSending}
+        />
       </div>
     </div>
   );

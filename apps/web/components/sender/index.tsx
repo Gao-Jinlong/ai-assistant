@@ -9,16 +9,18 @@ import {
 import { Button, GetProp, GetRef } from 'antd';
 import React, { FC, useRef, useState, forwardRef } from 'react';
 import { useTranslations } from 'next-intl';
+import { cn } from '@web/lib/utils';
 
 // 创建一个扩展接口
 interface CustomSenderProps extends Omit<SenderProps, 'onSend'> {
   onSend: (text: string) => void | Promise<void>;
   disabled?: boolean;
   isLoading?: boolean;
+  className?: string;
 }
 
 const SenderInput = forwardRef<GetRef<typeof Sender>, CustomSenderProps>(
-  ({ onSend, placeholder, disabled, isLoading, ...rest }, ref) => {
+  ({ onSend, placeholder, disabled, isLoading, className, ...rest }, ref) => {
     const [open, setOpen] = useState(false);
     const [items, setItems] = useState<GetProp<AttachmentsProps, 'items'>>([]);
     const [text, setText] = useState('');
@@ -103,6 +105,7 @@ const SenderInput = forwardRef<GetRef<typeof Sender>, CustomSenderProps>(
             handleSend();
           }
         }}
+        className={cn(className)}
         placeholder={placeholder}
         disabled={disabled}
         ref={ref}

@@ -70,6 +70,8 @@
     "deleteAccountConfirm": "您确定要删除您的账号吗？此操作不可恢复！",
     "deleteAccountTitle": "删除账号",
     "cancel": "取消",
-    "confirm": "确认"
+    "confirm": "确认",
+    "coach": "个人教练",
+    "chat": "聊天"
   }
 }

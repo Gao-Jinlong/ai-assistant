@@ -70,6 +70,8 @@
     "deleteAccountConfirm": "Are you sure you want to delete your account? This action cannot be undone!",
     "deleteAccountTitle": "Delete Account",
     "cancel": "Cancel",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "coach": "Coach",
+    "chat": "Chat"
   }
 }

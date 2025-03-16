@@ -48,7 +48,7 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className="flex min-h-screen items-center justify-center">
         {t('loading')}
       </div>
     );
@@ -63,18 +63,18 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
+    <div className="mx-auto max-w-6xl p-8">
+      <div className="mb-8 flex items-center justify-between">
         <h1 className="text-3xl font-bold">{t('title')}</h1>
         <Button variant="outline" onClick={logout}>
           {t('logout')}
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-col items-center">
-            <Avatar className="h-24 w-24 mb-4">
+            <Avatar className="mb-4 h-24 w-24">
               <AvatarImage
                 src={user.avatar ?? undefined}
                 alt={user.name ?? undefined}
@@ -124,6 +124,20 @@ export default function Dashboard() {
                 </Button>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('coach')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Button
+              variant="outline"
+              onClick={() => router.push(`/${locale}/chat`)}
+            >
+              {t('chat')}
+            </Button>
           </CardContent>
         </Card>
       </div>

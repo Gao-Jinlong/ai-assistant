@@ -2,6 +2,7 @@
 import { UserOutlined } from '@ant-design/icons';
 import { Bubble } from '@ant-design/x';
 import type { BubbleProps } from '@ant-design/x';
+import { cn } from '@web/lib/utils';
 import { Typography } from 'antd';
 import markdownit from 'markdown-it';
 /* eslint-disable react/no-danger */
@@ -38,9 +39,12 @@ const ChatWindow: FC<ChatWindowProps> = ({ messages }) => {
   const [renderKey, setRenderKey] = React.useState(0);
 
   React.useEffect(() => {
-    const id = setTimeout(() => {
-      setRenderKey((prev) => prev + 1);
-    }, text.length * 100 + 2000);
+    const id = setTimeout(
+      () => {
+        setRenderKey((prev) => prev + 1);
+      },
+      text.length * 100 + 2000,
+    );
 
     return () => {
       clearTimeout(id);
@@ -48,7 +52,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ messages }) => {
   }, [renderKey]);
 
   return (
-    <div key={renderKey}>
+    <div key={renderKey} className={cn('w-full')}>
       <Bubble
         typing
         content={text}
