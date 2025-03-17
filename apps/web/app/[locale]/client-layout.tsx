@@ -17,7 +17,10 @@ export default function ClientLayout({
     <TrpcProvider>
       <AuthProvider>
         <div className="flex h-screen w-screen flex-col">
-          <Link href="/dashboard" className="flex w-full p-2 font-bold">
+          <Link
+            href="/dashboard"
+            className="flex w-full border-b p-2 font-bold"
+          >
             <Image
               src="https://ginlon-bucket-01.oss-cn-shanghai.aliyuncs.com/favicon.svg"
               alt="logo"

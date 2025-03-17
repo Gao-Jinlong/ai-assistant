@@ -1,7 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-export const createConversationSchema = z.object({
+export const conversationSchema = z.object({
   userUid: z.string(),
   /** 存储类型 */
   storageType: z.enum(['LOCAL', 'S3']),
@@ -19,6 +19,9 @@ export const createConversationSchema = z.object({
   totalTokens: z.number().optional(),
   /** 总延迟(ms) */
   totalLatency: z.number().optional(),
+});
+export const createConversationSchema = conversationSchema.pick({
+  title: true,
 });
 
 export class CreateConversationDto extends createZodDto(

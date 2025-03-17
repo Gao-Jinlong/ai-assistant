@@ -2,6 +2,7 @@
 
 - [ ] logger 日志系统
 - [ ] nest-cls 上下文管理，用于日志跟踪
+- [ ] @TrpcRouter 装饰器，用于自动注册路由
 
 - [ ] 多 Agent 协作系统
   - [ ] 任务管理器 Agent

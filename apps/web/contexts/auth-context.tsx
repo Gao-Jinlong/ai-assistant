@@ -32,7 +32,7 @@ interface AuthContextType {
   register: (params: RegisterDto) => Promise<RegisterPayload | undefined>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | null>(null);
 
 export const USER_PAYLOAD_KEY = 'userPayload';
 export function AuthProvider({ children }: { children: ReactNode }) {

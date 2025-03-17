@@ -60,7 +60,7 @@ export class PrismaService implements OnModuleInit {
         },
       })
       .$extends({
-        name: 'soft-delete',
+        name: 'undeleted',
         query: {
           $allModels: {
             findFirst: async ({ args, query }) => {
