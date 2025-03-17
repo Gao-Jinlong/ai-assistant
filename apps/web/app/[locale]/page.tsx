@@ -18,8 +18,8 @@ export default function HomePage() {
   const t = useTranslations();
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
-      <div className="absolute top-4 right-4">
+    <div className="flex flex-1 flex-col items-center justify-center bg-gray-50 p-4">
+      <div className="absolute right-4 top-4">
         <LanguageSwitcher />
       </div>
 
@@ -28,15 +28,15 @@ export default function HomePage() {
           <CardTitle className="text-3xl font-bold">
             {t('home.welcome')}
           </CardTitle>
-          <CardDescription className="text-xl mt-2">
+          <CardDescription className="mt-2 text-xl">
             {t('home.description')}
           </CardDescription>
         </CardHeader>
 
         <CardContent className="py-6">
-          <p className="text-gray-600 mb-6">{t('home.startNow')}</p>
+          <p className="mb-6 text-gray-600">{t('home.startNow')}</p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
             <Button asChild size="lg" className="w-full">
               <Link href={`/${locale}/register`}>{t('common.register')}</Link>
             </Button>
@@ -55,7 +55,7 @@ export default function HomePage() {
         </CardFooter>
       </Card>
 
-      <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
+      <div className="mt-12 grid w-full max-w-5xl grid-cols-1 gap-6 md:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle>{t('home.features.easyToUse')}</CardTitle>

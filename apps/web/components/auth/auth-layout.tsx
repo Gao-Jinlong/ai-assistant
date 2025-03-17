@@ -22,8 +22,8 @@ export function AuthLayout({
   footer,
 }: AuthLayoutProps) {
   return (
-    <div className="flex flex-1 items-center justify-center min-h-screen bg-gray-50">
-      <Card className="w-full max-w-md mx-4">
+    <div className="flex flex-1 items-center justify-center bg-gray-50">
+      <Card className="mx-4 w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-bold">{title}</CardTitle>
           {description && <CardDescription>{description}</CardDescription>}

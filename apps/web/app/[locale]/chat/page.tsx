@@ -127,7 +127,7 @@ export default function ChatPage() {
 
   if (authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex items-center justify-center">
         <div className="w-full max-w-md space-y-4">
           <Skeleton className="h-12 w-full" />
           <Skeleton className="h-32 w-full" />
@@ -138,7 +138,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex h-screen flex-1 bg-gray-50">
+    <div className="flex flex-1 bg-gray-50">
       {/* 侧边栏 */}
       <div
         className={cn(
@@ -170,7 +170,20 @@ export default function ChatPage() {
         </div>
 
         <div className="h-full flex-1 overflow-y-auto">
-          <ConversationList items={[]} />
+          <ConversationList
+            items={[
+              {
+                group: '1',
+                label: 'test1',
+                key: '1',
+              },
+              {
+                group: '1',
+                label: 'test1',
+                key: '2',
+              },
+            ]}
+          />
         </div>
       </div>
 

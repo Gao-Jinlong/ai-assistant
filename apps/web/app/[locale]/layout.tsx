@@ -1,9 +1,10 @@
 import { Geist, Geist_Mono } from 'next/font/google';
 import '../globals.css';
-import { NextIntlClientProvider } from 'next-intl';
+import { NextIntlClientProvider, useTranslations } from 'next-intl';
 import { getMessages } from '@web/i18n/getMessages';
 import ClientLayout from './client-layout';
 import 'allotment/dist/style.css';
+import { cn } from '@web/lib/utils';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -41,10 +42,8 @@ export default async function RootLayout({
   const messages = await getMessages(locale);
 
   return (
-    <html lang={locale}>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} w-screen h-screen flex antialiased`}
-      >
+    <html lang={locale} suppressHydrationWarning>
+      <body className={cn(geistSans.variable, geistMono.variable)}>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <ClientLayout>{children}</ClientLayout>
         </NextIntlClientProvider>
