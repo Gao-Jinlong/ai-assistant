@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { TrpcService } from '@server/trpc/trpc.service';
-import {  createConversationSchema } from './dto/create-conversation.dto';
+import { createConversationSchema } from './dto/create-conversation.dto';
 import { ConversationService } from './conversation.service';
 import { z } from 'zod';
 
@@ -17,15 +17,19 @@ export class ConversationRouter {
         .mutation(async ({ input }) => {
           return this.conversationService.create(input);
         }),
-      delete: this.trpc.procedure.input(z.string()).mutation(async ({ input }) => {
-        return this.conversationService.delete(input);
-      }),
+      remove: this.trpc.procedure
+        .input(z.string())
+        .mutation(async ({ input }) => {
+          return this.conversationService.remove(input);
+        }),
       findAll: this.trpc.procedure.query(async () => {
         return this.conversationService.findAll();
       }),
-      findOne: this.trpc.procedure.input(z.string()).query(async ({ input }) => {
-        return this.conversationService.findOne(input);
-      }),
+      findOne: this.trpc.procedure
+        .input(z.string())
+        .query(async ({ input }) => {
+          return this.conversationService.findOne(input);
+        }),
     });
   }
 }

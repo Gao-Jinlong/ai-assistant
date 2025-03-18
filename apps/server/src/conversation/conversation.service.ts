@@ -4,7 +4,7 @@ import { CreateConversationDto } from './dto/create-conversation.dto';
 import { StorageService } from '@server/storage/storage.service';
 import { ClsService } from 'nestjs-cls';
 import { $Enums, Prisma, PrismaClient } from '@prisma/client';
-
+import { omit } from 'es-toolkit';
 
 declare module 'nestjs-cls' {
   interface ClsStore {
@@ -17,8 +17,7 @@ export class ConversationService {
     private readonly storageService: StorageService,
     private readonly prisma: PrismaService,
     private readonly cls: ClsService,
-  ) { }
-
+  ) {}
 
   async create(dto: CreateConversationDto) {
     const user = this.cls.get('user')!;
@@ -30,20 +29,20 @@ export class ConversationService {
       storageType: $Enums.StorageType.LOCAL,
       storagePath: '',
       status: $Enums.ConversationStatus.ACTIVE,
-    }
+    };
 
     const conversation = await this.prisma.db.conversation.create({
       data,
     });
     this.cls.set('conversation', conversation);
 
-    return conversation;
+    return omit(conversation, ['deleted', 'updatedAt']);
   }
 
   // TODO 分页
   async findAll() {
     const result = await this.prisma.db.conversation.findMany();
-    return result
+    return result;
   }
 
   async findOne(conversationUid: string) {
@@ -52,7 +51,7 @@ export class ConversationService {
     });
   }
 
-  async delete(conversationUid: string) {
+  async remove(conversationUid: string) {
     const result = await this.prisma.db.conversation.update({
       where: { uid: conversationUid },
       data: {
@@ -91,5 +90,4 @@ export class ConversationService {
       },
     });
   }
-
 }

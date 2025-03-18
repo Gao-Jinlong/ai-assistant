@@ -73,5 +73,25 @@
     "confirm": "确认",
     "coach": "个人教练",
     "chat": "聊天"
+  },
+  "conversationList": {
+    "delete": "删除"
+  },
+  "errors": {
+    "defaultTitle": "发生错误",
+    "authTitle": "认证错误",
+    "validationTitle": "验证错误",
+    "retry": "重试",
+    "close": "关闭",
+    "unknown": "发生未知错误",
+    "network": "网络连接错误",
+    "timeout": "请求超时",
+    "server": "服务器内部错误",
+    "unauthorized": "请先登录",
+    "forbidden": "没有权限执行此操作",
+    "notFound": "未找到请求的资源",
+    "validation": "输入数据验证失败",
+    "conflict": "操作导致数据冲突",
+    "rateLimited": "请求频率过高，请稍后再试"
   }
 }

@@ -1,10 +1,11 @@
 'use client';
 
 import { AuthProvider } from '@web/contexts/auth-context';
-import { TrpcProvider } from '@web/contexts/trpc-context';
+import { Toaster } from '@web/components/ui/sonner';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import Link from 'next/link';
+import { TrpcProvider } from '@web/contexts/trpc-context';
 
 export default function ClientLayout({
   children,
@@ -32,6 +33,7 @@ export default function ClientLayout({
           </Link>
           <div className="flex flex-1">{children}</div>
         </div>
+        <Toaster />
       </AuthProvider>
     </TrpcProvider>
   );

@@ -73,5 +73,22 @@
     "confirm": "Confirm",
     "coach": "Coach",
     "chat": "Chat"
+  },
+  "errors": {
+    "defaultTitle": "Error Occurred",
+    "authTitle": "Authentication Error",
+    "validationTitle": "Validation Error",
+    "retry": "Retry",
+    "close": "Close",
+    "unknown": "An unknown error occurred",
+    "network": "Network connection error",
+    "timeout": "Request timed out",
+    "server": "Internal server error",
+    "unauthorized": "Please login first",
+    "forbidden": "You don't have permission to perform this action",
+    "notFound": "Requested resource not found",
+    "validation": "Data validation failed",
+    "conflict": "Operation caused a data conflict",
+    "rateLimited": "Too many requests, please try again later"
   }
 }

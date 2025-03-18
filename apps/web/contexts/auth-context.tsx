@@ -10,7 +10,6 @@ import {
 import { trpc } from '@web/app/trpc';
 import { useRouter } from 'next/navigation';
 import { useLocalStorage } from 'usehooks-ts';
-import { TRPCContext } from '@web/contexts/trpc-context';
 
 export type LoginDto = Parameters<
   ReturnType<typeof trpc.user.login.useMutation>['mutate']
@@ -43,9 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     null,
   );
 
-  const trpcContext = useContext(TRPCContext);
-
-  const userMutation = trpcContext?.client.user.login.useMutation({
+  const userMutation = trpc.user.login.useMutation({
     onSuccess: (data) => {
       setStorage(data);
       return data;

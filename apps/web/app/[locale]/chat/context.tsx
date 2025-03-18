@@ -3,10 +3,12 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { trpc } from '@web/app/trpc';
 import { Conversation } from '@ant-design/x/es/conversations';
 import dayjs from 'dayjs';
+import { message } from 'antd';
 export type ConversationContextType = {
   query: ReturnType<typeof trpc.conversation.findAll.useQuery>;
   create: ReturnType<typeof trpc.conversation.create.useMutation>;
   list: Conversation[];
+  remove: ReturnType<typeof trpc.conversation.remove.useMutation>;
 };
 
 export const ConversationContext =
@@ -19,6 +21,7 @@ export const ConversationProvider = ({
 }) => {
   const query = trpc.conversation.findAll.useQuery();
   const create = trpc.conversation.create.useMutation();
+  const remove = trpc.conversation.remove.useMutation();
 
   useEffect(() => {
     query.refetch();
@@ -31,12 +34,16 @@ export const ConversationProvider = ({
         label: item.title,
         key: item.uid,
         timestamp: dayjs(item.createdAt).unix(),
+        data: item,
       })) || [];
     return data;
   }, [query.data]);
 
+  const [currentConversation, setCurrentConversation] =
+    useState<Conversation | null>(null);
+
   return (
-    <ConversationContext.Provider value={{ query, create, list }}>
+    <ConversationContext.Provider value={{ query, create, list, remove }}>
       {children}
     </ConversationContext.Provider>
   );
