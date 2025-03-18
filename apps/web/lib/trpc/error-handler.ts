@@ -93,9 +93,9 @@ export function handleTRPCError(error: unknown): {
 // 显示错误提示
 export function showErrorToast(error: unknown, i18nMessage?: string) {
   const { message } = handleTRPCError(error);
-  toast({
-    variant: 'destructive',
-    title: '错误',
-    description: i18nMessage || message,
-  });
+  // toast({
+  //   variant: 'destructive',
+  //   title: '错误',
+  //   description: i18nMessage || message,
+  // });
 }
