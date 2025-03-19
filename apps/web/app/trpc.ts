@@ -27,7 +27,7 @@ export const trpc = createTRPCNext<AppRouter>({
   },
 });
 
-export const trpcClient = createTRPCReact<AppRouter>();
+export const trpcClient = createTRPCReact<AppRouter>({});
 
 export function initTrpc() {
   return trpcClient.createClient({

@@ -8,6 +8,7 @@ import ChatWindow, { MessageType } from '@web/components/chat-window';
 import SenderInput from '@web/components/sender';
 import { GetRef } from 'antd';
 import { Sender } from '@ant-design/x';
+import { useConversation } from './context';
 
 interface ChatContainerProps {
   messages: MessageType[];
@@ -25,20 +26,15 @@ export function ChatContainer({
   const t = useTranslations('chat');
   const senderRef = useRef<GetRef<typeof Sender>>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { currentConversation } = useConversation();
 
   return (
     <div className="flex h-full flex-1 flex-col items-center justify-center overflow-hidden">
       {/* 顶部栏 */}
-      <div className="flex w-full items-center border-b bg-white p-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onOpenSidebar}
-          className="mr-2 md:hidden"
-        >
-          <Menu size={20} />
-        </Button>
-        <h1 className="font-semibold">{t('chatTitle')}</h1>
+      <div className="flex w-full items-center justify-center border-b bg-white p-2">
+        <h2 className="font-semibold">
+          {currentConversation?.data?.title ?? t('chatTitle')}
+        </h2>
       </div>
 
       {/* 聊天窗口 */}

@@ -1,14 +1,27 @@
 'use client';
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  Dispatch,
+  SetStateAction,
+  useCallback,
+} from 'react';
 import { trpc } from '@web/app/trpc';
 import { Conversation } from '@ant-design/x/es/conversations';
 import dayjs from 'dayjs';
 import { message } from 'antd';
+import { IConversation } from './interface';
 export type ConversationContextType = {
-  query: ReturnType<typeof trpc.conversation.findAll.useQuery>;
+  query: ReturnType<typeof trpc.conversation.findAll.useMutation>;
   create: ReturnType<typeof trpc.conversation.create.useMutation>;
-  list: Conversation[];
+  list: IConversation[];
   remove: ReturnType<typeof trpc.conversation.remove.useMutation>;
+  currentKey: string | undefined;
+  setCurrentKey: Dispatch<SetStateAction<string | undefined>>;
+  currentConversation: IConversation | undefined;
 };
 
 export const ConversationContext =
@@ -19,16 +32,17 @@ export const ConversationProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const query = trpc.conversation.findAll.useQuery();
+  // FIXME useMutation 可以正确推理类型， useQuery 不能
+  const query = trpc.conversation.findAll.useMutation();
   const create = trpc.conversation.create.useMutation();
   const remove = trpc.conversation.remove.useMutation();
 
   useEffect(() => {
-    query.refetch();
+    query.mutate();
   }, []);
 
   const list = useMemo(() => {
-    const data: Conversation[] =
+    const data: IConversation[] =
       query.data?.map((item) => ({
         group: dayjs(item.createdAt).format('YYYY-MM-DD'),
         label: item.title,
@@ -39,11 +53,24 @@ export const ConversationProvider = ({
     return data;
   }, [query.data]);
 
-  const [currentConversation, setCurrentConversation] =
-    useState<Conversation | null>(null);
+  const [currentKey, setCurrentKey] = useState<string>();
+
+  const currentConversation = useMemo(() => {
+    return list.find((item) => item.key === currentKey);
+  }, [currentKey, list]);
 
   return (
-    <ConversationContext.Provider value={{ query, create, list, remove }}>
+    <ConversationContext.Provider
+      value={{
+        query,
+        create,
+        list,
+        remove,
+        currentKey,
+        setCurrentKey,
+        currentConversation,
+      }}
+    >
       {children}
     </ConversationContext.Provider>
   );

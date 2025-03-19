@@ -8,8 +8,6 @@ import { cn } from '@web/lib/utils';
 import { useConversation } from './context';
 import { useAuth } from '@web/contexts/auth-context';
 import { useCallback } from 'react';
-import { ConversationsProps } from '@ant-design/x';
-import { EditOutlined, StopOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Conversation } from '@ant-design/x/es/conversations';
 
 interface ConversationSidebarProps {
@@ -24,22 +22,35 @@ export function ConversationSidebar({
   const t = useTranslations('chat');
 
   const { payload } = useAuth()!;
-  const { query, create, list, remove } = useConversation();
+
+  const {
+    query,
+    create,
+    list,
+    remove,
+    currentKey,
+    currentConversation,
+    setCurrentKey,
+  } = useConversation();
 
   const handleCreate = useCallback(async () => {
     if (!payload) return;
 
-    const conversation = await create.mutateAsync({
-      title: 'New Chat',
-    });
+    if (!currentConversation?.data?.lastMessage) {
+      setCurrentKey(undefined);
+    }
 
-    await query.refetch();
+    // const conversation = await create.mutateAsync({
+    //   title: 'New Chat',
+    // });
+
+    // await query.refetch();
   }, [create, payload?.user.uid]);
 
   const handleDelete = useCallback(
     async (conversation: Conversation) => {
-      await remove.mutateAsync(conversation.uid);
-      await query.refetch();
+      await remove.mutateAsync(conversation.key);
+      await query.mutateAsync();
     },
     [remove, payload?.user.uid],
   );
@@ -75,7 +86,12 @@ export function ConversationSidebar({
       </div>
 
       <div className="h-full flex-1 overflow-y-auto">
-        <ConversationList items={list} onDelete={handleDelete} />
+        <ConversationList
+          items={list}
+          activeKey={currentKey}
+          onDelete={handleDelete}
+          onActiveChange={setCurrentKey}
+        />
       </div>
     </div>
   );

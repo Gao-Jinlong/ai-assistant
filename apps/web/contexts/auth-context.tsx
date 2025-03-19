@@ -54,14 +54,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(async (params: LoginDto) => {
     if (typeof window === 'undefined') return;
 
-    try {
-      const result = await userMutation?.mutateAsync(params);
-      setStorage(result);
-      return result;
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    }
+    const result = await userMutation?.mutateAsync(params);
+    setStorage(result);
+    return result;
   }, []);
 
   const logout = useCallback(() => {

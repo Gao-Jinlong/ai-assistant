@@ -22,12 +22,12 @@ export class ConversationRouter {
         .mutation(async ({ input }) => {
           return this.conversationService.remove(input);
         }),
-      findAll: this.trpc.procedure.query(async () => {
+      findAll: this.trpc.procedure.mutation(async () => {
         return this.conversationService.findAll();
       }),
       findOne: this.trpc.procedure
         .input(z.string())
-        .query(async ({ input }) => {
+        .mutation(async ({ input }) => {
           return this.conversationService.findOne(input);
         }),
     });

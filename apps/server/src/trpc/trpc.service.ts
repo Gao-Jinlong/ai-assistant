@@ -3,7 +3,7 @@ import {
   OnModuleInit,
   UnauthorizedException,
 } from '@nestjs/common';
-import { initTRPC } from '@trpc/server';
+import { initTRPC, TRPCError } from '@trpc/server';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { ConfigService } from '@nestjs/config';
 import { AuthService, JwtPayload } from '@server/auth/auth.service';
@@ -16,16 +16,52 @@ declare module 'nestjs-cls' {
 }
 @Injectable()
 export class TrpcService implements OnModuleInit {
-  private trpc = initTRPC.context<{ user: JwtPayload | null }>().create();
+  private trpc = initTRPC.context<{ token: string | null }>().create({
+    errorFormatter({ shape, error }) {
+      let httpCode: number;
+      switch (error.code) {
+        case 'UNAUTHORIZED':
+          httpCode = 401;
+          break;
+        case 'FORBIDDEN':
+          httpCode = 403;
+          break;
+        case 'NOT_FOUND':
+          httpCode = 404;
+          break;
+        case 'TIMEOUT':
+          httpCode = 408;
+          break;
+        case 'CONFLICT':
+          httpCode = 409;
+          break;
+        case 'BAD_REQUEST':
+          httpCode = 400;
+          break;
+        default:
+          httpCode = 500;
+      }
+      return {
+        code: httpCode,
+        data: {},
+        message: error.message,
+      };
+    },
+  });
 
   /**
    * 需要登录的路由
    */
   public procedure = this.trpc.procedure.use(async ({ ctx, next }) => {
-    if (!ctx.user) {
-      // throw new UnauthorizedException();
+    if (!ctx.token) {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: '请先登录',
+      });
     }
+    const decoded = await this.auth.validateToken(ctx.token);
 
+    this.cls.set('user', decoded);
     return next({ ctx });
   });
 
@@ -41,9 +77,22 @@ export class TrpcService implements OnModuleInit {
     private auth: AuthService,
     private cls: ClsService,
   ) {}
+
   onModuleInit() {
+    // 添加全局中间件，确保错误格式化正确应用
     this.trpc.middleware(async ({ ctx, next }) => {
-      return next({ ctx });
+      try {
+        return await next({ ctx });
+      } catch (error) {
+        // 确保身份验证错误被正确转换为UNAUTHORIZED
+        if (error instanceof UnauthorizedException) {
+          throw new TRPCError({
+            code: 'UNAUTHORIZED',
+            message: error.message || 'Unauthorized Access',
+          });
+        }
+        throw error;
+      }
     });
   }
 
@@ -51,16 +100,13 @@ export class TrpcService implements OnModuleInit {
     const authorization = opts.req.headers.authorization;
     if (!authorization) {
       return {
-        user: null,
+        token: null,
       };
     }
     const token = authorization.split(' ')[1];
-    const decoded = await this.auth.validateToken(token);
-
-    this.cls.set('user', decoded);
 
     return {
-      user: decoded,
+      token,
     };
   }
 }

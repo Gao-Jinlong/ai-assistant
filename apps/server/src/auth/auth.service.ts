@@ -5,6 +5,7 @@ import * as bcrypt from 'bcryptjs';
 import { User } from '@prisma/client';
 import { LoginDto } from '@server/user/dto/login.dto';
 import { ConfigService } from '@nestjs/config';
+import { TRPCError } from '@trpc/server';
 
 export interface JwtPayload {
   email: string;
@@ -21,7 +22,10 @@ export class AuthService {
 
   async validateUser(user: User, loginDto: LoginDto) {
     if (!user) {
-      throw new UnauthorizedException();
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'Invalid User',
+      });
     }
 
     const isPasswordValid = await bcrypt.compare(
@@ -29,7 +33,10 @@ export class AuthService {
       user.password,
     );
     if (!isPasswordValid) {
-      throw new UnauthorizedException();
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'Invalid Password',
+      });
     }
 
     const { password: _, ...result } = user;
@@ -56,7 +63,10 @@ export class AuthService {
       return decoded;
     } catch (error) {
       // TODO 记录日志
-      throw new UnauthorizedException('Invalid token');
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'Invalid token',
+      });
     }
   }
 }
