@@ -58,26 +58,17 @@ export function ConversationSidebar({
   return (
     <div
       className={cn(
-        'fixed inset-y-0 left-0 z-50 flex w-64 transform flex-col border-r border-gray-200 bg-white transition-transform md:relative md:translate-x-0',
+        'inset-y-0 left-0 z-50 flex h-full flex-1 transform flex-col justify-start border-r border-gray-200 bg-white transition-transform md:relative md:translate-x-0',
         isSidebarOpen ? 'translate-x-0' : '-translate-x-full',
       )}
     >
-      <div className="flex items-center justify-between border-b p-2">
+      <div className="flex flex-1 items-center justify-between border-b p-2">
         <h2 className="font-semibold">{t('conversations')}</h2>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onCloseSidebar}
-          className="md:hidden"
-        >
-          <X size={20} />
-        </Button>
       </div>
 
-      <div className="p-3">
+      <div className="flex p-3">
         <Button
-          variant="outline"
-          className="w-full justify-start gap-2"
+          className="flex w-full max-w-52 justify-center gap-2"
           onClick={handleCreate}
         >
           <PlusCircle size={18} />
@@ -85,7 +76,7 @@ export function ConversationSidebar({
         </Button>
       </div>
 
-      <div className="h-full flex-1 overflow-y-auto">
+      <div className="h-full overflow-y-auto">
         <ConversationList
           items={list}
           activeKey={currentKey}

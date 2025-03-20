@@ -1,32 +1,155 @@
 'use client';
 
-import { useRef } from 'react';
-import { Button } from '@web/components/ui/button';
-import { Menu } from 'lucide-react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import ChatWindow, { MessageType } from '@web/components/chat-window';
+import MessageList, { MessageType } from '@web/components/message-list';
 import SenderInput from '@web/components/sender';
-import { GetRef } from 'antd';
-import { Sender } from '@ant-design/x';
+import { GetProp, GetRef, Space } from 'antd';
+import { Prompts, Sender, Welcome } from '@ant-design/x';
 import { useConversation } from './context';
+import {
+  CommentOutlined,
+  EllipsisOutlined,
+  FireOutlined,
+  HeartOutlined,
+  ReadOutlined,
+  ShareAltOutlined,
+  SmileOutlined,
+} from '@ant-design/icons';
+import { Button } from '@web/components/ui/button';
+import BrandLogo from '@web/components/BrandLogo';
+import { BubbleDataType } from '@ant-design/x/es/bubble/BubbleList';
+
+const renderTitle = (icon: React.ReactElement, title: string) => (
+  <Space align="start">
+    {icon}
+    <span>{title}</span>
+  </Space>
+);
+
+const placeholderPromptsItems: GetProp<typeof Prompts, 'items'> = [
+  {
+    key: '1',
+    label: renderTitle(
+      <FireOutlined style={{ color: '#FF4D4F' }} />,
+      'Hot Topics',
+    ),
+    description: 'What are you interested in?',
+    children: [
+      {
+        key: '1-1',
+        description: `What's new in X?`,
+      },
+      {
+        key: '1-2',
+        description: `What's AGI?`,
+      },
+      {
+        key: '1-3',
+        description: `Where is the doc?`,
+      },
+    ],
+  },
+  {
+    key: '2',
+    label: renderTitle(
+      <ReadOutlined style={{ color: '#1890FF' }} />,
+      'Design Guide',
+    ),
+    description: 'How to design a good product?',
+    children: [
+      {
+        key: '2-1',
+        icon: <HeartOutlined />,
+        description: `Know the well`,
+      },
+      {
+        key: '2-2',
+        icon: <SmileOutlined />,
+        description: `Set the AI role`,
+      },
+      {
+        key: '2-3',
+        icon: <CommentOutlined />,
+        description: `Express the feeling`,
+      },
+    ],
+  },
+];
 
 interface ChatContainerProps {
-  messages: MessageType[];
   isSending: boolean;
-  onSend: (text: string) => Promise<void>;
   onOpenSidebar: () => void;
 }
 
 export function ChatContainer({
-  messages,
   isSending,
-  onSend,
   onOpenSidebar,
 }: ChatContainerProps) {
   const t = useTranslations('chat');
   const senderRef = useRef<GetRef<typeof Sender>>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { currentConversation } = useConversation();
+
+  const [messages, setMessages] = useState<BubbleDataType[]>([]);
+
+  const isNewChat = useMemo(() => {
+    return !messages.length;
+  }, [messages]);
+
+  // ===================== event handlers =====================
+  const onSend = useCallback((text: string) => {
+    setMessages((prev) => [
+      ...prev,
+      {
+        key: String(prev.length + 1),
+        role: 'user',
+        content: text,
+        timestamp: new Date(),
+      },
+      {
+        key: String(prev.length + 2),
+        role: 'bot',
+        content: '你好，我是AI助手，有什么可以帮助你的吗？',
+        timestamp: new Date(),
+      },
+    ]);
+  }, []);
+
+  // ===================== node fragments =====================
+  const placeholderNode = (
+    <Space direction="vertical" size={16}>
+      <Welcome
+        variant="borderless"
+        icon={<BrandLogo />}
+        title={t('welcomeMessage')}
+        description={t('welcomeDescription')}
+        extra={
+          <Space>
+            <Button variant="outline" size="icon">
+              <ShareAltOutlined />
+            </Button>
+            <Button variant="outline" size="icon">
+              <EllipsisOutlined />
+            </Button>
+          </Space>
+        }
+      />
+      <Prompts
+        title="Do you want?"
+        items={placeholderPromptsItems}
+        styles={{
+          list: {
+            width: '100%',
+          },
+          item: {
+            flex: 1,
+          },
+        }}
+        onItemClick={() => {}}
+      />
+    </Space>
+  );
 
   return (
     <div className="flex h-full flex-1 flex-col items-center justify-center overflow-hidden">
@@ -37,10 +160,15 @@ export function ChatContainer({
         </h2>
       </div>
 
-      {/* 聊天窗口 */}
-      <div className="w-full flex-1 overflow-hidden p-4">
-        <ChatWindow messages={messages} />
-        <div ref={messagesEndRef} />
+      <div className="flex w-full flex-1 items-center justify-center overflow-hidden p-4">
+        {isNewChat ? (
+          placeholderNode
+        ) : (
+          <>
+            <MessageList messages={messages} />
+            <div ref={messagesEndRef} />
+          </>
+        )}
       </div>
 
       {/* 输入区域 */}

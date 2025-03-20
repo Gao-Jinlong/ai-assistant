@@ -6,10 +6,11 @@ import {
   Sender,
   SenderProps,
 } from '@ant-design/x';
-import { Button, GetProp, GetRef } from 'antd';
+import { GetProp, GetRef } from 'antd';
 import React, { FC, useRef, useState, forwardRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@web/lib/utils';
+import { Button } from '@web/components/ui/button';
 
 // 创建一个扩展接口
 interface CustomSenderProps extends Omit<SenderProps, 'onSend'> {
@@ -76,12 +77,14 @@ const SenderInput = forwardRef<GetRef<typeof Sender>, CustomSenderProps>(
         header={senderHeader}
         prefix={
           <Button
-            type="text"
-            icon={<LinkOutlined />}
+            variant="ghost"
+            size="icon"
             onClick={() => {
               setOpen(!open);
             }}
-          />
+          >
+            <LinkOutlined />
+          </Button>
         }
         value={text}
         onChange={setText}
@@ -91,10 +94,9 @@ const SenderInput = forwardRef<GetRef<typeof Sender>, CustomSenderProps>(
         }}
         actions={
           <Button
-            type="primary"
+            variant="default"
             onClick={handleSend}
             disabled={!text.trim() || disabled || isLoading}
-            loading={isLoading}
           >
             {t('send')}
           </Button>

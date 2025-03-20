@@ -30,7 +30,8 @@
     "typeMessage": "Type a message...",
     "conversations": "Conversations",
     "chatTitle": "AI Assistant",
-    "sending": "Sending..."
+    "sending": "Sending...",
+    "welcomeDescription": "Enter a message..."
   },
   "home": {
     "welcome": "Welcome to our platform",
