@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { FC, useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import MessageList, { MessageType } from '@web/components/message-list';
 import SenderInput from '@web/components/sender';
@@ -82,14 +82,13 @@ interface ChatContainerProps {
   onOpenSidebar: () => void;
 }
 
-export function ChatContainer({
+export const ChatContainer: FC<ChatContainerProps> = ({
   isSending,
   onOpenSidebar,
-}: ChatContainerProps) {
+}) => {
   const t = useTranslations('chat');
   const senderRef = useRef<GetRef<typeof Sender>>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { currentConversation } = useConversation();
+  const { currentConversation, create, setCurrentKey } = useConversation();
 
   const [messages, setMessages] = useState<BubbleDataType[]>([]);
 
@@ -98,23 +97,14 @@ export function ChatContainer({
   }, [messages]);
 
   // ===================== event handlers =====================
-  const onSend = useCallback((text: string) => {
-    setMessages((prev) => [
-      ...prev,
-      {
-        key: String(prev.length + 1),
-        role: 'user',
-        content: text,
-        timestamp: new Date(),
-      },
-      {
-        key: String(prev.length + 2),
-        role: 'bot',
-        content: '你好，我是AI助手，有什么可以帮助你的吗？',
-        timestamp: new Date(),
-      },
-    ]);
-  }, []);
+  const onSend = useCallback(
+    async (text: string) => {
+      const conversation = await create.mutateAsync({});
+
+      setCurrentKey(conversation.uid);
+    },
+    [create, setCurrentKey],
+  );
 
   // ===================== node fragments =====================
   const placeholderNode = (
@@ -160,15 +150,8 @@ export function ChatContainer({
         </h2>
       </div>
 
-      <div className="flex w-full flex-1 items-center justify-center overflow-hidden p-4">
-        {isNewChat ? (
-          placeholderNode
-        ) : (
-          <>
-            <MessageList messages={messages} />
-            <div ref={messagesEndRef} />
-          </>
-        )}
+      <div className="flex w-full flex-1 items-center justify-center overflow-hidden p-12">
+        {isNewChat ? placeholderNode : <MessageList messages={messages} />}
       </div>
 
       {/* 输入区域 */}
@@ -184,4 +167,6 @@ export function ChatContainer({
       />
     </div>
   );
-}
+};
+
+export default ChatContainer;

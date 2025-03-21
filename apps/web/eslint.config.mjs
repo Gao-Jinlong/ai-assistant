@@ -1,14 +1,14 @@
-import { defineConfig } from 'eslint/config';
-import reactHooks from 'eslint-plugin-react-hooks';
-export default defineConfig([
-  reactHooks.configs['recommended-latest'],
-  {
-    files: ['./app/**/*.ts', './app/**/*.tsx'],
-    rules: {
-      '@typescript-eslint/interface-name-prefix': 'off',
-      '@typescript-eslint/explicit-function-return-type': 'off',
-      '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-explicit-any': 'off',
-    },
-  },
-]);
+import js from '@eslint/js';
+import { FlatCompat } from '@eslint/eslintrc';
+
+const compat = new FlatCompat({
+  // import.meta.dirname is available after Node.js v20.11.0
+  baseDirectory: import.meta.dirname,
+  recommendedConfig: js.configs.recommended,
+});
+const eslintConfig = [
+  ...compat.config({
+    extends: ['eslint:recommended', 'next'],
+  }),
+];
+export default eslintConfig;

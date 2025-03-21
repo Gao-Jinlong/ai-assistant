@@ -5,6 +5,7 @@ import { StorageService } from '@server/storage/storage.service';
 import { ClsService } from 'nestjs-cls';
 import { $Enums, Prisma, PrismaClient } from '@prisma/client';
 import { omit } from 'es-toolkit';
+import { ConfigService } from '@nestjs/config';
 
 declare module 'nestjs-cls' {
   interface ClsStore {
@@ -17,9 +18,10 @@ export class ConversationService {
     private readonly storageService: StorageService,
     private readonly prisma: PrismaService,
     private readonly cls: ClsService,
+    private readonly config: ConfigService,
   ) {}
 
-  async create(dto: CreateConversationDto) {
+  async create(dto: CreateConversationDto, test: boolean = false) {
     const user = this.cls.get('user')!;
 
     const data = {
@@ -27,7 +29,7 @@ export class ConversationService {
       ...dto,
       userUid: user.id,
       storageType: $Enums.StorageType.LOCAL,
-      storagePath: '',
+      storagePath: this.config.get('storage.basePath'),
       status: $Enums.ConversationStatus.ACTIVE,
     };
 
