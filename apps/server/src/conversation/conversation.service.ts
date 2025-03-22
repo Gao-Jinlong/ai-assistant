@@ -21,7 +21,7 @@ export class ConversationService {
     private readonly config: ConfigService,
   ) {}
 
-  async create(dto: CreateConversationDto, test: boolean = false) {
+  async create(dto: CreateConversationDto) {
     const user = this.cls.get('user')!;
 
     const data = {
@@ -36,6 +36,7 @@ export class ConversationService {
     const conversation = await this.prisma.db.conversation.create({
       data,
     });
+
     this.cls.set('conversation', conversation);
 
     return omit(conversation, ['deleted', 'updatedAt']);

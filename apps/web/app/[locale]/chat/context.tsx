@@ -1,5 +1,5 @@
 'use client';
-import {
+import React, {
   createContext,
   useContext,
   useEffect,
@@ -7,12 +7,9 @@ import {
   useState,
   Dispatch,
   SetStateAction,
-  useCallback,
 } from 'react';
 import { trpc } from '@web/app/trpc';
-import { Conversation } from '@ant-design/x/es/conversations';
 import dayjs from 'dayjs';
-import { message } from 'antd';
 import { IConversation } from './interface';
 export type ConversationContextType = {
   query: ReturnType<typeof trpc.conversation.findAll.useMutation>;
@@ -39,7 +36,7 @@ export const ConversationProvider = ({
 
   useEffect(() => {
     query.mutate();
-  }, []);
+  }, [query]);
 
   const list = useMemo(() => {
     const data: IConversation[] =
