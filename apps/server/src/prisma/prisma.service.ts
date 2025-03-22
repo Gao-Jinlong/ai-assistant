@@ -4,26 +4,25 @@ import {
   DynamicClientExtensionThis,
   InternalArgs,
 } from '@prisma/client/runtime/library';
-import { camelCase } from 'es-toolkit';
-import { nanoid } from 'nanoid';
+import { generateUid } from '@server/utils/uid';
 
 // 扩展后的 Prisma Client 类型
 type ExtendedPrismaClient = DynamicClientExtensionThis<
   Prisma.TypeMap<
     InternalArgs & {
-      result: {};
-      model: {};
-      query: {};
-      client: {};
+      result: object;
+      model: object;
+      query: object;
+      client: object;
     },
     Prisma.PrismaClientOptions
   >,
   Prisma.TypeMapCb,
   {
-    model: {};
-    result: {};
-    query: {};
-    client: {};
+    model: object;
+    result: object;
+    query: object;
+    client: object;
   },
   Prisma.PrismaClientOptions
 >;
@@ -51,21 +50,21 @@ export class PrismaService implements OnModuleInit {
         name: 'auto-uid',
         query: {
           $allModels: {
-            create: async ({ model, args, query }) => {
+            create: async ({ args, query }) => {
               if (!args.data.uid) {
                 args.data = {
                   ...args.data,
-                  uid: generateUid(model),
+                  uid: generateUid(),
                 };
               }
               return query(args);
             },
-            createMany: async ({ model, args, query }) => {
+            createMany: async ({ args, query }) => {
               const data = Array.isArray(args.data) ? args.data : [args.data];
               // @ts-expect-error 类型推理错误
               args.data = data.map((item) => ({
                 ...item,
-                uid: item.uid || generateUid(model),
+                uid: item.uid || generateUid(),
               }));
               return query(args);
             },
@@ -96,15 +95,15 @@ export class PrismaService implements OnModuleInit {
               args.where = { deleted: false, ...args.where };
               return query(args);
             },
-            update: async ({ model, args, query }) => {
+            update: async ({ args, query }) => {
               args.where = { deleted: false, ...args.where };
               return query(args);
             },
-            updateMany: async ({ model, args, query }) => {
+            updateMany: async ({ args, query }) => {
               args.where = { deleted: false, ...args.where };
               return query(args);
             },
-            updateManyAndReturn: async ({ model, args, query }) => {
+            updateManyAndReturn: async ({ args, query }) => {
               args.where = { deleted: false, ...args.where };
               return query(args);
             },
@@ -121,12 +120,4 @@ export class PrismaService implements OnModuleInit {
   get db() {
     return this.client;
   }
-}
-
-function generateUid(model: string) {
-  return nanoid();
-}
-
-function toCamelCase<S extends string>(str: S): Uncapitalize<S> {
-  return (str[0].toLowerCase() + str.slice(1)) as Uncapitalize<S>;
 }

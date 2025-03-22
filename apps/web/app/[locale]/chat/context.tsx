@@ -36,7 +36,7 @@ export const ConversationProvider = ({
 
   useEffect(() => {
     query.mutate();
-  }, [query]);
+  }, []);
 
   const list = useMemo(() => {
     const data: IConversation[] =

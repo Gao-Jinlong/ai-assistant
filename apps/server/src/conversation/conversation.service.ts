@@ -1,15 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@server/prisma/prisma.service';
-import { CreateConversationDto } from './dto/create-conversation.dto';
+import {
+  CreateConversationDto,
+  MessageDto,
+} from './dto/create-conversation.dto';
 import { StorageService } from '@server/storage/storage.service';
 import { ClsService } from 'nestjs-cls';
-import { $Enums, Prisma, PrismaClient } from '@prisma/client';
+import { $Enums, Prisma } from '@prisma/client';
 import { omit } from 'es-toolkit';
 import { ConfigService } from '@nestjs/config';
-
+import { generateUid } from '@server/utils/uid';
+import dayjs from 'dayjs';
+import { TRPCError } from '@trpc/server';
+import { GeneralAgent } from '@server/llm/agent/general-agent';
 declare module 'nestjs-cls' {
   interface ClsStore {
-    conversation: Prisma.ConversationGetPayload<{}> | null;
+    conversation: Prisma.ConversationGetPayload<object> | null;
   }
 }
 @Injectable()
@@ -19,27 +25,57 @@ export class ConversationService {
     private readonly prisma: PrismaService,
     private readonly cls: ClsService,
     private readonly config: ConfigService,
+    private readonly generalAgent: GeneralAgent,
   ) {}
 
-  async create(dto: CreateConversationDto) {
+  async create({ messages, ...rest }: CreateConversationDto) {
     const user = this.cls.get('user')!;
 
-    const data = {
-      uid: '',
-      ...dto,
+    const data: Prisma.ConversationCreateInput = {
+      uid: generateUid(),
+      ...rest,
       userUid: user.id,
       storageType: $Enums.StorageType.LOCAL,
-      storagePath: this.config.get('storage.basePath'),
+      storagePath: `${generateUid(dayjs().format('YYYY-MM-DD'))}.json`,
       status: $Enums.ConversationStatus.ACTIVE,
+      messageCount: messages?.length || 0,
     };
+    try {
+      // TODO 使用 langchain 的工具，重新设计存储和 langchain 的交互
+      await this.storageService.write(
+        data.storagePath,
+        JSON.stringify({
+          messages: messages?.map((message) => ({
+            ...message,
+            createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+          })),
+        }),
+      );
 
-    const conversation = await this.prisma.db.conversation.create({
-      data,
-    });
+      const conversation = await this.prisma.db.conversation.create({
+        data,
+      });
 
-    this.cls.set('conversation', conversation);
+      this.cls.set('conversation', conversation);
 
-    return omit(conversation, ['deleted', 'updatedAt']);
+      const messagesStr = messages
+        ?.map((message) => message.content)
+        .join('\n');
+      if (!messagesStr) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Messages are required',
+        });
+      }
+      const generalAgentResponse = await this.generalAgent.invoke(messagesStr);
+
+      return generalAgentResponse;
+    } catch (error) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to create conversation',
+      });
+    }
   }
 
   // TODO 分页

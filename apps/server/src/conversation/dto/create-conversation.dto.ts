@@ -20,9 +20,20 @@ export const conversationSchema = z.object({
   /** 总延迟(ms) */
   totalLatency: z.number().optional(),
 });
-export const createConversationSchema = conversationSchema.pick({
-  title: true,
+export const messageSchema = z.object({
+  role: z.enum(['user', 'assistant']),
+  content: z.string(),
 });
+
+export class MessageDto extends createZodDto(messageSchema) {}
+
+export const createConversationSchema = conversationSchema
+  .pick({
+    title: true,
+  })
+  .extend({
+    messages: z.array(messageSchema).optional(),
+  });
 
 export class CreateConversationDto extends createZodDto(
   createConversationSchema,

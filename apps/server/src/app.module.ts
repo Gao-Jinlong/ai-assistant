@@ -16,6 +16,7 @@ import { PrismaService } from './prisma/prisma.service';
 import { ConversationModule } from './conversation/conversation.module';
 import { StorageModule } from './storage/storage.module';
 import { ClsModule } from 'nestjs-cls';
+import { LlmModule } from './llm/llm.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { ClsModule } from 'nestjs-cls';
     ConversationModule,
     // AssessmentModule,
     StorageModule,
+    LlmModule,
   ],
   controllers: [AppController],
   providers: [

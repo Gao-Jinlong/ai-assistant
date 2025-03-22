@@ -79,13 +79,9 @@ const placeholderPromptsItems: GetProp<typeof Prompts, 'items'> = [
 
 interface ChatContainerProps {
   isSending: boolean;
-  onOpenSidebar: () => void;
 }
 
-export const ChatContainer: FC<ChatContainerProps> = ({
-  isSending,
-  onOpenSidebar,
-}) => {
+export const ChatContainer: FC<ChatContainerProps> = ({ isSending }) => {
   const t = useTranslations('chat');
   const senderRef = useRef<GetRef<typeof Sender>>(null);
   const { currentConversation, create, setCurrentKey } = useConversation();
@@ -99,7 +95,10 @@ export const ChatContainer: FC<ChatContainerProps> = ({
   // ===================== event handlers =====================
   const onSend = useCallback(
     async (text: string) => {
-      const conversation = await create.mutateAsync({});
+      const conversation = await create.mutateAsync({
+        title: 'New Chat',
+        messages: [{ role: 'user', content: text }],
+      });
 
       setCurrentKey(conversation.uid);
     },

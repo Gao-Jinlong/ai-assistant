@@ -44,6 +44,7 @@
     "@prisma/client": "6.4.1",
     "@trpc/server": "^10.45.2",
     "bcryptjs": "^3.0.2",
+    "dayjs": "^1.11.13",
     "es-toolkit": "^1.32.0",
     "langchain": "^0.3.19",
     "nanoid": "^3.3.8",
@@ -52,7 +53,8 @@
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
     "swagger-ui-express": "^5.0.1",
-    "zod": "^3.24.2"
+    "zod": "^3.24.2",
+    "zod-to-json-schema": "^3.24.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
