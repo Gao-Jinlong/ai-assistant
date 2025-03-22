@@ -5,3 +5,6 @@ build
 .env.development
 .env.production
 .env.test
+
+# 本地存储
+apps/server/data/storage
