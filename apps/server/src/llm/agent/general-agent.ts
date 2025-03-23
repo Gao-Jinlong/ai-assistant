@@ -5,8 +5,15 @@ import { z } from 'zod';
 import zodToJsonSchema from 'zod-to-json-schema';
 import { questionTypeSchema } from '../dto/llm.dto';
 import { ChatOpenAI } from '@langchain/openai';
-import { RunnableSequence } from '@langchain/core/runnables';
-import { JsonOutputParser } from '@langchain/core/dist/output_parsers';
+import {
+  RunnablePassthrough,
+  RunnableSequence,
+} from '@langchain/core/runnables';
+import { ConversationChain } from 'langchain/chains';
+import { LocalHistory } from '../history/local-history';
+import { BufferMemory, ConversationSummaryMemory } from 'langchain/memory';
+import { Conversation } from '@prisma/client';
+import { AIMessage, HumanMessage } from '@langchain/core/messages';
 
 @Injectable()
 export class GeneralAgent {
@@ -27,8 +34,19 @@ export class GeneralAgent {
 
     this.chain = RunnableSequence.from([
       prompt,
+      new RunnablePassthrough({
+        func: (input: string) => {
+          console.log(input);
+          return input;
+        },
+      }),
       this.modelWithTools(llm),
-      new JsonOutputParser(),
+      new RunnablePassthrough({
+        func: (input: string) => {
+          console.log('output', input);
+          return input;
+        },
+      }),
       (input) => {
         const type = input[0]?.args?.type;
         return type ? type : '一般问题';
@@ -59,8 +77,34 @@ export class GeneralAgent {
     return modelWithTools;
   }
 
-  async invoke(messages: string) {
-    const response = await this.chain.invoke({ input: messages });
+  // TODO 使用接口抽象 history
+  async invoke({
+    conversation,
+    messages,
+  }: {
+    conversation: Conversation;
+    messages: string[];
+  }) {
+    const history = new LocalHistory({
+      sessionId: conversation.uid,
+      dir: conversation.storagePath,
+    });
+
+    // TODO 梳理对话流程，新建对话，新建记忆，模型调用，返回内容
+    await history.addMessages([
+      new HumanMessage('Hi, 我叫小明'),
+      new AIMessage('你好'),
+    ]);
+
+    const memory = new BufferMemory({
+      chatHistory: history,
+    });
+    const conversationChain = new ConversationChain({
+      llm: this.llmService.llm!,
+      memory: memory,
+    });
+    const response = await conversationChain.invoke({ input: '你好' });
+    console.log('response', response);
     return response;
   }
 }

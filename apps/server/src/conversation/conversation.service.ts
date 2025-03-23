@@ -13,6 +13,7 @@ import { generateUid } from '@server/utils/uid';
 import dayjs from 'dayjs';
 import { TRPCError } from '@trpc/server';
 import { GeneralAgent } from '@server/llm/agent/general-agent';
+import { LocalHistory } from '@server/llm/history/local-history';
 declare module 'nestjs-cls' {
   interface ClsStore {
     conversation: Prisma.ConversationGetPayload<object> | null;
@@ -67,10 +68,15 @@ export class ConversationService {
           message: 'Messages are required',
         });
       }
-      const generalAgentResponse = await this.generalAgent.invoke(messagesStr);
+
+      const generalAgentResponse = await this.generalAgent.invoke({
+        conversation,
+        messages: messages?.map((message) => message.content) || [],
+      });
 
       return generalAgentResponse;
     } catch (error) {
+      console.log('🚀 ~ ConversationService ~ create ~ error:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Failed to create conversation',

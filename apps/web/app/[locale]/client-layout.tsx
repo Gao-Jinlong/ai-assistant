@@ -35,7 +35,7 @@ export default function ClientLayout({
 
           <div className="flex flex-1">{children}</div>
         </div>
-        <Toaster />
+        <Toaster richColors position="top-right" />
       </AuthProvider>
     </TrpcProvider>
   );
