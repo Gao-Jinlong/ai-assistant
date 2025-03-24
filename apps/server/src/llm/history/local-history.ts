@@ -5,6 +5,7 @@ import {
   mapChatMessagesToStoredMessages,
   mapStoredMessagesToChatMessages,
 } from '@langchain/core/messages';
+import { Conversation } from '@prisma/client';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -15,18 +16,15 @@ export interface LocalChatHistoryInput {
 
 export class LocalHistory extends BaseListChatMessageHistory {
   lc_namespace = ['langchain', 'stores', 'message'];
+  path: string;
 
-  sessionId: string;
-  dir: string;
-
-  constructor(fields: LocalChatHistoryInput) {
-    super(fields);
-    this.sessionId = fields.sessionId;
-    this.dir = fields.dir;
+  constructor(conversation: Conversation) {
+    super(conversation);
+    this.path = conversation.storagePath;
   }
 
   async getMessages(): Promise<BaseMessage[]> {
-    const filePath = path.join(this.dir, `${this.sessionId}.json`);
+    const filePath = path.join(this.path);
     try {
       if (!fs.existsSync(filePath)) {
         this.saveMessagesToFile([]);
@@ -55,7 +53,7 @@ export class LocalHistory extends BaseListChatMessageHistory {
   }
 
   async clear(): Promise<void> {
-    const filePath = path.join(this.dir, `${this.sessionId}.json`);
+    const filePath = path.join(this.path);
     try {
       fs.unlinkSync(filePath);
     } catch (error) {
@@ -64,7 +62,7 @@ export class LocalHistory extends BaseListChatMessageHistory {
   }
 
   private async saveMessagesToFile(messages: BaseMessage[]): Promise<void> {
-    const filePath = path.join(this.dir, `${this.sessionId}.json`);
+    const filePath = path.join(this.path);
     const serializedMessages = mapChatMessagesToStoredMessages(messages);
     try {
       fs.writeFileSync(filePath, JSON.stringify(serializedMessages, null, 2), {

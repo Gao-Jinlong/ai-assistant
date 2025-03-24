@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { LlmService } from '../llm.service';
-import { ChatPromptTemplate } from '@langchain/core/prompts';
+import { ChatPromptTemplate, PromptTemplate } from '@langchain/core/prompts';
 import { z } from 'zod';
 import zodToJsonSchema from 'zod-to-json-schema';
 import { questionTypeSchema } from '../dto/llm.dto';
@@ -17,41 +17,39 @@ import { AIMessage, HumanMessage } from '@langchain/core/messages';
 
 @Injectable()
 export class GeneralAgent {
-  private chain: RunnableSequence;
+  private systemPrompt =
+    PromptTemplate.fromTemplate(`The following is a friendly conversation between a human and an AI. The AI is talkative and provides lots of specific details from its context. If the AI does not know the answer to a question, it truthfully says it does not know.
+
+    Current conversation:
+    {chat_history}
+    Human: {input}
+    AI:`);
   constructor(private readonly llmService: LlmService) {
     const llm = this.llmService.llm;
     if (!llm) {
       throw new Error('llm is not defined');
     }
-    const prompt = ChatPromptTemplate.fromMessages([
-      [
-        'system',
-        `仔细思考，你有充足的时间进行严谨的思考，然后对用户的问题进行分类，
-        当你无法分类到特定分类时，可以分类到 "一般问题"`,
-      ],
-      ['user', '{input}'],
-    ]);
 
-    this.chain = RunnableSequence.from([
-      prompt,
-      new RunnablePassthrough({
-        func: (input: string) => {
-          console.log(input);
-          return input;
-        },
-      }),
-      this.modelWithTools(llm),
-      new RunnablePassthrough({
-        func: (input: string) => {
-          console.log('output', input);
-          return input;
-        },
-      }),
-      (input) => {
-        const type = input[0]?.args?.type;
-        return type ? type : '一般问题';
-      },
-    ]);
+    // this.chain = RunnableSequence.from([
+    //   prompt,
+    //   new RunnablePassthrough({
+    //     func: (input: string) => {
+    //       console.log(input);
+    //       return input;
+    //     },
+    //   }),
+    //   this.modelWithTools(llm),
+    //   new RunnablePassthrough({
+    //     func: (input: string) => {
+    //       console.log('output', input);
+    //       return input;
+    //     },
+    //   }),
+    //   (input) => {
+    //     const type = input[0]?.args?.type;
+    //     return type ? type : '一般问题';
+    //   },
+    // ]);
   }
 
   modelWithTools(model: ChatOpenAI) {
@@ -77,7 +75,7 @@ export class GeneralAgent {
     return modelWithTools;
   }
 
-  // TODO 使用接口抽象 history
+  // TODO 梳理 chain 流程，添加 prompt 模板
   async invoke({
     conversation,
     messages,
@@ -85,26 +83,30 @@ export class GeneralAgent {
     conversation: Conversation;
     messages: string[];
   }) {
-    const history = new LocalHistory({
-      sessionId: conversation.uid,
-      dir: conversation.storagePath,
-    });
-
-    // TODO 梳理对话流程，新建对话，新建记忆，模型调用，返回内容
-    await history.addMessages([
-      new HumanMessage('Hi, 我叫小明'),
-      new AIMessage('你好'),
-    ]);
+    const history = new LocalHistory(conversation);
 
     const memory = new BufferMemory({
+      memoryKey: 'chat_history',
+      returnMessages: true,
       chatHistory: history,
     });
-    const conversationChain = new ConversationChain({
-      llm: this.llmService.llm!,
+
+    const llm = this.llmService.llm;
+    if (!llm) {
+      throw new Error('llm is not defined');
+    }
+
+    const chain = new ConversationChain({
+      llm,
+      prompt: this.systemPrompt, //FIXME prompt 未生效
       memory: memory,
     });
-    const response = await conversationChain.invoke({ input: '你好' });
-    console.log('response', response);
+
+    const userInput = messages.join('\n');
+    const response = await chain.call({
+      input: userInput,
+    });
+
     return response;
   }
 }

@@ -37,7 +37,7 @@ export class ConversationService {
       ...rest,
       userUid: user.id,
       storageType: $Enums.StorageType.LOCAL,
-      storagePath: `${generateUid(dayjs().format('YYYY-MM-DD'))}.json`,
+      storagePath: `${this.config.get('storage.basePath')}/${generateUid(dayjs().format('YYYY-MM-DD'))}.json`,
       status: $Enums.ConversationStatus.ACTIVE,
       messageCount: messages?.length || 0,
     };
