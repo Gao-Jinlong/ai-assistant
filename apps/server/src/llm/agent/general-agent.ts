@@ -13,17 +13,15 @@ import { ConversationChain } from 'langchain/chains';
 import { LocalHistory } from '../history/local-history';
 import { BufferMemory, ConversationSummaryMemory } from 'langchain/memory';
 import { Conversation } from '@prisma/client';
-import { AIMessage, HumanMessage } from '@langchain/core/messages';
+import {
+  AIMessage,
+  HumanMessage,
+  SystemMessage,
+} from '@langchain/core/messages';
 
 @Injectable()
 export class GeneralAgent {
-  private systemPrompt =
-    PromptTemplate.fromTemplate(`The following is a friendly conversation between a human and an AI. The AI is talkative and provides lots of specific details from its context. If the AI does not know the answer to a question, it truthfully says it does not know.
-
-    Current conversation:
-    {chat_history}
-    Human: {input}
-    AI:`);
+  private systemPrompt = `你是一个强大的个人发展助理, 你的任务是根据用户的问题给出建议和指导`;
   constructor(private readonly llmService: LlmService) {
     const llm = this.llmService.llm;
     if (!llm) {
@@ -83,29 +81,30 @@ export class GeneralAgent {
     conversation: Conversation;
     messages: string[];
   }) {
-    const history = new LocalHistory(conversation);
-
-    const memory = new BufferMemory({
-      memoryKey: 'chat_history',
-      returnMessages: true,
-      chatHistory: history,
-    });
-
     const llm = this.llmService.llm;
     if (!llm) {
       throw new Error('llm is not defined');
     }
 
+    const history = new LocalHistory(conversation);
+
+    const memory = new BufferMemory({
+      memoryKey: conversation.uid,
+      returnMessages: true,
+      chatHistory: history,
+    });
+
+    if ((await history.getMessages()).length < 1) {
+      await history.addMessages([new SystemMessage(this.systemPrompt)]);
+    }
+
     const chain = new ConversationChain({
       llm,
-      prompt: this.systemPrompt, //FIXME prompt 未生效
       memory: memory,
     });
 
     const userInput = messages.join('\n');
-    const response = await chain.call({
-      input: userInput,
-    });
+    const response = await chain.call({ input: userInput });
 
     return response;
   }

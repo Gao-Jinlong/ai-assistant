@@ -1,0 +1,43 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "调试服务器",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/node_modules/.bin/nest",
+      "args": ["start", "--watch", "--debug", "server"],
+      "runtimeArgs": ["--preserve-symlinks"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/dist/apps/server/**/*.js"],
+      "restart": true,
+      "envFile": "${workspaceFolder}/.env.local",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ],
+      "sourceMapPathOverrides": {
+        "webpack:///./~/*": "${workspaceFolder}/node_modules/*",
+        "webpack:///./*": "${workspaceFolder}/*",
+        "webpack:///*": "*",
+        "webpack:///src/*": "${workspaceFolder}/apps/server/src/*"
+      }
+    },
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "附加到已运行的服务器",
+      "port": 9229,
+      "restart": true,
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/apps/server"
+    }
+  ]
+}
