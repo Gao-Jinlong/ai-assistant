@@ -1,19 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@server/prisma/prisma.service';
-import {
-  CreateConversationDto,
-  MessageDto,
-} from './dto/create-conversation.dto';
+import { CreateConversationDto } from './dto/create-conversation.dto';
 import { StorageService } from '@server/storage/storage.service';
 import { ClsService } from 'nestjs-cls';
 import { $Enums, Prisma } from '@prisma/client';
-import { omit } from 'es-toolkit';
 import { ConfigService } from '@nestjs/config';
 import { generateUid } from '@server/utils/uid';
 import dayjs from 'dayjs';
 import { TRPCError } from '@trpc/server';
 import { GeneralAgent } from '@server/llm/agent/general-agent';
-import { LocalHistory } from '@server/llm/history/local-history';
 declare module 'nestjs-cls' {
   interface ClsStore {
     conversation: Prisma.ConversationGetPayload<object> | null;
@@ -29,6 +24,7 @@ export class ConversationService {
     private readonly generalAgent: GeneralAgent,
   ) {}
 
+  // TODO 解耦创建对话的步骤，创建 history 存储，然后传递给 llm 使用
   async create({ messages, ...rest }: CreateConversationDto) {
     const user = this.cls.get('user')!;
 
@@ -37,12 +33,11 @@ export class ConversationService {
       ...rest,
       userUid: user.id,
       storageType: $Enums.StorageType.LOCAL,
-      storagePath: `${this.config.get('storage.basePath')}/${generateUid(dayjs().format('YYYY-MM-DD'))}.json`,
+      storagePath: `${this.config.get('storage.basePath')}/${generateUid(dayjs().format('YYYY-MM-DD_HH-MM-SS'))}.json`,
       status: $Enums.ConversationStatus.ACTIVE,
       messageCount: messages?.length || 0,
     };
     try {
-      // TODO 使用 langchain 的工具，重新设计存储和 langchain 的交互
       await this.storageService.write(
         data.storagePath,
         JSON.stringify({
@@ -134,5 +129,23 @@ export class ConversationService {
         totalLatency: { increment: message.latency || 0 },
       },
     });
+  }
+
+  async getMessages(conversationUid: string) {
+    const conversation = await this.prisma.db.conversation.findUnique({
+      where: { uid: conversationUid },
+    });
+
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+
+    try {
+      const data = await this.storageService.read(conversation.storagePath);
+      return JSON.parse(data);
+    } catch (error) {
+      console.error('Failed to read messages:', error);
+      return { messages: [] };
+    }
   }
 }

@@ -17,43 +17,47 @@ export interface LocalChatHistoryInput {
 export class LocalHistory extends BaseListChatMessageHistory {
   lc_namespace = ['langchain', 'stores', 'message'];
   path: string;
+  private messages: BaseMessage[] = [];
 
   constructor(conversation: Conversation) {
     super(conversation);
-    this.path = conversation.storagePath;
+    this.path = path.join(process.cwd(), conversation.storagePath);
   }
 
   async getMessages(): Promise<BaseMessage[]> {
-    const filePath = path.join(this.path);
-    try {
-      if (!fs.existsSync(filePath)) {
-        this.saveMessagesToFile([]);
+    if (this.messages.length === 0) {
+      const filePath = this.path;
+      try {
+        if (!fs.existsSync(filePath)) {
+          this.saveMessagesToFile([]);
+          return [];
+        }
+
+        const data = fs.readFileSync(filePath, { encoding: 'utf-8' });
+        const storedMessages = JSON.parse(data) as StoredMessage[];
+        this.messages = mapStoredMessagesToChatMessages(storedMessages);
+        return this.messages;
+      } catch (e) {
+        console.log(`Failed to read chat history from ${filePath}:`, e);
         return [];
       }
-
-      const data = fs.readFileSync(filePath, { encoding: 'utf-8' });
-      const storedMessages = JSON.parse(data) as StoredMessage[];
-      return mapStoredMessagesToChatMessages(storedMessages);
-    } catch (e) {
-      console.log(`Failed to read chat history from ${filePath}:`, e);
-      return [];
     }
+    return this.messages;
   }
 
   async addMessage(message: BaseMessage): Promise<void> {
-    const messages = await this.getMessages();
-    messages.push(message);
-    await this.saveMessagesToFile(messages);
+    this.messages.push(message);
+    await this.saveMessagesToFile(this.messages);
   }
 
   async addMessages(messages: BaseMessage[]): Promise<void> {
-    const existingMessages = await this.getMessages();
-    const allMessages = existingMessages.concat(messages);
-    await this.saveMessagesToFile(allMessages);
+    this.messages = this.messages.concat(messages);
+    await this.saveMessagesToFile(this.messages);
   }
 
   async clear(): Promise<void> {
-    const filePath = path.join(this.path);
+    this.messages = [];
+    const filePath = this.path;
     try {
       fs.unlinkSync(filePath);
     } catch (error) {
@@ -62,7 +66,7 @@ export class LocalHistory extends BaseListChatMessageHistory {
   }
 
   private async saveMessagesToFile(messages: BaseMessage[]): Promise<void> {
-    const filePath = path.join(this.path);
+    const filePath = this.path;
     const serializedMessages = mapChatMessagesToStoredMessages(messages);
     try {
       fs.writeFileSync(filePath, JSON.stringify(serializedMessages, null, 2), {

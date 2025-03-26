@@ -11,11 +11,13 @@ import React, {
 import { trpc } from '@web/app/trpc';
 import dayjs from 'dayjs';
 import { IConversation } from './interface';
+
 export type ConversationContextType = {
   query: ReturnType<typeof trpc.conversation.findAll.useMutation>;
   create: ReturnType<typeof trpc.conversation.create.useMutation>;
   list: IConversation[];
   remove: ReturnType<typeof trpc.conversation.remove.useMutation>;
+  getMessages: ReturnType<typeof trpc.conversation.getMessages.useMutation>;
   currentKey: string | undefined;
   setCurrentKey: Dispatch<SetStateAction<string | undefined>>;
   currentConversation: IConversation | undefined;
@@ -33,10 +35,13 @@ export const ConversationProvider = ({
   const query = trpc.conversation.findAll.useMutation();
   const create = trpc.conversation.create.useMutation();
   const remove = trpc.conversation.remove.useMutation();
+  const getMessages = trpc.conversation.getMessages.useMutation();
 
   useEffect(() => {
-    query.mutate();
-  }, []);
+    if (!query.isLoading && !query.data) {
+      query.mutate();
+    }
+  }, [query]);
 
   const list = useMemo(() => {
     const data: IConversation[] =
@@ -63,6 +68,7 @@ export const ConversationProvider = ({
         create,
         list,
         remove,
+        getMessages,
         currentKey,
         setCurrentKey,
         currentConversation,

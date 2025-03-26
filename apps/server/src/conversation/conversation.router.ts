@@ -3,6 +3,7 @@ import { TrpcService } from '@server/trpc/trpc.service';
 import { createConversationSchema } from './dto/create-conversation.dto';
 import { ConversationService } from './conversation.service';
 import { z } from 'zod';
+import { TRPCError } from '@trpc/server';
 
 @Injectable()
 export class ConversationRouter {
@@ -29,6 +30,18 @@ export class ConversationRouter {
         .input(z.string())
         .mutation(async ({ input }) => {
           return this.conversationService.findOne(input);
+        }),
+      getMessages: this.trpc.procedure
+        .input(z.string())
+        .mutation(async ({ input }) => {
+          const conversation = await this.conversationService.findOne(input);
+          if (!conversation) {
+            throw new TRPCError({
+              code: 'NOT_FOUND',
+              message: 'Conversation not found',
+            });
+          }
+          return this.conversationService.getMessages(input);
         }),
     });
   }

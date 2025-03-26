@@ -1,24 +1,18 @@
 'use client';
 
 import { Button } from '@web/components/ui/button';
-import { PlusCircle, X } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import ConversationList from '@web/components/conversation-list';
 import { cn } from '@web/lib/utils';
 import { useConversation } from './context';
 import { useAuth } from '@web/contexts/auth-context';
-import { useCallback } from 'react';
+import { FC, useCallback } from 'react';
 import { Conversation } from '@ant-design/x/es/conversations';
 
-interface ConversationSidebarProps {
-  isSidebarOpen: boolean;
-  onCloseSidebar: () => void;
-}
+interface ConversationSidebarProps {}
 
-export function ConversationSidebar({
-  isSidebarOpen,
-  onCloseSidebar,
-}: ConversationSidebarProps) {
+const ConversationSidebar: FC<ConversationSidebarProps> = () => {
   const t = useTranslations('chat');
 
   const { payload } = useAuth()!;
@@ -45,21 +39,20 @@ export function ConversationSidebar({
     // });
 
     // await query.refetch();
-  }, [create, payload?.user.uid]);
+  }, [currentConversation?.data?.lastMessage, payload, setCurrentKey]);
 
   const handleDelete = useCallback(
     async (conversation: Conversation) => {
       await remove.mutateAsync(conversation.key);
       await query.mutateAsync();
     },
-    [remove, payload?.user.uid],
+    [remove, query],
   );
 
   return (
     <div
       className={cn(
         'inset-y-0 left-0 z-50 flex h-full flex-1 transform flex-col justify-start border-r border-gray-200 bg-white transition-transform md:relative md:translate-x-0',
-        isSidebarOpen ? 'translate-x-0' : '-translate-x-full',
       )}
     >
       <div className="flex flex-1 items-center justify-between border-b p-2">
@@ -86,4 +79,6 @@ export function ConversationSidebar({
       </div>
     </div>
   );
-}
+};
+
+export { ConversationSidebar };

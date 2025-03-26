@@ -1,8 +1,15 @@
 'use client';
 
-import { FC, useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  FC,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslations } from 'next-intl';
-import MessageList, { MessageType } from '@web/components/message-list';
+import MessageList from '@web/components/message-list';
 import SenderInput from '@web/components/sender';
 import { GetProp, GetRef, Space } from 'antd';
 import { Prompts, Sender, Welcome } from '@ant-design/x';
@@ -84,13 +91,28 @@ interface ChatContainerProps {
 export const ChatContainer: FC<ChatContainerProps> = ({ isSending }) => {
   const t = useTranslations('chat');
   const senderRef = useRef<GetRef<typeof Sender>>(null);
-  const { currentConversation, create, setCurrentKey } = useConversation();
+  const { currentConversation, create, getMessages, setCurrentKey } =
+    useConversation();
 
+  // TODO 对话 UI
+  // 1. 对话列表
+  // 2. 流式 api
+  // 3. 历史对话记录
   const [messages, setMessages] = useState<BubbleDataType[]>([]);
 
   const isNewChat = useMemo(() => {
-    return !messages.length;
-  }, [messages]);
+    return !currentConversation;
+  }, [currentConversation]);
+
+  useEffect(() => {
+    if (currentConversation?.key) {
+      getMessages.mutateAsync(currentConversation.key).then((data) => {
+        setMessages(data.messages || []);
+      });
+    } else {
+      setMessages([]);
+    }
+  }, [currentConversation?.key]);
 
   // ===================== event handlers =====================
   const onSend = useCallback(
