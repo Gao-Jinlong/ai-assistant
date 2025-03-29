@@ -25,7 +25,7 @@ import {
 } from '@ant-design/icons';
 import { Button } from '@web/components/ui/button';
 import BrandLogo from '@web/components/BrandLogo';
-import { BubbleDataType } from '@ant-design/x/es/bubble/BubbleList';
+import { useAtom } from 'jotai';
 
 const renderTitle = (icon: React.ReactElement, title: string) => (
   <Space align="start">
@@ -91,40 +91,41 @@ interface ChatContainerProps {
 export const ChatContainer: FC<ChatContainerProps> = ({ isSending }) => {
   const t = useTranslations('chat');
   const senderRef = useRef<GetRef<typeof Sender>>(null);
-  const { currentConversation, create, getMessages, setCurrentKey } =
+  const { currentConversationAtom, create, getMessages, localMessagesAtom } =
     useConversation();
 
-  // TODO 对话 UI
-  // 1. 对话列表
-  // 2. 流式 api
-  // 3. 历史对话记录
-  const [messages, setMessages] = useState<BubbleDataType[]>([]);
+  const [currentConversation, setCurrentConversation] = useAtom(
+    currentConversationAtom,
+  );
+
+  const [messages, setMessages] = useAtom(localMessagesAtom);
 
   const isNewChat = useMemo(() => {
     return !currentConversation;
   }, [currentConversation]);
 
-  useEffect(() => {
-    if (currentConversation?.key) {
-      getMessages.mutateAsync(currentConversation.key).then((data) => {
-        setMessages(data.messages || []);
-      });
-    } else {
-      setMessages([]);
-    }
-  }, [currentConversation?.key]);
-
   // ===================== event handlers =====================
+  const createConversation = useCallback(async () => {
+    const conversation = await create.mutateAsync({
+      title: 'New Chat',
+    });
+
+    return conversation;
+  }, [create]);
+
   const onSend = useCallback(
     async (text: string) => {
-      const conversation = await create.mutateAsync({
-        title: 'New Chat',
-        messages: [{ role: 'user', content: text }],
-      });
+      // 如果当前会话不存在，则创建一个新会话
+      if (!currentConversation) {
+        const conversation = await createConversation();
+        console.log('🚀 ~ conversation:', conversation);
+        setCurrentConversation(conversation);
+      }
 
-      setCurrentKey(conversation.uid);
+      //TODO: 发送消息
+      // await sendMessage(text);
     },
-    [create, setCurrentKey],
+    [createConversation, currentConversation, setCurrentConversation],
   );
 
   // ===================== node fragments =====================
@@ -167,7 +168,7 @@ export const ChatContainer: FC<ChatContainerProps> = ({ isSending }) => {
       {/* 顶部栏 */}
       <div className="flex w-full items-center justify-center border-b bg-white p-2">
         <h2 className="font-semibold">
-          {currentConversation?.data?.title ?? t('chatTitle')}
+          {currentConversation?.title ?? t('chatTitle')}
         </h2>
       </div>
 

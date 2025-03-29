@@ -1,6 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@server/prisma/prisma.service';
-import { CreateConversationDto } from './dto/create-conversation.dto';
+import {
+  CreateConversationDto,
+  MessageDto,
+} from './dto/create-conversation.dto';
 import { StorageService } from '@server/storage/storage.service';
 import { ClsService } from 'nestjs-cls';
 import { $Enums, Prisma } from '@prisma/client';
@@ -9,9 +12,18 @@ import { generateUid } from '@server/utils/uid';
 import dayjs from 'dayjs';
 import { TRPCError } from '@trpc/server';
 import { GeneralAgent } from '@server/llm/agent/general-agent';
+import {
+  AIMessage,
+  BaseMessage,
+  HumanMessage,
+  SystemMessage,
+} from '@langchain/core/messages';
+import { IStorageProvider } from '@server/storage/interfaces/storage.interface';
+import { CLS_CONVERSATION, CLS_STORAGE_PROVIDER } from '@server/constant';
 declare module 'nestjs-cls' {
   interface ClsStore {
-    conversation: Prisma.ConversationGetPayload<object> | null;
+    [CLS_CONVERSATION]: Prisma.ConversationGetPayload<object> | null;
+    [CLS_STORAGE_PROVIDER]: IStorageProvider | null;
   }
 }
 @Injectable()
@@ -38,38 +50,24 @@ export class ConversationService {
       messageCount: messages?.length || 0,
     };
     try {
-      await this.storageService.write(
-        data.storagePath,
-        JSON.stringify({
-          messages: messages?.map((message) => ({
-            ...message,
-            createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-          })),
-        }),
-      );
+      const provider = await this.storageService.createProvider({
+        type: 'local',
+        path: data.storagePath,
+      });
+
+      const ms = messages?.map((message) => new HumanMessage(message.content));
+      if (ms) {
+        await provider.addMessages(ms);
+      }
 
       const conversation = await this.prisma.db.conversation.create({
         data,
       });
 
-      this.cls.set('conversation', conversation);
+      this.cls.set(CLS_CONVERSATION, conversation);
+      this.cls.set(CLS_STORAGE_PROVIDER, provider);
 
-      const messagesStr = messages
-        ?.map((message) => message.content)
-        .join('\n');
-      if (!messagesStr) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Messages are required',
-        });
-      }
-
-      const generalAgentResponse = await this.generalAgent.invoke({
-        conversation,
-        messages: messages?.map((message) => message.content) || [],
-      });
-
-      return generalAgentResponse;
+      return conversation;
     } catch (error) {
       console.log('🚀 ~ ConversationService ~ create ~ error:', error);
       throw new TRPCError({
@@ -86,9 +84,22 @@ export class ConversationService {
   }
 
   async findOne(conversationUid: string) {
-    return await this.prisma.db.conversation.findUnique({
+    const result = await this.prisma.db.conversation.findUnique({
       where: { uid: conversationUid },
     });
+    if (!result) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Conversation not found',
+      });
+    }
+
+    const messages = await this.cls.get('storageProvider')?.getMessages();
+
+    return {
+      ...result,
+      messages: messages?.map((message) => message.content),
+    };
   }
 
   async remove(conversationUid: string) {
@@ -106,7 +117,7 @@ export class ConversationService {
     return 1;
   }
 
-  async appendMessage(conversationUid: string, message: any) {
+  async appendMessage(conversationUid: string, inputMessage: MessageDto) {
     const conversation = await this.prisma.db.conversation.findUnique({
       where: { uid: conversationUid },
     });
@@ -114,19 +125,31 @@ export class ConversationService {
     if (!conversation) {
       throw new NotFoundException('Conversation not found');
     }
-
-    // 追加消息到存储
-    const content = JSON.stringify(message) + '\n';
-    await this.storageService.append(conversation.storagePath, content);
+    let message: BaseMessage;
+    switch (inputMessage.role) {
+      case 'user':
+        message = new HumanMessage(inputMessage.content);
+        break;
+      case 'ai':
+        message = new AIMessage(inputMessage.content);
+        break;
+      case 'system':
+        message = new SystemMessage(inputMessage.content);
+        break;
+      default:
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Invalid message role',
+        });
+    }
+    // TODO 注入 storageProvider
+    await this.cls.get(CLS_STORAGE_PROVIDER)?.addMessage(message);
 
     // 更新会话元数据
     await this.prisma.db.conversation.update({
       where: { uid: conversationUid },
       data: {
         messageCount: { increment: 1 },
-        lastMessage: message.content,
-        totalTokens: { increment: message.tokens || 0 },
-        totalLatency: { increment: message.latency || 0 },
       },
     });
   }
@@ -141,8 +164,8 @@ export class ConversationService {
     }
 
     try {
-      const data = await this.storageService.read(conversation.storagePath);
-      return JSON.parse(data);
+      const data = await this.cls.get(CLS_STORAGE_PROVIDER)?.getMessages();
+      return data?.map((message) => message.content);
     } catch (error) {
       console.error('Failed to read messages:', error);
       return { messages: [] };

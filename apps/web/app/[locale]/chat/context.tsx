@@ -1,27 +1,17 @@
 'use client';
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  Dispatch,
-  SetStateAction,
-} from 'react';
+import React, { createContext, useContext, useEffect, useMemo } from 'react';
 import { trpc } from '@web/app/trpc';
 import dayjs from 'dayjs';
 import { IConversation } from './interface';
+import { ConversationState, createConversationState } from './state';
 
-export type ConversationContextType = {
+export interface ConversationContextType extends ConversationState {
   query: ReturnType<typeof trpc.conversation.findAll.useMutation>;
   create: ReturnType<typeof trpc.conversation.create.useMutation>;
   list: IConversation[];
   remove: ReturnType<typeof trpc.conversation.remove.useMutation>;
   getMessages: ReturnType<typeof trpc.conversation.getMessages.useMutation>;
-  currentKey: string | undefined;
-  setCurrentKey: Dispatch<SetStateAction<string | undefined>>;
-  currentConversation: IConversation | undefined;
-};
+}
 
 export const ConversationContext =
   createContext<ConversationContextType | null>(null);
@@ -36,6 +26,7 @@ export const ConversationProvider = ({
   const create = trpc.conversation.create.useMutation();
   const remove = trpc.conversation.remove.useMutation();
   const getMessages = trpc.conversation.getMessages.useMutation();
+  const conversationState = createConversationState();
 
   useEffect(() => {
     if (!query.isLoading && !query.data) {
@@ -55,12 +46,6 @@ export const ConversationProvider = ({
     return data;
   }, [query.data]);
 
-  const [currentKey, setCurrentKey] = useState<string>();
-
-  const currentConversation = useMemo(() => {
-    return list.find((item) => item.key === currentKey);
-  }, [currentKey, list]);
-
   return (
     <ConversationContext.Provider
       value={{
@@ -69,9 +54,7 @@ export const ConversationProvider = ({
         list,
         remove,
         getMessages,
-        currentKey,
-        setCurrentKey,
-        currentConversation,
+        ...conversationState,
       }}
     >
       {children}

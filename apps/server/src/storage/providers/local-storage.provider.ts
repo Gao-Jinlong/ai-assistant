@@ -1,98 +1,71 @@
 import { Injectable } from '@nestjs/common';
 import {
   IStorageProvider,
-  StorageOptions,
   FileInfo,
   StorageLocalOptions,
 } from '../interfaces/storage.interface';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { BaseMessage } from '@langchain/core/messages';
+import { BaseListChatMessageHistory } from '@langchain/core/chat_history';
 
 @Injectable()
-export class LocalStorageProvider implements IStorageProvider {
-  private readonly basePath: string;
+export class LocalStorageProvider
+  extends BaseListChatMessageHistory
+  implements IStorageProvider
+{
+  lc_namespace = ['langchain', 'stores', 'message', 'local'];
+  private messages: BaseMessage[] = [];
+  private path: string;
 
-  constructor(options: StorageLocalOptions) {
-    this.basePath = options.basePath || './data/storage';
+  constructor(options?: StorageLocalOptions) {
+    super();
+    this.path = options?.path || 'storage';
+    this.saveToFile();
   }
 
-  private getFullPath(filePath: string): string {
-    return path.join(this.basePath, filePath);
+  async getMessages(): Promise<BaseMessage[]> {
+    return this.messages;
   }
 
-  async write(
-    writePath: string,
-    content: string | Buffer,
-    metadata?: Record<string, string>,
-  ): Promise<void> {
-    const fullPath = this.getFullPath(writePath);
-    await fs.mkdir(path.dirname(fullPath), { recursive: true });
-
-    await fs.writeFile(fullPath, content);
-
-    if (metadata) {
-      const metaPath = `${fullPath}.meta`;
-      await fs.writeFile(metaPath, JSON.stringify(metadata));
-    }
+  async addMessage(message: BaseMessage): Promise<void> {
+    this.messages.push(message);
+    this.saveToFile();
   }
 
-  async append(path: string, content: string | Buffer): Promise<void> {
-    const fullPath = this.getFullPath(path);
-    await fs.appendFile(fullPath, content);
+  async clear(): Promise<void> {
+    this.messages = [];
   }
 
-  async read(path: string): Promise<string> {
-    const fullPath = this.getFullPath(path);
-    return fs.readFile(fullPath, 'utf-8');
+  async delete(): Promise<void> {
+    const filePath = path.join(this.path);
+    await fs.unlink(filePath);
   }
 
-  async delete(path: string): Promise<void> {
-    const fullPath = this.getFullPath(path);
-    await fs.unlink(fullPath);
-
-    try {
-      await fs.unlink(`${fullPath}.meta`);
-    } catch (error) {
-      if (
-        error instanceof Error &&
-        (error as NodeJS.ErrnoException).code !== 'ENOENT'
-      ) {
-        throw error;
-      }
-    }
-  }
-
-  async stat(path: string): Promise<FileInfo> {
-    const fullPath = this.getFullPath(path);
-    const stats = await fs.stat(fullPath);
-
-    let metadata: Record<string, string> | undefined;
-    try {
-      const metaContent = await fs.readFile(`${fullPath}.meta`, 'utf-8');
-      metadata = JSON.parse(metaContent);
-    } catch (error) {
-      if (
-        error instanceof Error &&
-        (error as NodeJS.ErrnoException).code !== 'ENOENT'
-      ) {
-        throw error;
-      }
-    }
-
+  async stat(): Promise<FileInfo> {
+    const filePath = path.join(this.path);
+    const stats = await fs.stat(filePath);
     return {
-      path,
+      path: filePath,
       size: stats.size,
       lastModified: stats.mtime,
-      metadata,
     };
   }
 
-  async exists(path: string): Promise<boolean> {
+  async saveToFile(): Promise<void> {
+    const filePath = path.join(this.path);
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, JSON.stringify(this.messages), 'utf-8');
+  }
+
+  async loadFromFile(): Promise<void> {
+    const filePath = path.join(this.path);
     try {
-      await fs.access(this.getFullPath(path));
-      return true;
-    } catch {
-      return false;
+      const data = await fs.readFile(filePath, 'utf-8');
+      this.messages = JSON.parse(data);
+    } catch (error) {
+      this.messages = [];
+      console.log('🚀 ~ loadFromFile ~ error:', error);
     }
   }
 }

@@ -5,7 +5,9 @@ import type { AppRouter } from '@server/trpc/trpc.router';
 import { getUserPayload } from '@web/contexts/auth-context';
 import { createTRPCNext } from '@trpc/next';
 import { createTRPCReact } from '@trpc/react-query';
+import { inferRouterOutputs } from '@trpc/server';
 
+export type RouterOutput = inferRouterOutputs<AppRouter>;
 export const trpc = createTRPCNext<AppRouter>({
   config(opts) {
     return {

@@ -21,7 +21,7 @@ export const conversationSchema = z.object({
   totalLatency: z.number().optional(),
 });
 export const messageSchema = z.object({
-  role: z.enum(['user', 'assistant']),
+  role: z.enum(['user', 'ai', 'system']),
   content: z.string(),
 });
 
