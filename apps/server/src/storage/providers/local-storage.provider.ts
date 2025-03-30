@@ -4,10 +4,11 @@ import {
   FileInfo,
   StorageLocalOptions,
 } from '../interfaces/storage.interface';
-import * as fs from 'fs/promises';
+import * as fs from 'fs-extra';
 import * as path from 'path';
 import { BaseMessage } from '@langchain/core/messages';
 import { BaseListChatMessageHistory } from '@langchain/core/chat_history';
+import { TRPCError } from '@trpc/server';
 
 @Injectable()
 export class LocalStorageProvider
@@ -21,7 +22,7 @@ export class LocalStorageProvider
   constructor(options?: StorageLocalOptions) {
     super();
     this.path = options?.path || 'storage';
-    this.saveToFile();
+    this.loadFromFile();
   }
 
   async getMessages(): Promise<BaseMessage[]> {
@@ -30,7 +31,7 @@ export class LocalStorageProvider
 
   async addMessage(message: BaseMessage): Promise<void> {
     this.messages.push(message);
-    this.saveToFile();
+    await this.saveToFile();
   }
 
   async clear(): Promise<void> {
@@ -53,14 +54,20 @@ export class LocalStorageProvider
   }
 
   async saveToFile(): Promise<void> {
-    const filePath = path.join(this.path);
+    const filePath = this.path;
     await fs.mkdir(path.dirname(filePath), { recursive: true });
     await fs.writeFile(filePath, JSON.stringify(this.messages), 'utf-8');
   }
 
   async loadFromFile(): Promise<void> {
-    const filePath = path.join(this.path);
+    const filePath = this.path;
+    if (!fs.existsSync(filePath)) {
+      this.messages = [];
+      return;
+    }
     try {
+      console.log('🚀 ~ loadFromFile ~ filePath:', filePath);
+
       const data = await fs.readFile(filePath, 'utf-8');
       this.messages = JSON.parse(data);
     } catch (error) {

@@ -1,15 +1,15 @@
 import { BaseListChatMessageHistory } from '@langchain/core/chat_history';
+import { type $Enums } from '@prisma/client';
 
 export type StorageOptions = StorageLocalOptions | StorageS3Options;
 
 export interface StorageLocalOptions {
-  type: 'local';
+  type: typeof $Enums.StorageType.LOCAL;
   path?: string;
-  conversationId?: string;
 }
 
 export interface StorageS3Options {
-  type: 's3';
+  type: typeof $Enums.StorageType.S3;
   bucket: string;
   region: string;
   path: string;

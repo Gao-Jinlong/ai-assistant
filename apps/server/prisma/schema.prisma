@@ -68,7 +68,6 @@ model AssessmentResult {
   result        Json? // 测评结果（可能包含多个维度的评分或分析）
   startTime     DateTime // 开始时间
   endTime       DateTime? // 结束时间
-  status        String // 状态：进行中/已完成/已中断
 
   deleted   Boolean  @default(false)
   createdAt DateTime @default(now())

@@ -10,8 +10,7 @@ import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { AuthService } from '@server/auth/auth.service';
 import { LoginDto } from './dto/login.dto';
-import { omit, pick } from 'es-toolkit';
-import { ClsService } from 'nestjs-cls';
+import { pick } from 'es-toolkit';
 
 @Injectable()
 export class UserService {

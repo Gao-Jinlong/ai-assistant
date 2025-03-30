@@ -1,5 +1,11 @@
 'use client';
-import React, { createContext, useContext, useEffect, useMemo } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { trpc } from '@web/app/trpc';
 import dayjs from 'dayjs';
 import { IConversation } from './interface';
@@ -11,6 +17,7 @@ export interface ConversationContextType extends ConversationState {
   list: IConversation[];
   remove: ReturnType<typeof trpc.conversation.remove.useMutation>;
   getMessages: ReturnType<typeof trpc.conversation.getMessages.useMutation>;
+  appendMessage: ReturnType<typeof trpc.conversation.appendMessage.useMutation>;
 }
 
 export const ConversationContext =
@@ -26,7 +33,8 @@ export const ConversationProvider = ({
   const create = trpc.conversation.create.useMutation();
   const remove = trpc.conversation.remove.useMutation();
   const getMessages = trpc.conversation.getMessages.useMutation();
-  const conversationState = createConversationState();
+  const appendMessage = trpc.conversation.appendMessage.useMutation();
+  const [conversationState] = useState(createConversationState());
 
   useEffect(() => {
     if (!query.isLoading && !query.data) {
@@ -54,6 +62,7 @@ export const ConversationProvider = ({
         list,
         remove,
         getMessages,
+        appendMessage,
         ...conversationState,
       }}
     >

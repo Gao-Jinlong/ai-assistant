@@ -1,13 +1,6 @@
 'use client';
 
-import React, {
-  FC,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { FC, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import MessageList from '@web/components/message-list';
 import SenderInput from '@web/components/sender';
@@ -26,6 +19,7 @@ import {
 import { Button } from '@web/components/ui/button';
 import BrandLogo from '@web/components/BrandLogo';
 import { useAtom } from 'jotai';
+import { MESSAGE_ROLE } from '@web/app/constant';
 
 const renderTitle = (icon: React.ReactElement, title: string) => (
   <Space align="start">
@@ -91,18 +85,19 @@ interface ChatContainerProps {
 export const ChatContainer: FC<ChatContainerProps> = ({ isSending }) => {
   const t = useTranslations('chat');
   const senderRef = useRef<GetRef<typeof Sender>>(null);
-  const { currentConversationAtom, create, getMessages, localMessagesAtom } =
-    useConversation();
+  const {
+    currentConversationAtom,
+    create,
+    query,
+    appendMessage,
+    localMessagesAtom,
+  } = useConversation();
 
   const [currentConversation, setCurrentConversation] = useAtom(
     currentConversationAtom,
   );
 
   const [messages, setMessages] = useAtom(localMessagesAtom);
-
-  const isNewChat = useMemo(() => {
-    return !currentConversation;
-  }, [currentConversation]);
 
   // ===================== event handlers =====================
   const createConversation = useCallback(async () => {
@@ -115,18 +110,63 @@ export const ChatContainer: FC<ChatContainerProps> = ({ isSending }) => {
 
   const onSend = useCallback(
     async (text: string) => {
+      let conversation = currentConversation;
       // 如果当前会话不存在，则创建一个新会话
-      if (!currentConversation) {
-        const conversation = await createConversation();
-        console.log('🚀 ~ conversation:', conversation);
-        setCurrentConversation(conversation);
+      if (!conversation) {
+        conversation = await createConversation();
+        query.mutateAsync().then((res) => {
+          console.log('🚀 ~ awaitquery.mutateAsync ~ res:', res);
+          setCurrentConversation(conversation);
+          console.log('🚀 ~ query.mutateAsync ~ conversation:', conversation);
+        });
       }
 
+      setMessages((old) =>
+        old.concat([
+          {
+            role: MESSAGE_ROLE.USER,
+            content: text,
+          },
+        ]),
+      );
+
       //TODO: 发送消息
-      // await sendMessage(text);
+      const response = await appendMessage.mutateAsync({
+        conversationUid: conversation.uid,
+        message: {
+          role: MESSAGE_ROLE.USER,
+          content: text,
+        },
+      });
+
+      if (!response) {
+        return;
+      }
+
+      console.log('🚀 ~ response:', response);
+
+      setMessages((old) =>
+        old.concat([
+          {
+            role: MESSAGE_ROLE.AI,
+            content: response.message,
+          },
+        ]),
+      );
     },
-    [createConversation, currentConversation, setCurrentConversation],
+    [
+      appendMessage,
+      createConversation,
+      currentConversation,
+      query,
+      setCurrentConversation,
+      setMessages,
+    ],
   );
+
+  useEffect(() => {
+    console.log('messages', messages);
+  }, [messages]);
 
   // ===================== node fragments =====================
   const placeholderNode = (
@@ -173,7 +213,11 @@ export const ChatContainer: FC<ChatContainerProps> = ({ isSending }) => {
       </div>
 
       <div className="flex w-full flex-1 items-center justify-center overflow-hidden p-12">
-        {isNewChat ? placeholderNode : <MessageList messages={messages} />}
+        {!messages.length ? (
+          placeholderNode
+        ) : (
+          <MessageList messages={messages} />
+        )}
       </div>
 
       {/* 输入区域 */}

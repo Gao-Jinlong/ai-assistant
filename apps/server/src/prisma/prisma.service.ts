@@ -27,24 +27,24 @@ type ExtendedPrismaClient = DynamicClientExtensionThis<
   Prisma.PrismaClientOptions
 >;
 
-// const omitFields = {
-//   createdAt: true,
-//   updatedAt: true,
-//   deleted: true,
-// };
+const omitFields = {
+  createdAt: true,
+  updatedAt: true,
+  deleted: true,
+};
 @Injectable()
 export class PrismaService implements OnModuleInit {
   private readonly client: ExtendedPrismaClient;
 
   constructor() {
     const prisma = new PrismaClient({
-      // omit: {
-      //   user: omitFields,
-      //   conversation: omitFields,
-      //   assessment: omitFields,
-      //   assessmentResult:omitFields,
-      //        assessmentType:omitFields,
-      // },
+      omit: {
+        // user: omitFields,
+        conversation: omitFields,
+        // assessment: omitFields,
+        // assessmentResult: omitFields,
+        // assessmentType: omitFields,
+      },
     })
       .$extends({
         name: 'auto-uid',

@@ -1,10 +1,11 @@
+import { $Enums } from '@prisma/client';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
 export const conversationSchema = z.object({
   userUid: z.string(),
   /** 存储类型 */
-  storageType: z.enum(['LOCAL', 'S3']),
+  storageType: z.enum([$Enums.StorageType.LOCAL, $Enums.StorageType.S3]),
   /** 存储路径 */
   storagePath: z.string(),
   /** 标题 */
