@@ -1,5 +1,4 @@
 'use client';
-import { UserOutlined } from '@ant-design/icons';
 import { Bubble } from '@ant-design/x';
 import type { BubbleProps } from '@ant-design/x';
 import { BubbleDataType } from '@ant-design/x/es/bubble/BubbleList';
@@ -7,7 +6,7 @@ import { cn } from '@web/lib/utils';
 import { GetProp, Typography } from 'antd';
 import markdownit from 'markdown-it';
 /* eslint-disable react/no-danger */
-import React, { FC, useState } from 'react';
+import React, { FC, useMemo } from 'react';
 
 const md = markdownit({ html: true, breaks: true });
 
@@ -43,9 +42,18 @@ export interface MessageListProps {
 }
 
 const MessageList: FC<MessageListProps> = ({ messages }) => {
+  const items = useMemo(() => {
+    return messages.map((item) => {
+      return {
+        ...item,
+        messageRender: renderMarkdown,
+      };
+    });
+  }, [messages]);
+
   return (
     <div className={cn('flex h-full w-full flex-1 flex-col gap-2')}>
-      <Bubble.List items={messages} roles={roles} />
+      <Bubble.List items={items} roles={roles} />
     </div>
   );
 };

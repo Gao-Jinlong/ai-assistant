@@ -111,13 +111,10 @@ export const ChatContainer: FC<ChatContainerProps> = ({ isSending }) => {
   const onSend = useCallback(
     async (text: string) => {
       let conversation = currentConversation;
-      // 如果当前会话不存在，则创建一个新会话
       if (!conversation) {
         conversation = await createConversation();
-        query.mutateAsync().then((res) => {
-          console.log('🚀 ~ awaitquery.mutateAsync ~ res:', res);
+        query.mutateAsync().then(() => {
           setCurrentConversation(conversation);
-          console.log('🚀 ~ query.mutateAsync ~ conversation:', conversation);
         });
       }
 
@@ -142,8 +139,6 @@ export const ChatContainer: FC<ChatContainerProps> = ({ isSending }) => {
       if (!response) {
         return;
       }
-
-      console.log('🚀 ~ response:', response);
 
       setMessages((old) =>
         old.concat([

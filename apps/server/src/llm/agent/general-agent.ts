@@ -7,7 +7,12 @@ import { ConversationChain } from 'langchain/chains';
 import { LocalHistory } from '../history/local-history';
 import { BufferMemory } from 'langchain/memory';
 import { Conversation } from '@prisma/client';
-import { BaseMessage, SystemMessage } from '@langchain/core/messages';
+import {
+  BaseMessage,
+  SystemMessage,
+  HumanMessage,
+  AIMessage,
+} from '@langchain/core/messages';
 import { TRPCError } from '@trpc/server';
 import { ClsService } from 'nestjs-cls';
 import { CLS_STORAGE_PROVIDER } from '@server/constant';
@@ -31,6 +36,7 @@ export class GeneralAgent {
     return model;
   }
 
+  // TODO: 重写调用方式，实现连续对话的能力
   async invoke({
     conversation,
     messages,
@@ -54,14 +60,18 @@ export class GeneralAgent {
       chatHistory: history,
     });
 
-    if ((await history.getMessages()).length < 1) {
+    const historyMessages = await history.getMessages();
+
+    if (historyMessages.length < 1) {
       await history.addMessages([new SystemMessage(this.systemPrompt)]);
     }
 
+    const allMessages = [...historyMessages, ...(messages || [])];
+
     const prompt = ChatPromptTemplate.fromMessages([
       ['system', this.systemPrompt],
-      ...messages.map((msg) => ({
-        type: msg._getType(),
+      ...allMessages.map((msg) => ({
+        role: 'user',
         content: msg.content,
       })),
     ]);
@@ -72,7 +82,7 @@ export class GeneralAgent {
       prompt,
     });
 
-    const userInput = messages[messages.length - 1].content;
+    const userInput = allMessages[allMessages.length - 1].content;
     const response = await chain.call({ input: userInput });
 
     return response;
