@@ -4,22 +4,28 @@ import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { ChatOpenAI } from '@langchain/openai';
 
 import { ConversationChain } from 'langchain/chains';
-import { LocalHistory } from '../history/local-history';
 import { BufferMemory } from 'langchain/memory';
 import { Conversation } from '@prisma/client';
-import {
-  BaseMessage,
-  SystemMessage,
-  HumanMessage,
-  AIMessage,
-} from '@langchain/core/messages';
+import { BaseMessage, SystemMessage } from '@langchain/core/messages';
 import { TRPCError } from '@trpc/server';
 import { ClsService } from 'nestjs-cls';
 import { CLS_STORAGE_PROVIDER } from '@server/constant';
 
 @Injectable()
 export class GeneralAgent {
-  private systemPrompt = `你是一个强大的个人发展助理，你的任务是根据用户的问题给出建议和指导，你可以使用 markdown 格式输出你的回答`;
+  private systemPrompt = `你是一个强大的个人发展助理，你的任务是根据用户的问题给出建议和指导，
+  以下是用户的对话历史，你可以使用其中的信息来给出回答，是否使用历史信息由你决定：
+  <history>
+  {history}
+  </history>
+
+  你可以使用 markdown 格式输出你的回答
+
+  以下是用户的输入：
+  <input>
+  {input}
+  </input>
+  `;
 
   constructor(
     private readonly llmService: LlmService,
@@ -66,14 +72,11 @@ export class GeneralAgent {
       await history.addMessages([new SystemMessage(this.systemPrompt)]);
     }
 
-    const allMessages = [...historyMessages, ...(messages || [])];
-
+    // 创建提示模板
     const prompt = ChatPromptTemplate.fromMessages([
       ['system', this.systemPrompt],
-      ...allMessages.map((msg) => ({
-        role: 'user',
-        content: msg.content,
-      })),
+      ['history', '{history}'],
+      ['human', '{input}'],
     ]);
 
     const chain = new ConversationChain({
@@ -82,8 +85,9 @@ export class GeneralAgent {
       prompt,
     });
 
-    const userInput = allMessages[allMessages.length - 1].content;
-    const response = await chain.call({ input: userInput });
+    const response = await chain.call({
+      input: messages[messages.length - 1].content,
+    });
 
     return response;
   }
