@@ -1,4 +1,3 @@
-import { TRPCClientError } from '@trpc/client';
 import { useState, useEffect } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@web/components/ui/alert';

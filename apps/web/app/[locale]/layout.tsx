@@ -1,11 +1,11 @@
 import { Geist, Geist_Mono } from 'next/font/google';
 import '../globals.css';
-import { NextIntlClientProvider, useTranslations } from 'next-intl';
+import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from '@web/i18n/getMessages';
 import ClientLayout from './client-layout';
 import 'allotment/dist/style.css';
 import { cn } from '@web/lib/utils';
-
+import { ReactNode } from 'react';
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
@@ -34,7 +34,7 @@ export default async function RootLayout({
   children,
   params,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   params: Promise<{ locale: string }>;
 }) {
   const paramsData = await params;

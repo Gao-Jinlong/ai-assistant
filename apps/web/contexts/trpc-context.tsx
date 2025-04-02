@@ -3,7 +3,6 @@
 import { ReactNode, createContext, useCallback, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { initTrpc, trpc, trpcClient } from '@web/app/trpc';
-import { useLocale } from 'next-intl';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { TRPCClientError } from '@trpc/client';
 import { AppRouter } from '@server/trpc/trpc.router';
@@ -13,9 +12,7 @@ export const TRPCContext = createContext<{
   client: typeof trpc;
 } | null>(null);
 
-// TODO 全局错误处理
 export function TrpcProvider({ children }: { children: ReactNode }) {
-  const locale = useLocale();
   const router = useRouter();
 
   const handleError = useCallback(

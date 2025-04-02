@@ -24,7 +24,6 @@ import {
 } from '@server/storage/interfaces/storage.interface';
 import { CLS_CONVERSATION, CLS_STORAGE_PROVIDER } from '@server/constant';
 import { omit } from 'es-toolkit';
-import { LlmService } from '@server/llm/llm.service';
 declare module 'nestjs-cls' {
   interface ClsStore {
     [CLS_CONVERSATION]: Prisma.ConversationGetPayload<object> | null;
@@ -96,21 +95,22 @@ export class ConversationService {
           });
       }
 
-      const storageProvider = await this.getStorageProvider({
+      await this.getStorageProvider({
         type: conversation.storageType as typeof $Enums.StorageType.LOCAL,
         path: conversation.storagePath,
       });
 
-      await storageProvider.addMessage(message);
+      // await storageProvider.addMessage(message);
       // 更新会话元数据
+
+      const response = await this.generateResponse(message);
+
       const meta = await this.prisma.db.conversation.update({
         where: { uid: conversationUid },
         data: {
-          messageCount: { increment: 1 },
+          messageCount: { increment: 2 },
         },
       });
-
-      const response = await this.generateResponse(message);
 
       return {
         conversation: omit(meta, ['storagePath', 'storageType']),
@@ -123,23 +123,10 @@ export class ConversationService {
 
   async generateResponse(message: BaseMessage) {
     const conversation = this.cls.get(CLS_CONVERSATION)!;
-    const storageProvider = this.cls.get(CLS_STORAGE_PROVIDER)!;
-
-    // 获取历史消息
-    const history = await storageProvider.getMessages();
-
-    // 构建完整的消息列表
-    const messages = [...history, message];
-
-    // 调用 LLM 获取响应
     const response = await this.generalAgent.invoke({
       conversation,
-      messages: messages,
+      message,
     });
-
-    // 保存 AI 响应到历史记录
-    const aiMessage = new AIMessage(response.response);
-    await storageProvider.addMessage(aiMessage);
 
     return response;
   }

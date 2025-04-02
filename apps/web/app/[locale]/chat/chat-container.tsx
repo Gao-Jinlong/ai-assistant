@@ -139,6 +139,7 @@ export const ChatContainer: FC<ChatContainerProps> = ({ isSending }) => {
       if (!response) {
         return;
       }
+      console.log('🚀 ~ response:', response);
 
       setMessages((old) =>
         old.concat([

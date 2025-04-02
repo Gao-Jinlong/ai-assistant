@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { LlmService } from '../llm.service';
-import { ChatPromptTemplate } from '@langchain/core/prompts';
+import { ChatPromptTemplate, PromptTemplate } from '@langchain/core/prompts';
 import { ChatOpenAI } from '@langchain/openai';
 
 import { ConversationChain } from 'langchain/chains';
@@ -13,15 +13,15 @@ import { CLS_STORAGE_PROVIDER } from '@server/constant';
 
 @Injectable()
 export class GeneralAgent {
-  private systemPrompt = `你是一个强大的个人发展助理，你的任务是根据用户的问题给出建议和指导，
-  以下是用户的对话历史，你可以使用其中的信息来给出回答，是否使用历史信息由你决定：
+  private systemPrompt = `你是一个强大的个人发展助理，你的任务是根据用户的问题给出建议和指导
+  你可以使用 markdown 格式输出你的回答
+  `;
+  private historyPrompt = `以下是用户的对话历史，你可以使用其中的信息来给出回答，是否使用历史信息由你决定：
   <history>
   {history}
   </history>
-
-  你可以使用 markdown 格式输出你的回答
-
-  以下是用户的输入：
+  `;
+  private humanPrompt = `以下是用户的输入：
   <input>
   {input}
   </input>
@@ -45,10 +45,10 @@ export class GeneralAgent {
   // TODO: 重写调用方式，实现连续对话的能力
   async invoke({
     conversation,
-    messages,
+    message,
   }: {
     conversation: Conversation;
-    messages: BaseMessage[];
+    message: BaseMessage;
   }) {
     const llm = this.modelWithTools(this.llmService.llm);
     const history = this.cls.get(CLS_STORAGE_PROVIDER);
@@ -66,16 +66,10 @@ export class GeneralAgent {
       chatHistory: history,
     });
 
-    const historyMessages = await history.getMessages();
-
-    if (historyMessages.length < 1) {
-      await history.addMessages([new SystemMessage(this.systemPrompt)]);
-    }
-
     // 创建提示模板
     const prompt = ChatPromptTemplate.fromMessages([
       ['system', this.systemPrompt],
-      ['history', '{history}'],
+      ['human', this.historyPrompt],
       ['human', '{input}'],
     ]);
 
@@ -86,7 +80,7 @@ export class GeneralAgent {
     });
 
     const response = await chain.call({
-      input: messages[messages.length - 1].content,
+      input: message.content,
     });
 
     return response;
