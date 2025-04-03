@@ -127,7 +127,6 @@ export const ChatContainer: FC<ChatContainerProps> = ({ isSending }) => {
         ]),
       );
 
-      //TODO: 发送消息
       const response = await appendMessage.mutateAsync({
         conversationUid: conversation.uid,
         message: {

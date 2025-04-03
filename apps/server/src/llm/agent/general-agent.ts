@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { LlmService } from '../llm.service';
-import { ChatPromptTemplate, PromptTemplate } from '@langchain/core/prompts';
+import {
+  ChatPromptTemplate,
+  MessagesPlaceholder,
+  PromptTemplate,
+} from '@langchain/core/prompts';
 import { ChatOpenAI } from '@langchain/openai';
 
 import { ConversationChain } from 'langchain/chains';
@@ -10,7 +14,8 @@ import { BaseMessage, SystemMessage } from '@langchain/core/messages';
 import { TRPCError } from '@trpc/server';
 import { ClsService } from 'nestjs-cls';
 import { CLS_STORAGE_PROVIDER } from '@server/constant';
-
+import { RunnableWithMessageHistory } from '@langchain/core/runnables';
+import { LocalStorageProvider } from '@server/storage/providers/local-storage.provider';
 @Injectable()
 export class GeneralAgent {
   private systemPrompt = `你是一个强大的个人发展助理，你的任务是根据用户的问题给出建议和指导
@@ -67,19 +72,22 @@ export class GeneralAgent {
     });
 
     // 创建提示模板
-    const prompt = ChatPromptTemplate.fromMessages([
-      ['system', this.systemPrompt],
-      ['human', this.historyPrompt],
+    const chatPrompt = ChatPromptTemplate.fromMessages([
+      [
+        'system',
+        'The following is a friendly conversation between a human and an AI. The AI is talkative and provides lots of specific details from its context. If the AI does not know the answer to a question, it truthfully says it does not know.',
+      ],
+      new MessagesPlaceholder('history'),
       ['human', '{input}'],
     ]);
 
     const chain = new ConversationChain({
-      llm,
       memory,
-      prompt,
+      prompt: chatPrompt,
+      llm,
     });
 
-    const response = await chain.call({
+    const response = await chain.invoke({
       input: message.content,
     });
 
