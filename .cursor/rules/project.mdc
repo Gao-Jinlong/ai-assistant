@@ -1,0 +1,126 @@
+---
+description: 项目结构
+globs: 
+alwaysApply: false
+---
+# AI Assistant 项目目录结构说明
+
+## 项目概述
+
+AI Assistant 是一个基于 NestJS + Next.js + tRPC 的端到端类型安全的 AI 助手项目，使用 pnpm workspace 进行 monorepo 管理。
+
+## 项目技术栈
+
+### 后端技术栈
+- NestJS
+- tRPC
+- Prisma
+- LangChain
+- Zod
+
+### 前端技术栈
+- Next.js 15
+- React 19
+- TailwindCSS
+- shadcn-ui
+- React Query
+- Jotai
+
+## 根目录结构
+
+```
+ai-assistant/
+├── apps/                    # 应用程序目录 (monorepo)
+│   ├── server/             # 后端应用 (NestJS)
+│   └── web/                # 前端应用 (Next.js)
+├── docs/                   # 项目文档
+├── .gitignore             # Git 忽略文件
+├── .node-version          # Node.js 版本锁定
+├── .prettierrc            # 代码格式化配置
+├── eslint.config.js       # ESLint 配置
+├── package.json           # 根项目配置
+├── pnpm-lock.yaml         # 依赖锁定文件
+├── pnpm-workspace.yaml    # Monorepo 工作空间配置
+├── README.md              # 项目说明文档
+└── tsconfig.json          # TypeScript 配置
+```
+
+## 后端目录结构 (apps/server/)
+
+```
+server/
+├── data/                   # 数据目录
+│   └── storage/           # 文件存储目录
+├── prisma/                # Prisma 数据库配置
+│   └── migrations/        # 数据库迁移文件
+├── scripts/               # 脚本文件
+├── src/                   # 源代码目录
+│   ├── agents/            # AI 代理模块
+│   │   ├── dto/           # 数据传输对象
+│   │   ├── interfaces/    # 接口定义
+│   │   └── services/      # 服务层
+│   ├── assessment/        # 评估模块
+│   │   └── dto/           # 数据传输对象
+│   ├── auth/              # 身份认证模块
+│   ├── chat/              # 聊天模块
+│   │   ├── dto/           # 数据传输对象
+│   │   └── services/      # 服务层
+│   ├── config/            # 配置模块
+│   ├── conversation/      # 对话模块
+│   │   └── dto/           # 数据传输对象
+│   ├── llm/               # 大语言模型模块
+│   │   ├── agent/         # AI 代理
+│   │   ├── dto/           # 数据传输对象
+│   │   └── history/       # 历史记录
+│   ├── middleware/        # 中间件
+│   ├── prisma/            # Prisma 服务
+│   ├── storage/           # 存储模块
+│   │   ├── interfaces/    # 接口定义
+│   │   └── providers/     # 存储提供者
+│   ├── trpc/              # tRPC 配置
+│   ├── user/              # 用户模块
+│   │   ├── dto/           # 数据传输对象
+│   │   └── entities/      # 实体定义
+│   ├── utils/             # 工具函数
+│   ├── app.controller.ts  # 应用控制器
+│   ├── app.module.ts      # 应用根模块
+│   ├── app.service.ts     # 应用服务
+│   └── main.ts            # 应用入口
+├── test/                  # 测试文件
+├── package.json           # 项目配置
+└── tsconfig.json          # TypeScript 配置
+```
+
+## 前端目录结构 (apps/web/)
+
+```
+web/
+├── .next/                 # Next.js 构建输出 (自动生成)
+├── app/                   # App Router 目录
+│   ├── [locale]/          # 国际化路由
+│   │   ├── chat/          # 聊天页面
+│   │   │   └── state/     # 聊天状态管理
+│   │   ├── dashboard/     # 仪表板页面
+│   │   ├── login/         # 登录页面
+│   │   └── register/      # 注册页面
+│   ├── api/               # API 路由
+│   └── constant/          # 常量定义
+├── components/            # React 组件
+│   ├── auth/              # 认证相关组件
+│   ├── conversation-list/ # 对话列表组件
+│   ├── message-list/      # 消息列表组件
+│   ├── sender/            # 消息发送组件
+│   └── ui/                # 基础 UI 组件
+├── contexts/              # React Context
+├── i18n/                  # 国际化配置
+├── lib/                   # 工具库
+│   └── trpc/              # tRPC 客户端配置
+├── messages/              # 国际化消息文件
+├── pages/                 # Pages Router (如有使用)
+├── public/                # 静态资源
+├── next.config.js         # Next.js 配置
+├── package.json           # 项目配置
+├── tailwind.config.js     # TailwindCSS 配置
+└── tsconfig.json          # TypeScript 配置
+```
+
