@@ -13,7 +13,6 @@ AI Assistant 是一个基于 NestJS + Next.js + tRPC 的端到端类型安全的
 
 ### 后端技术栈
 - NestJS
-- tRPC
 - Prisma
 - LangChain
 - Zod
@@ -56,31 +55,17 @@ server/
 ├── scripts/               # 脚本文件
 ├── src/                   # 源代码目录
 │   ├── agents/            # AI 代理模块
-│   │   ├── dto/           # 数据传输对象
-│   │   ├── interfaces/    # 接口定义
-│   │   └── services/      # 服务层
 │   ├── assessment/        # 评估模块
-│   │   └── dto/           # 数据传输对象
 │   ├── auth/              # 身份认证模块
 │   ├── chat/              # 聊天模块
-│   │   ├── dto/           # 数据传输对象
-│   │   └── services/      # 服务层
 │   ├── config/            # 配置模块
 │   ├── conversation/      # 对话模块
-│   │   └── dto/           # 数据传输对象
 │   ├── llm/               # 大语言模型模块
-│   │   ├── agent/         # AI 代理
-│   │   ├── dto/           # 数据传输对象
-│   │   └── history/       # 历史记录
 │   ├── middleware/        # 中间件
 │   ├── prisma/            # Prisma 服务
 │   ├── storage/           # 存储模块
-│   │   ├── interfaces/    # 接口定义
-│   │   └── providers/     # 存储提供者
 │   ├── trpc/              # tRPC 配置
 │   ├── user/              # 用户模块
-│   │   ├── dto/           # 数据传输对象
-│   │   └── entities/      # 实体定义
 │   ├── utils/             # 工具函数
 │   ├── app.controller.ts  # 应用控制器
 │   ├── app.module.ts      # 应用根模块

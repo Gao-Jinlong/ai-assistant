@@ -1,31 +1,44 @@
-import createMiddleware from 'next-intl/middleware';
+import { match } from '@formatjs/intl-localematcher';
+import Negotiator from 'negotiator';
+import { NextRequest, NextResponse } from 'next/server';
 
-export default createMiddleware({
-  // 支持的语言列表
-  locales: ['en', 'zh'],
+let locales = ['zh', 'en'];
+let defaultLocale = 'zh';
 
-  // 默认语言
-  defaultLocale: 'en',
+function getLocale(request: NextRequest) {
+  const headers = {
+    'accept-language': request.headers.get('accept-language') ?? undefined,
+  };
 
-  // 语言检测方案
-  localeDetection: true,
+  // const headers = Object.fromEntries(request.headers.entries());
 
-  // 如果你想通过 domain 来区分语言，可以添加这个配置
-  // domains: [
-  //   {
-  //     domain: 'example.com',
-  //     defaultLocale: 'en',
-  //     locales: ['en', 'zh'],
-  //   },
-  //   {
-  //     domain: 'example.cn',
-  //     defaultLocale: 'zh',
-  //     locales: ['en', 'zh'],
-  //   },
-  // ],
-});
+  const languages = new Negotiator({ headers: headers }).languages();
+
+  return match(languages, locales, defaultLocale);
+}
+
+export function middleware(request: NextRequest) {
+  // Check if there is any supported locale in the pathname
+  const { pathname } = request.nextUrl;
+  const pathnameHasLocale = locales.some(
+    (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`,
+  );
+
+  if (pathnameHasLocale) return;
+
+  // Redirect if there is no locale
+  const locale = getLocale(request);
+  request.nextUrl.pathname = `/${locale}${pathname}`;
+  // e.g. incoming request is /products
+  // The new URL is now /en-US/products
+  return NextResponse.redirect(request.nextUrl);
+}
 
 export const config = {
-  // 匹配所有路径
-  matcher: ['/((?!api|_next|.*\\..*).*)'],
+  matcher: [
+    // Skip all internal paths (_next)
+    '/((?!_next).*)',
+    // Optional: only run on root (/) URL
+    // '/',
+  ],
 };

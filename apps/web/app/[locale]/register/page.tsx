@@ -13,7 +13,6 @@ import {
 } from '@web/components/ui/form';
 import { Input } from '@web/components/ui/input';
 import { z } from 'zod';
-import { RegisterDto, useAuth } from '@web/contexts/auth-context';
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { TRPCClientError } from '@trpc/client';
@@ -38,7 +37,6 @@ const formSchema = z
   });
 
 export default function Register() {
-  const { register } = useAuth();
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations();
@@ -92,7 +90,7 @@ export default function Register() {
 
       setLoading(false);
     },
-    [register, router, locale, t],
+    [router, locale, t],
   );
 
   return (

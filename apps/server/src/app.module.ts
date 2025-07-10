@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { TrpcModule } from './trpc/trpc.module';
 import { ChatModule } from './chat/chat.module';
 import { UserModule } from './user/user.module';
 import configuration from './config/configuration';
@@ -10,8 +9,6 @@ import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
-import { AuthGuard } from './auth/auth.guard';
-import { AssessmentModule } from './assessment/assessment.module';
 import { PrismaService } from './prisma/prisma.service';
 import { ConversationModule } from './conversation/conversation.module';
 import { StorageModule } from './storage/storage.module';
@@ -29,7 +26,6 @@ import { LlmModule } from './llm/llm.module';
       global: true,
       middleware: { mount: false },
     }),
-    TrpcModule,
     ChatModule,
     UserModule,
     PrismaModule,
