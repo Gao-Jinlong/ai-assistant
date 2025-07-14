@@ -54,7 +54,14 @@
     "confirmPassword": "确认密码",
     "success": "注册成功！即将跳转到登录页面...",
     "unknownError": "注册时发生未知错误，请稍后再试",
-    "alreadyHaveAccount": "已有账户？"
+    "alreadyHaveAccount": "已有账户？",
+
+    "validateEmail": "请输入有效的电子邮箱",
+    "validatePassword": "密码至少需要6个字符",
+    "validateConfirmPassword": "两次输入的密码不匹配",
+    "validateEmailRequired": "请输入您的电子邮箱",
+    "validatePasswordRequired": "请输入您的密码",
+    "validateConfirmPasswordRequired": "请确认您的密码"
   },
   "dashboard": {
     "title": "用户仪表盘",

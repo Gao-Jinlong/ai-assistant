@@ -3,9 +3,9 @@
 import { Toaster } from '@web/components/ui/sonner';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
-import Link from 'next/link';
 import LanguageSwitcher from '@web/components/language-switcher';
 import React from 'react';
+import { Link } from '@web/i18n/navigation';
 
 export default function ClientLayout({
   children,

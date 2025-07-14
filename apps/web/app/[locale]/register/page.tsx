@@ -13,7 +13,7 @@ import {
 } from '@web/components/ui/form';
 import { Input } from '@web/components/ui/input';
 import { z } from 'zod';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { TRPCClientError } from '@trpc/client';
 import { useTranslations, useLocale } from 'next-intl';
@@ -21,25 +21,30 @@ import { AuthLayout } from '@web/components/auth/auth-layout';
 import { AuthMessage } from '@web/components/auth/auth-message';
 import { AuthFooter } from '@web/components/auth/auth-footer';
 
-const formSchema = z
-  .object({
-    email: z.string().email({
-      message: '请输入有效的电子邮箱',
-    }),
-    password: z.string().min(6, {
-      message: '密码至少需要6个字符',
-    }),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: '两次输入的密码不匹配',
-    path: ['confirmPassword'],
-  });
-
 export default function Register() {
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations();
+
+  const formSchema = useMemo(
+    () =>
+      z
+        .object({
+          email: z.string().email({
+            message: t('register.validateEmail'),
+          }),
+          password: z.string().min(6, {
+            message: t('register.validatePassword'),
+          }),
+          confirmPassword: z.string(),
+        })
+        .refine((data) => data.password === data.confirmPassword, {
+          message: t('register.validateConfirmPassword'),
+          path: ['confirmPassword'],
+        }),
+    [t],
+  );
+
   const [message, setMessage] = useState<{
     type: 'success' | 'error';
     text: string;
@@ -61,10 +66,10 @@ export default function Register() {
       setMessage(null);
 
       try {
-        await register({
-          email: values.email,
-          password: values.password,
-        });
+        // await register({
+        //   email: values.email,
+        //   password: values.password,
+        // });
 
         setMessage({
           type: 'success',

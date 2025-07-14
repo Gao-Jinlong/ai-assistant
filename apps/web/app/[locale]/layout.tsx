@@ -1,11 +1,11 @@
 import { Geist, Geist_Mono } from 'next/font/google';
 import '../globals.css';
-import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from '@web/i18n/getMessages';
 import ClientLayout from './client-layout';
 import 'allotment/dist/style.css';
 import { cn } from '@web/lib/utils';
 import { ReactNode } from 'react';
+import { NextIntlClientProvider } from 'next-intl';
+
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
@@ -39,12 +39,11 @@ export default async function RootLayout({
 }) {
   const paramsData = await params;
   const locale = paramsData.locale;
-  const messages = await getMessages(locale);
 
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className={cn(geistSans.variable, geistMono.variable)}>
-        <NextIntlClientProvider locale={locale} messages={messages}>
+        <NextIntlClientProvider>
           <ClientLayout>{children}</ClientLayout>
         </NextIntlClientProvider>
       </body>

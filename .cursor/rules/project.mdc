@@ -7,14 +7,14 @@ alwaysApply: false
 
 ## 项目概述
 
-AI Assistant 是一个基于 NestJS + Next.js + tRPC 的端到端类型安全的 AI 助手项目，使用 pnpm workspace 进行 monorepo 管理。
+AI Assistant 是一个基于 NestJS + Next.js 的 AI 知识库管理应用，使用 pnpm workspace 进行 monorepo 管理。
 
 ## 项目技术栈
 
 ### 后端技术栈
 - NestJS
 - Prisma
-- LangChain
+- LangGraph
 - Zod
 
 ### 前端技术栈
@@ -33,15 +33,7 @@ ai-assistant/
 │   ├── server/             # 后端应用 (NestJS)
 │   └── web/                # 前端应用 (Next.js)
 ├── docs/                   # 项目文档
-├── .gitignore             # Git 忽略文件
-├── .node-version          # Node.js 版本锁定
-├── .prettierrc            # 代码格式化配置
-├── eslint.config.js       # ESLint 配置
-├── package.json           # 根项目配置
-├── pnpm-lock.yaml         # 依赖锁定文件
-├── pnpm-workspace.yaml    # Monorepo 工作空间配置
-├── README.md              # 项目说明文档
-└── tsconfig.json          # TypeScript 配置
+└── package.json           # 根项目配置
 ```
 
 ## 后端目录结构 (apps/server/)
@@ -55,16 +47,12 @@ server/
 ├── scripts/               # 脚本文件
 ├── src/                   # 源代码目录
 │   ├── agents/            # AI 代理模块
-│   ├── assessment/        # 评估模块
 │   ├── auth/              # 身份认证模块
-│   ├── chat/              # 聊天模块
 │   ├── config/            # 配置模块
-│   ├── conversation/      # 对话模块
 │   ├── llm/               # 大语言模型模块
 │   ├── middleware/        # 中间件
 │   ├── prisma/            # Prisma 服务
 │   ├── storage/           # 存储模块
-│   ├── trpc/              # tRPC 配置
 │   ├── user/              # 用户模块
 │   ├── utils/             # 工具函数
 │   ├── app.controller.ts  # 应用控制器
@@ -83,8 +71,6 @@ web/
 ├── .next/                 # Next.js 构建输出 (自动生成)
 ├── app/                   # App Router 目录
 │   ├── [locale]/          # 国际化路由
-│   │   ├── chat/          # 聊天页面
-│   │   │   └── state/     # 聊天状态管理
 │   │   ├── dashboard/     # 仪表板页面
 │   │   ├── login/         # 登录页面
 │   │   └── register/      # 注册页面
@@ -98,9 +84,8 @@ web/
 │   └── ui/                # 基础 UI 组件
 ├── contexts/              # React Context
 ├── i18n/                  # 国际化配置
-├── lib/                   # 工具库
-│   └── trpc/              # tRPC 客户端配置
 ├── messages/              # 国际化消息文件
+├── lib/                   # 工具库
 ├── pages/                 # Pages Router (如有使用)
 ├── public/                # 静态资源
 ├── next.config.js         # Next.js 配置
