@@ -3,7 +3,6 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { patchNestJsSwagger } from 'nestjs-zod';
-import { TrpcRouter } from './trpc/trpc.router';
 import { NestExpressApplication } from '@nestjs/platform-express';
 patchNestJsSwagger();
 async function bootstrap() {
@@ -22,14 +21,12 @@ async function bootstrap() {
       .build();
 
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('docs', app, document);
+    SwaggerModule.setup('docs', app, document, {
+      jsonDocumentUrl: '/docs-json',
+    });
   }
 
   app.enableCors();
-
-  const trpcRouter = app.get(TrpcRouter);
-
-  trpcRouter.applyMiddleware(app);
 
   await app.listen(port);
 }

@@ -1,6 +1,6 @@
 {
   "brand": {
-    "name": "ginlon's AI 教练"
+    "name": "ginlon's AI 知识库"
   },
   "common": {
     "login": "登录",
@@ -80,7 +80,59 @@
     "cancel": "取消",
     "confirm": "确认",
     "coach": "个人教练",
-    "chat": "聊天"
+    "chat": "聊天",
+    "overview": "总览",
+    "analytics": "数据分析",
+    "settings": "设置",
+    "projects": "项目管理",
+    "tasks": "任务管理",
+    "team": "团队协作",
+    "reports": "报告",
+    "notifications": "通知",
+    "profile": "个人资料",
+    "quickActions": "快速操作",
+    "recentProjects": "最近项目",
+    "taskProgress": "任务进度",
+    "teamActivity": "团队动态",
+    "performanceMetrics": "性能指标",
+    "newProject": "新建项目",
+    "newTask": "新建任务",
+    "viewAll": "查看全部",
+    "completed": "已完成",
+    "inProgress": "进行中",
+    "pending": "待开始",
+    "priority": {
+      "high": "高优先级",
+      "medium": "中优先级",
+      "low": "低优先级"
+    },
+    "status": {
+      "active": "活跃",
+      "inactive": "非活跃",
+      "completed": "已完成",
+      "pending": "待处理"
+    }
+  },
+  "sidebar": {
+    "navigation": "导航",
+    "dashboard": "仪表盘",
+    "projects": "项目",
+    "tasks": "任务",
+    "team": "团队",
+    "analytics": "分析",
+    "settings": "设置",
+    "support": "支持",
+    "documentation": "文档",
+    "feedback": "反馈",
+    "help": "帮助",
+    "workspace": "工作空间",
+    "reports": "报告",
+    "calendar": "日历",
+    "files": "文件",
+    "messages": "消息",
+    "notifications": "通知",
+    "profile": "个人资料",
+    "logout": "退出登录"
   },
   "conversationList": {
     "delete": "删除"

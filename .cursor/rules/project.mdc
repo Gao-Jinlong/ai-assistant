@@ -11,6 +11,10 @@ AI Assistant 是一个基于 NestJS + Next.js 的 AI 知识库管理应用，使
 
 ## 项目技术栈
 
+### 工具链 
+- fnm: node 版本管理
+- pnpm: 包管理
+
 ### 后端技术栈
 - NestJS
 - Prisma
@@ -22,10 +26,11 @@ AI Assistant 是一个基于 NestJS + Next.js 的 AI 知识库管理应用，使
 - React 19
 - TailwindCSS
 - shadcn-ui
+  - 添加组件命令 pnpm dlx shadcn@latest add <component-name>
 - React Query
 - Jotai
 
-## 根目录结构
+## 仓库目录结构
 
 ```
 ai-assistant/

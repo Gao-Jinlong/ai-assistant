@@ -1,6 +1,6 @@
 {
   "brand": {
-    "name": "ginlon's AI Coach"
+    "name": "ginlon's AI Knowledge Base"
   },
   "common": {
     "login": "Login",
@@ -73,7 +73,59 @@
     "cancel": "Cancel",
     "confirm": "Confirm",
     "coach": "Coach",
-    "chat": "Chat"
+    "chat": "Chat",
+    "overview": "Overview",
+    "analytics": "Analytics",
+    "settings": "Settings",
+    "projects": "Projects",
+    "tasks": "Tasks",
+    "team": "Team",
+    "reports": "Reports",
+    "notifications": "Notifications",
+    "profile": "Profile",
+    "quickActions": "Quick Actions",
+    "recentProjects": "Recent Projects",
+    "taskProgress": "Task Progress",
+    "teamActivity": "Team Activity",
+    "performanceMetrics": "Performance Metrics",
+    "newProject": "New Project",
+    "newTask": "New Task",
+    "viewAll": "View All",
+    "completed": "Completed",
+    "inProgress": "In Progress",
+    "pending": "Pending",
+    "priority": {
+      "high": "High Priority",
+      "medium": "Medium Priority",
+      "low": "Low Priority"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "completed": "Completed",
+      "pending": "Pending"
+    }
+  },
+  "sidebar": {
+    "navigation": "Navigation",
+    "dashboard": "Dashboard",
+    "projects": "Projects",
+    "tasks": "Tasks",
+    "team": "Team",
+    "analytics": "Analytics",
+    "settings": "Settings",
+    "support": "Support",
+    "documentation": "Documentation",
+    "feedback": "Feedback",
+    "help": "Help",
+    "workspace": "Workspace",
+    "reports": "Reports",
+    "calendar": "Calendar",
+    "files": "Files",
+    "messages": "Messages",
+    "notifications": "Notifications",
+    "profile": "Profile",
+    "logout": "Logout"
   },
   "errors": {
     "defaultTitle": "Error Occurred",

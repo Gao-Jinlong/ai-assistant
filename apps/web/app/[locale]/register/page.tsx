@@ -20,6 +20,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { AuthLayout } from '@web/components/auth/auth-layout';
 import { AuthMessage } from '@web/components/auth/auth-message';
 import { AuthFooter } from '@web/components/auth/auth-footer';
+import service from '@web/service';
 
 export default function Register() {
   const router = useRouter();
@@ -66,10 +67,10 @@ export default function Register() {
       setMessage(null);
 
       try {
-        // await register({
-        //   email: values.email,
-        //   password: values.password,
-        // });
+        await service.user.register({
+          email: values.email,
+          password: values.password,
+        });
 
         setMessage({
           type: 'success',
