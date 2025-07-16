@@ -28,7 +28,7 @@ AI Assistant 是一个基于 NestJS + Next.js 的 AI 知识库管理应用，使
 - shadcn-ui
   - 添加组件命令 pnpm dlx shadcn@latest add <component-name>
 - React Query
-- Jotai
+- Zustand
 
 ## 仓库目录结构
 

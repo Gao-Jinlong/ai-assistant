@@ -13,7 +13,7 @@ export default function ClientLayout({
 }) {
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="flex flex-1">{children}</div>
+      <div className="flex h-screen w-screen">{children}</div>
       <Toaster richColors position="top-right" />
     </QueryClientProvider>
   );

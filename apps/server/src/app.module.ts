@@ -4,7 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import configuration from './config/configuration';
-import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
+import { APP_PIPE } from '@nestjs/core';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
@@ -12,6 +12,7 @@ import { PrismaService } from './prisma/prisma.service';
 import { StorageModule } from './storage/storage.module';
 import { ClsModule } from 'nestjs-cls';
 import { LlmModule } from './llm/llm.module';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { LlmModule } from './llm/llm.module';
       global: true,
       middleware: { mount: false },
     }),
+    CommonModule, // 添加公共模块
     UserModule,
     PrismaModule,
     AuthModule,

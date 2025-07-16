@@ -12,24 +12,24 @@ const request = ky.create({
   timeout: 120 * 1000,
 });
 
-const get = (url: string, options?: Options) => {
-  return request.get(url, options).json();
+const get = <T>(url: string, options?: Options) => {
+  return request.get<T>(url, options).json();
 };
 
-const post = (url: string, options?: Options) => {
-  return request.post(url, options).json();
+const post = <T>(url: string, options?: Options) => {
+  return request.post<T>(url, options).json();
 };
 
-const put = (url: string, options?: Options) => {
-  return request.put(url, options).json();
+const put = <T>(url: string, options?: Options) => {
+  return request.put<T>(url, options).json();
 };
 
-const del = (url: string, options?: Options) => {
-  return request.delete(url, options).json();
+const del = <T>(url: string, options?: Options) => {
+  return request.delete<T>(url, options).json();
 };
 
-const patch = (url: string, options?: Options) => {
-  return request.patch(url, options).json();
+const patch = <T>(url: string, options?: Options) => {
+  return request.patch<T>(url, options).json();
 };
 
 export { request, get, post, put, del, patch };

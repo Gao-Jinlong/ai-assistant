@@ -23,6 +23,7 @@ import { AuthMessage } from '@web/components/auth/auth-message';
 import { AuthFooter } from '@web/components/auth/auth-footer';
 import Link from 'next/link';
 import service from '@web/service';
+import useBoundStore from '@web/store';
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -34,6 +35,7 @@ export default function Login() {
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations();
+  const setUser = useBoundStore((state) => state.setUser);
   const [message, setMessage] = useState<{
     type: 'success' | 'error';
     text: string;
@@ -62,6 +64,7 @@ export default function Login() {
             type: 'success',
             text: t('common.loginSuccess'),
           });
+          setUser(result.data);
           setTimeout(() => {
             router.push(`/${locale}/dashboard`);
           }, 1000);
@@ -77,7 +80,7 @@ export default function Login() {
 
       setLoading(false);
     },
-    [router, locale, t],
+    [t, setUser, router, locale],
   );
 
   return (
