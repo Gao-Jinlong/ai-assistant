@@ -35,7 +35,7 @@ export default function Login() {
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations();
-  const setUser = useBoundStore((state) => state.setUser);
+  const setLoginInfo = useBoundStore((state) => state.setLoginInfo);
   const [message, setMessage] = useState<{
     type: 'success' | 'error';
     text: string;
@@ -64,7 +64,7 @@ export default function Login() {
             type: 'success',
             text: t('common.loginSuccess'),
           });
-          setUser(result.data);
+          setLoginInfo(result.data);
           setTimeout(() => {
             router.push(`/${locale}/dashboard`);
           }, 1000);
@@ -80,7 +80,7 @@ export default function Login() {
 
       setLoading(false);
     },
-    [t, setUser, router, locale],
+    [t, setLoginInfo, router, locale],
   );
 
   return (

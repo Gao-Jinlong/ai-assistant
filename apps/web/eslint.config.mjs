@@ -10,5 +10,21 @@ const eslintConfig = [
   ...compat.config({
     extends: ['eslint:recommended', 'next'],
   }),
+  {
+    rules: {
+      'no-unused-vars': [
+        'error',
+        {
+          vars: 'all',
+          args: 'none',
+          caughtErrors: 'all',
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          ignoreRestSiblings: false,
+          reportUsedIgnorePattern: false,
+        },
+      ],
+    },
+  },
 ];
 export default eslintConfig;

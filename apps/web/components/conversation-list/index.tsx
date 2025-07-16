@@ -1,12 +1,11 @@
 import { Conversations } from '@ant-design/x';
-import { useCallback, useMemo } from 'react';
-import { type GetProp, Space, theme } from 'antd';
-import { CommentOutlined } from '@ant-design/icons';
+import { useCallback } from 'react';
+import { type GetProp, Space } from 'antd';
+import { CommentOutlined, DeleteOutlined } from '@ant-design/icons';
 import {
   Conversation,
   ConversationsProps,
 } from '@ant-design/x/es/conversations';
-import { EditOutlined, StopOutlined, DeleteOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { useTranslations } from 'next-intl';
 
@@ -18,7 +17,6 @@ export default function ConversationList({
   onDelete,
   ...props
 }: ConversationListProps) {
-  const { token } = theme.useToken();
   const t = useTranslations('conversationList');
 
   const menuConfig: ConversationsProps['menu'] = useCallback(
@@ -35,7 +33,7 @@ export default function ConversationList({
         },
       ],
     }),
-    [t],
+    [t, onDelete],
   );
 
   const groupable: GetProp<typeof Conversations, 'groupable'> = {

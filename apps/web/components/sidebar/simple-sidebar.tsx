@@ -8,15 +8,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@web/components/ui/avatar';
 import { Button } from '@web/components/ui/button';
 import {
   Home,
-  Folder,
-  CheckSquare,
-  Users,
-  BarChart3,
   Settings,
   HelpCircle,
   FileText,
-  Calendar,
-  FolderOpen,
   MessageSquare,
   Bell,
   User,
@@ -26,6 +20,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@web/lib/utils';
 import Image from 'next/image';
+import useBoundStore from '@web/store';
 
 interface SidebarProps {
   onCollapsedChange?: (collapsed: boolean) => void;
@@ -47,49 +42,49 @@ const navigation: NavItem[] = [
     icon: Home,
     href: '/dashboard',
   },
+  // {
+  //   key: 'projects',
+  //   label: 'sidebar.projects',
+  //   icon: Folder,
+  //   href: '/projects',
+  //   badge: 3,
+  // },
+  // {
+  //   key: 'tasks',
+  //   label: 'sidebar.tasks',
+  //   icon: CheckSquare,
+  //   href: '/tasks',
+  //   badge: 12,
+  // },
+  // {
+  //   key: 'team',
+  //   label: 'sidebar.team',
+  //   icon: Users,
+  //   href: '/team',
+  // },
+  // {
+  //   key: 'analytics',
+  //   label: 'sidebar.analytics',
+  //   icon: BarChart3,
+  //   href: '/analytics',
+  // },
+  // {
+  //   key: 'calendar',
+  //   label: 'sidebar.calendar',
+  //   icon: Calendar,
+  //   href: '/calendar',
+  // },
+  // {
+  //   key: 'files',
+  //   label: 'sidebar.files',
+  //   icon: FolderOpen,
+  //   href: '/files',
+  // },
   {
-    key: 'projects',
-    label: 'sidebar.projects',
-    icon: Folder,
-    href: '/projects',
-    badge: 3,
-  },
-  {
-    key: 'tasks',
-    label: 'sidebar.tasks',
-    icon: CheckSquare,
-    href: '/tasks',
-    badge: 12,
-  },
-  {
-    key: 'team',
-    label: 'sidebar.team',
-    icon: Users,
-    href: '/team',
-  },
-  {
-    key: 'analytics',
-    label: 'sidebar.analytics',
-    icon: BarChart3,
-    href: '/analytics',
-  },
-  {
-    key: 'calendar',
-    label: 'sidebar.calendar',
-    icon: Calendar,
-    href: '/calendar',
-  },
-  {
-    key: 'files',
-    label: 'sidebar.files',
-    icon: FolderOpen,
-    href: '/files',
-  },
-  {
-    key: 'messages',
-    label: 'sidebar.messages',
+    key: 'chat',
+    label: 'sidebar.chat',
     icon: MessageSquare,
-    href: '/messages',
+    href: '/chat',
     badge: 5,
   },
 ];
@@ -115,19 +110,12 @@ const bottomNavigation: NavItem[] = [
   },
 ];
 
-// 模拟用户数据
-const mockUser = {
-  name: '张三',
-  email: 'zhangsan@example.com',
-  avatar: null,
-  role: '管理员',
-};
-
 export default function Sidebar({ onCollapsedChange }: SidebarProps) {
   const t = useTranslations();
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const user = useBoundStore((state) => state.loginInfo?.user);
 
   const toggleCollapsed = () => {
     const newCollapsed = !isCollapsed;
@@ -231,13 +219,12 @@ export default function Sidebar({ onCollapsedChange }: SidebarProps) {
             onClick={() => setShowUserMenu(!showUserMenu)}
           >
             <Avatar className="h-8 w-8">
-              <AvatarImage src={mockUser.avatar || ''} />
-              <AvatarFallback>{mockUser.name.slice(0, 2)}</AvatarFallback>
+              <AvatarImage src={user?.avatar || ''} />
+              <AvatarFallback>{user?.name.slice(0, 2) || ''}</AvatarFallback>
             </Avatar>
             {!isCollapsed && (
               <div className="flex flex-1 flex-col items-start text-left">
-                <p className="text-sm font-medium">{mockUser.name}</p>
-                <p className="text-muted-foreground text-xs">{mockUser.role}</p>
+                <p className="text-sm font-medium">{user?.name || ''}</p>
               </div>
             )}
           </Button>
@@ -259,13 +246,15 @@ export default function Sidebar({ onCollapsedChange }: SidebarProps) {
               >
                 <div className="flex items-center gap-2 border-b p-2">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={mockUser.avatar || ''} />
-                    <AvatarFallback>{mockUser.name.slice(0, 2)}</AvatarFallback>
+                    <AvatarImage src={user?.avatar || ''} />
+                    <AvatarFallback>
+                      {user?.name.slice(0, 2) || ''}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col">
-                    <p className="text-sm font-medium">{mockUser.name}</p>
+                    <p className="text-sm font-medium">{user?.name || ''}</p>
                     <p className="text-muted-foreground text-xs">
-                      {mockUser.email}
+                      {user?.email || ''}
                     </p>
                   </div>
                 </div>
