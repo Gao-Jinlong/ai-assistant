@@ -23,8 +23,7 @@ type ExtendedPrismaClient = DynamicClientExtensionThis<
     result: object;
     query: object;
     client: object;
-  },
-  Prisma.PrismaClientOptions
+  }
 >;
 
 const omitFields = {
@@ -40,7 +39,7 @@ export class PrismaService implements OnModuleInit {
     const prisma = new PrismaClient({
       omit: {
         // user: omitFields,
-        conversation: omitFields,
+        thread: omitFields,
         // assessment: omitFields,
         // assessmentResult: omitFields,
         // assessmentType: omitFields,

@@ -1,6 +1,10 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { chatService, type Conversation, type Message } from '../chat-service';
+import {
+  chatService,
+  type Conversation,
+  type Message,
+} from '../lib/chat-service';
 
 interface UseChatOptions {
   autoLoadConversations?: boolean;

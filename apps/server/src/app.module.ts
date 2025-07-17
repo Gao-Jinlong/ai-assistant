@@ -11,8 +11,8 @@ import { AuthModule } from './auth/auth.module';
 import { PrismaService } from './prisma/prisma.service';
 import { StorageModule } from './storage/storage.module';
 import { ClsModule } from 'nestjs-cls';
-import { LlmModule } from './llm/llm.module';
 import { CommonModule } from './common/common.module';
+import { ThreadModule } from './thread/thread.module';
 
 @Module({
   imports: [
@@ -29,9 +29,8 @@ import { CommonModule } from './common/common.module';
     UserModule,
     PrismaModule,
     AuthModule,
-    // AssessmentModule,
     StorageModule,
-    LlmModule,
+    ThreadModule,
   ],
   controllers: [AppController],
   providers: [

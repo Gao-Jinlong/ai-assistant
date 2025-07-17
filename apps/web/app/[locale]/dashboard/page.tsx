@@ -143,201 +143,192 @@ export default function Dashboard() {
   const t = useTranslations();
 
   return (
-    <div className="bg-background flex h-screen w-screen">
-      {/* 侧边栏 */}
-      <SimpleSidebar />
-
-      {/* 主内容区域 */}
-      <div className="flex-1 overflow-auto">
-        <div className="space-y-6 p-6 pb-16">
-          {/* 页面标题和快速操作 */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">
-                {t('dashboard.title')}
-              </h1>
-              <p className="text-muted-foreground">{t('dashboard.welcome')}</p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm">
-                <Bell className="mr-2 h-4 w-4" />
-                {t('dashboard.notifications')}
-              </Button>
-              <Button variant="outline" size="sm">
-                <Settings className="mr-2 h-4 w-4" />
-                {t('dashboard.settings')}
-              </Button>
-              <Button size="sm">
-                <Plus className="mr-2 h-4 w-4" />
-                {t('dashboard.newProject')}
-              </Button>
-            </div>
+    <div className="flex-1 overflow-auto">
+      <div className="space-y-6 p-6 pb-16">
+        {/* 页面标题和快速操作 */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              {t('dashboard.title')}
+            </h1>
+            <p className="text-muted-foreground">{t('dashboard.welcome')}</p>
           </div>
-
-          {/* 统计卡片 */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {mockStats.map((stat, index) => (
-              <StatCard
-                key={index}
-                title={t(stat.title)}
-                value={stat.value}
-                change={stat.change}
-                changeType={stat.changeType}
-                icon={stat.icon}
-                description={t(stat.description)}
-              />
-            ))}
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="sm">
+              <Bell className="mr-2 h-4 w-4" />
+              {t('dashboard.notifications')}
+            </Button>
+            <Button variant="outline" size="sm">
+              <Settings className="mr-2 h-4 w-4" />
+              {t('dashboard.settings')}
+            </Button>
+            <Button size="sm">
+              <Plus className="mr-2 h-4 w-4" />
+              {t('dashboard.newProject')}
+            </Button>
           </div>
+        </div>
 
-          <div className="grid gap-6 md:grid-cols-7">
-            {/* 主要内容区 */}
-            <div className="col-span-4 space-y-6">
-              {/* 快速操作 */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Target className="mr-2 h-5 w-5" />
-                    {t('dashboard.quickActions')}
-                  </CardTitle>
-                  <CardDescription>常用操作和快捷入口</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
-                    <Button variant="outline" className="h-20 flex-col">
-                      <Plus className="mb-2 h-6 w-6" />
-                      {t('dashboard.newTask')}
-                    </Button>
-                    <Button variant="outline" className="h-20 flex-col">
-                      <UserPlus className="mb-2 h-6 w-6" />
-                      邀请成员
-                    </Button>
-                    <Button variant="outline" className="h-20 flex-col">
-                      <BarChart3 className="mb-2 h-6 w-6" />
-                      {t('dashboard.analytics')}
-                    </Button>
-                    <Button variant="outline" className="h-20 flex-col">
-                      <MessageSquare className="mb-2 h-6 w-6" />
-                      {t('dashboard.chat')}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+        {/* 统计卡片 */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {mockStats.map((stat, index) => (
+            <StatCard
+              key={index}
+              title={t(stat.title)}
+              value={stat.value}
+              change={stat.change}
+              changeType={stat.changeType}
+              icon={stat.icon}
+              description={t(stat.description)}
+            />
+          ))}
+        </div>
 
-              {/* 最近任务 */}
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center">
-                      <CheckSquare className="mr-2 h-5 w-5" />
-                      {t('dashboard.tasks')}
-                    </CardTitle>
-                    <CardDescription>
-                      {t('dashboard.taskProgress')}
-                    </CardDescription>
-                  </div>
-                  <Button variant="ghost" size="sm">
-                    {t('dashboard.viewAll')}
-                    <ArrowRight className="ml-2 h-4 w-4" />
+        <div className="grid gap-6 md:grid-cols-7">
+          {/* 主要内容区 */}
+          <div className="col-span-4 space-y-6">
+            {/* 快速操作 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Target className="mr-2 h-5 w-5" />
+                  {t('dashboard.quickActions')}
+                </CardTitle>
+                <CardDescription>常用操作和快捷入口</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <Button variant="outline" className="h-20 flex-col">
+                    <Plus className="mb-2 h-6 w-6" />
+                    {t('dashboard.newTask')}
                   </Button>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {mockRecentTasks.map((task) => (
-                    <TaskItem
-                      key={task.id}
-                      {...task}
-                      onClick={() => console.log('打开任务:', task.title)}
-                    />
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
+                  <Button variant="outline" className="h-20 flex-col">
+                    <UserPlus className="mb-2 h-6 w-6" />
+                    邀请成员
+                  </Button>
+                  <Button variant="outline" className="h-20 flex-col">
+                    <BarChart3 className="mb-2 h-6 w-6" />
+                    {t('dashboard.analytics')}
+                  </Button>
+                  <Button variant="outline" className="h-20 flex-col">
+                    <MessageSquare className="mb-2 h-6 w-6" />
+                    {t('dashboard.chat')}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
 
-            {/* 侧边栏 */}
-            <div className="col-span-3 space-y-6">
-              {/* 最近项目 */}
-              <Card>
-                <CardHeader>
+            {/* 最近任务 */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
                   <CardTitle className="flex items-center">
-                    <Folder className="mr-2 h-5 w-5" />
-                    {t('dashboard.recentProjects')}
+                    <CheckSquare className="mr-2 h-5 w-5" />
+                    {t('dashboard.tasks')}
                   </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {['AI Assistant', 'Dashboard Pro', 'Mobile App'].map(
-                    (project, index) => (
-                      <div
-                        key={index}
-                        className="hover:bg-muted/50 flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors"
-                      >
-                        <div className="flex items-center space-x-3">
-                          <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
-                            <Folder className="text-primary h-4 w-4" />
-                          </div>
-                          <span className="font-medium">{project}</span>
-                        </div>
-                        <ArrowRight className="text-muted-foreground h-4 w-4" />
-                      </div>
-                    ),
-                  )}
-                </CardContent>
-              </Card>
+                  <CardDescription>
+                    {t('dashboard.taskProgress')}
+                  </CardDescription>
+                </div>
+                <Button variant="ghost" size="sm">
+                  {t('dashboard.viewAll')}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {mockRecentTasks.map((task) => (
+                  <TaskItem
+                    key={task.id}
+                    {...task}
+                    onClick={() => console.log('打开任务:', task.title)}
+                  />
+                ))}
+              </CardContent>
+            </Card>
+          </div>
 
-              {/* 团队动态 */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Activity className="mr-2 h-5 w-5" />
-                    {t('dashboard.teamActivity')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {mockTeamActivity.map((activity) => (
+          {/* 侧边栏 */}
+          <div className="col-span-3 space-y-6">
+            {/* 最近项目 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Folder className="mr-2 h-5 w-5" />
+                  {t('dashboard.recentProjects')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {['AI Assistant', 'Dashboard Pro', 'Mobile App'].map(
+                  (project, index) => (
                     <div
-                      key={activity.id}
-                      className="flex items-start space-x-3"
+                      key={index}
+                      className="hover:bg-muted/50 flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors"
                     >
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={activity.avatar || ''} />
-                        <AvatarFallback>
-                          {activity.user.slice(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 space-y-1">
-                        <p className="text-sm">
-                          <span className="font-medium">{activity.user}</span>{' '}
-                          {activity.action}{' '}
-                          <span className="font-medium">{activity.target}</span>
-                        </p>
-                        <div className="text-muted-foreground flex items-center text-xs">
-                          <Clock className="mr-1 h-3 w-3" />
-                          {activity.time}
+                      <div className="flex items-center space-x-3">
+                        <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
+                          <Folder className="text-primary h-4 w-4" />
                         </div>
+                        <span className="font-medium">{project}</span>
+                      </div>
+                      <ArrowRight className="text-muted-foreground h-4 w-4" />
+                    </div>
+                  ),
+                )}
+              </CardContent>
+            </Card>
+
+            {/* 团队动态 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Activity className="mr-2 h-5 w-5" />
+                  {t('dashboard.teamActivity')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {mockTeamActivity.map((activity) => (
+                  <div key={activity.id} className="flex items-start space-x-3">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={activity.avatar || ''} />
+                      <AvatarFallback>
+                        {activity.user.slice(0, 2)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 space-y-1">
+                      <p className="text-sm">
+                        <span className="font-medium">{activity.user}</span>{' '}
+                        {activity.action}{' '}
+                        <span className="font-medium">{activity.target}</span>
+                      </p>
+                      <div className="text-muted-foreground flex items-center text-xs">
+                        <Clock className="mr-1 h-3 w-3" />
+                        {activity.time}
                       </div>
                     </div>
-                  ))}
-                </CardContent>
-              </Card>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
 
-              {/* 性能概览 */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <TrendingUp className="mr-2 h-5 w-5" />
-                    {t('dashboard.performanceMetrics')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {mockPerformanceData.map((metric, index) => (
-                    <ProgressBar
-                      key={index}
-                      label={metric.label}
-                      value={metric.value}
-                      color={metric.color}
-                    />
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
+            {/* 性能概览 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <TrendingUp className="mr-2 h-5 w-5" />
+                  {t('dashboard.performanceMetrics')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {mockPerformanceData.map((metric, index) => (
+                  <ProgressBar
+                    key={index}
+                    label={metric.label}
+                    value={metric.value}
+                    color={metric.color}
+                  />
+                ))}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

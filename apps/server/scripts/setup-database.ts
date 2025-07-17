@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { generateUid } from '@server/utils/uid';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 
@@ -10,8 +11,10 @@ async function setupDatabase() {
 
   try {
     // 根据环境加载对应的 .env 文件
-    require('dotenv').config({
-      path: `.env.${env}`,
+    import('dotenv').then((dotenv) => {
+      dotenv.config({
+        path: `.env.${env}`,
+      });
     });
 
     const prisma = new PrismaClient();
@@ -22,11 +25,11 @@ async function setupDatabase() {
     // 可以添加一些初始数据
     if (env === 'development') {
       // 添加测试数据
-      await prisma.assessmentType.create({
+      await prisma.user.create({
         data: {
-          uid: '',
-          name: '性格测试',
-          description: '用于测试性格特征的评估',
+          email: 'ginlon5241@gmail.com',
+          password: '123123123',
+          uid: generateUid(),
         },
       });
     }
