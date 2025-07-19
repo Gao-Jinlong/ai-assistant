@@ -3,7 +3,8 @@
 import { Toaster } from '@web/components/ui/sonner';
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import SimpleSidebar from '@web/components/sidebar/simple-sidebar';
+import SimpleSidebar from '@web/components/sidebar/sidebar';
+import useRouterMatch from '@web/hooks/router';
 
 const queryClient = new QueryClient();
 
@@ -12,6 +13,9 @@ export default function ClientLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // 设置路由
+  useRouterMatch();
+
   return (
     <QueryClientProvider client={queryClient}>
       {/* 侧边栏 */}

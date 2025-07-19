@@ -16,23 +16,6 @@
     "loginSuccess": "Login successful, redirecting...",
     "loginDescription": "Enter your email to sign in to your account"
   },
-  "sender": {
-    "attachments": "Attachments",
-    "dropFileHere": "Drop file here",
-    "uploadFiles": "Upload files",
-    "dragToUpload": "Click or drag files to this area to upload"
-  },
-  "chat": {
-    "newChat": "New Chat",
-    "send": "Send",
-    "welcomeMessage": "Hello! I'm an AI assistant. How can I help you today?",
-    "errorMessage": "Sorry, there was an error processing your request.",
-    "typeMessage": "Type a message...",
-    "conversations": "Conversations",
-    "chatTitle": "AI Assistant",
-    "sending": "Sending...",
-    "welcomeDescription": "Enter a message..."
-  },
   "home": {
     "welcome": "Welcome to our platform",
     "description": "A modern application that makes your work easier",
@@ -122,7 +105,7 @@
     "reports": "Reports",
     "calendar": "Calendar",
     "files": "Files",
-    "chat": "Chat",
+    "thread": "Thread",
     "notifications": "Notifications",
     "profile": "Profile",
     "logout": "Logout"
@@ -143,5 +126,8 @@
     "validation": "Data validation failed",
     "conflict": "Operation caused a data conflict",
     "rateLimited": "Too many requests, please try again later"
+  },
+  "thread": {
+    "newThread": "New Thread"
   }
 }
