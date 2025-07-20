@@ -1,8 +1,10 @@
 import { create, StateCreator } from 'zustand';
-import { createUserSlice, UserStore } from './user';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import createRouterSlice, { RouterStore } from './router';
-type UnionStore = UserStore & RouterStore;
+import { createUserSlice, UserStore } from './user';
+import { createRouterSlice, RouterStore } from './router';
+import { createThreadSlice, ThreadStore } from './thread';
+
+type UnionStore = UserStore & RouterStore & ThreadStore;
 export type Store<T> = StateCreator<UnionStore, [], [], T>;
 
 const useBoundStore = create<UnionStore>()(
@@ -10,6 +12,7 @@ const useBoundStore = create<UnionStore>()(
     (...actions) => ({
       ...createUserSlice(...actions),
       ...createRouterSlice(...actions),
+      ...createThreadSlice(...actions),
     }),
     { name: 'user', storage: createJSONStorage(() => localStorage) },
   ),

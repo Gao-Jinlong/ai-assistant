@@ -134,6 +134,9 @@
     "rateLimited": "请求频率过高，请稍后再试"
   },
   "thread": {
-    "newThread": "新建对话"
+    "newThread": "新建对话",
+    "input": {
+      "placeholder": "有问题，尽管问，shift+enter 换行"
+    }
   }
 }

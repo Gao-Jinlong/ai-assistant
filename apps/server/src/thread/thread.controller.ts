@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { ThreadService } from './thread.service';
 
 @Controller('thread')
@@ -7,7 +7,11 @@ export class ThreadController {
 
   @Post()
   async createThread(@Body() body: { userId: string }) {
-    console.log('🚀 ~ ThreadController ~ createThread ~ body:', body);
     return this.threadService.createThread(body.userId);
+  }
+
+  @Get()
+  async getThreads(@Query() query: { userId: string }) {
+    return this.threadService.getThreads(query.userId);
   }
 }

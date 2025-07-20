@@ -128,6 +128,9 @@
     "rateLimited": "Too many requests, please try again later"
   },
   "thread": {
-    "newThread": "New Thread"
+    "newThread": "New Thread",
+    "input": {
+      "placeholder": "Ask anything, shift+enter to new line"
+    }
   }
 }

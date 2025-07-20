@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { StorageType } from '@prisma/client';
 import { PrismaService } from '@server/prisma/prisma.service';
 import { generateUid } from '@server/utils/uid';
 
@@ -29,19 +30,28 @@ export class ThreadService {
       data: {
         uid: generateUid('thread'),
         userUid: userId,
-        title: 'New Thread',
-        status: 'ACTIVE',
-        storageType: 'LOCAL',
+        title: null,
+        storageType: StorageType.LOCAL,
         storagePath: 'threads',
+        totalTokens: 0,
+      },
+    });
+
+    return thread;
+  }
+
+  async getThreads(userId: string) {
+    const threads = await this.prisma.db.thread.findMany({
+      where: {
+        userUid: userId,
       },
       select: {
         id: true,
         uid: true,
         title: true,
-        status: true,
       },
     });
 
-    return thread;
+    return threads;
   }
 }

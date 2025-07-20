@@ -43,4 +43,4 @@ const createRouterSlice: Store<RouterStore> = (set) => ({
   setRouter: (router: RouterItem) => set({ router }),
 });
 
-export default createRouterSlice;
+export { createRouterSlice };
