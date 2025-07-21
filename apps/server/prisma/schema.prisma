@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,17 +5,16 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL") // 用于直接连接数据库，绕过连接池
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id       Int     @id @default(autoincrement())
-  uid      String  @unique // 用户唯一标识
-  email    String
-  name     String?
-  password String
-  avatar   String?
-
+  id        Int      @id @default(autoincrement())
+  uid       String   @unique
+  email     String
+  name      String?
+  password  String
+  avatar    String?
   deleted   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -29,31 +22,24 @@ model User {
   @@index([email])
 }
 
+model Thread {
+  id           Int         @id @default(autoincrement())
+  uid          String      @unique
+  title        String?
+  userUid      String
+  storageType  StorageType
+  storagePath  String
+  messageCount Int         @default(0)
+  totalTokens  Int         @default(0)
+  metadata     Json?
+  deleted      Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([userUid])
+}
+
 enum StorageType {
   LOCAL
   S3
-}
-
-// 对话会话
-model Thread {
-  id      Int     @id @default(autoincrement())
-  uid     String  @unique // 会话唯一标识
-  title   String? // 会话标题
-  userUid String // 所属用户
-
-  // 文件存储相关
-  storageType StorageType // LOCAL, S3 等存储类型
-  storagePath String // 存储路径
-
-  // 消息数量
-  messageCount Int @default(0)
-  // 总 token 数
-  totalTokens  Int @default(0)
-
-  metadata  Json? // 其他元数据
-  deleted   Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([userUid])
 }
