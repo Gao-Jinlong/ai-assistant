@@ -22,10 +22,7 @@ export class AuthService {
 
   async validateUser(user: User, loginDto: LoginDto) {
     if (!user) {
-      throw new TRPCError({
-        code: 'UNAUTHORIZED',
-        message: 'Invalid User',
-      });
+      throw new UnauthorizedException('用户不存在');
     }
 
     const isPasswordValid = await bcrypt.compare(
@@ -33,10 +30,7 @@ export class AuthService {
       user.password,
     );
     if (!isPasswordValid) {
-      throw new TRPCError({
-        code: 'UNAUTHORIZED',
-        message: 'Invalid Password',
-      });
+      throw new UnauthorizedException('密码错误');
     }
 
     const { password: _, ...result } = user;

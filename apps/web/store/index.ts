@@ -14,7 +14,13 @@ const useBoundStore = create<UnionStore>()(
       ...createRouterSlice(...actions),
       ...createThreadSlice(...actions),
     }),
-    { name: 'user', storage: createJSONStorage(() => localStorage) },
+    {
+      name: 'user',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        loginInfo: state.loginInfo,
+      }),
+    },
   ),
 );
 

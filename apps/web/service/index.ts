@@ -1,9 +1,11 @@
 import * as fetch from './fetch';
 import * as user from './user';
+import * as thread from './thread';
 
 const service = {
   fetch,
   user,
+  thread,
 };
 
 export default service;

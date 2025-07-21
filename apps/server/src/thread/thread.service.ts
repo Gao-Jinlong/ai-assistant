@@ -41,6 +41,7 @@ export class ThreadService {
   }
 
   async getThreads(userId: string) {
+    console.log('🚀 ~ ThreadService ~ getThreads ~ userId:', userId);
     const threads = await this.prisma.db.thread.findMany({
       where: {
         userUid: userId,

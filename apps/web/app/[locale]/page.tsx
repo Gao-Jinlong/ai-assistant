@@ -18,7 +18,7 @@ export default function HomePage() {
   const t = useTranslations();
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center bg-gray-50 p-4">
+    <div className="flex h-full flex-1 flex-col items-center justify-center bg-gray-50 p-4">
       <div className="absolute right-4 top-4">
         <LanguageSwitcher />
       </div>
