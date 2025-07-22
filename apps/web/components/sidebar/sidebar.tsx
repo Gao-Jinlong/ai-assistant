@@ -16,7 +16,7 @@ import {
 import { cn } from '@web/lib/utils';
 import useBoundStore from '@web/store';
 import Brand from '../brand';
-import { motion } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import ThreadList from '../thread-list';
 import Navigation from './navigation';
 
@@ -59,26 +59,35 @@ const Sidebar = ({ onCollapsedChange }: SidebarProps) => {
       </div>
 
       {/* 用户信息区域 */}
-      <div className="border-t p-4">
+      <div className="border-t p-2">
         <div className="relative">
-          <Button
-            variant="ghost"
-            className={cn('h-4 w-full justify-start gap-3 p-2')}
-            onClick={() => setShowUserMenu(!showUserMenu)}
-          >
-            <Avatar className="h-6 w-6">
-              <AvatarImage src={user?.avatar || ''} />
-              <AvatarFallback>{user?.name.slice(0, 2) || ''}</AvatarFallback>
-            </Avatar>
-
-            <motion.div
-              initial={{ opacity: 0, display: 'none' }}
-              animate={{ opacity: isCollapsed ? 0 : 1, display: 'block' }}
-              transition={{ duration: 0.3 }}
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button
+              variant="ghost"
+              className={cn('w-full justify-start gap-3 p-2')}
+              onClick={() => setShowUserMenu(!showUserMenu)}
             >
-              <p className="text-sm font-medium">{user?.name || ''}</p>
-            </motion.div>
-          </Button>
+              <Avatar className="h-6 w-6">
+                <AvatarImage src={user?.avatar || ''} />
+                <AvatarFallback>{user?.name.slice(0, 2) || ''}</AvatarFallback>
+              </Avatar>
+
+              <AnimatePresence>
+                {!isCollapsed && (
+                  <motion.div
+                    initial={{ opacity: 0, display: 'none' }}
+                    animate={{ opacity: 1, display: 'block' }}
+                    exit={{ opacity: 0, display: 'none' }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <p className="font-medium">
+                      {user?.nickname || t('common.nickname')}
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </Button>
+          </motion.div>
 
           {/* 用户菜单 */}
           {showUserMenu && (

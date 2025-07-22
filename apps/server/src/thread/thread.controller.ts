@@ -4,9 +4,10 @@ import {
   Controller,
   Get,
   Post,
-  Query,
+  Req,
 } from '@nestjs/common';
 import { ThreadService } from './thread.service';
+import { Request } from 'express';
 
 @Controller('thread')
 export class ThreadController {
@@ -18,11 +19,11 @@ export class ThreadController {
   }
 
   @Get()
-  async getThreads(@Query() query: { userId: string }) {
-    // TODO: 获取用户信息，登入校验
-    if (!query.userId) {
-      throw new BadRequestException('userId is required');
+  async getThreads(@Req() req: Request) {
+    const user = req['user'];
+    if (!user) {
+      throw new BadRequestException('user is required');
     }
-    return this.threadService.getThreads(query.userId);
+    return this.threadService.getThreads(user.id);
   }
 }

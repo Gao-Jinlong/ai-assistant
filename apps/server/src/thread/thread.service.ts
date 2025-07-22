@@ -24,7 +24,6 @@ export class ThreadService {
     await this.createThread(user.uid);
   }
 
-  // TODO: 用户发送消息后自动创建会话，并返回会话ID
   async createThread(userId: string) {
     const thread = await this.prisma.db.thread.create({
       data: {
@@ -41,7 +40,6 @@ export class ThreadService {
   }
 
   async getThreads(userId: string) {
-    console.log('🚀 ~ ThreadService ~ getThreads ~ userId:', userId);
     const threads = await this.prisma.db.thread.findMany({
       where: {
         userUid: userId,
@@ -50,6 +48,11 @@ export class ThreadService {
         id: true,
         uid: true,
         title: true,
+        messageCount: true,
+        totalTokens: true,
+        metadata: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
 

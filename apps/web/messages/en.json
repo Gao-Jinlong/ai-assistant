@@ -3,6 +3,7 @@
     "name": "ginlon's AI Knowledge Base"
   },
   "common": {
+    "nickname": "Guest",
     "login": "Login",
     "register": "Register",
     "email": "Email",
@@ -131,6 +132,10 @@
     "newThread": "New Thread",
     "input": {
       "placeholder": "Ask anything, shift+enter to new line"
+    },
+    "default": {
+      "hello": "Hello, {name}",
+      "greeting": "What can I help you with today?"
     }
   }
 }

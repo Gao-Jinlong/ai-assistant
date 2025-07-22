@@ -7,8 +7,9 @@ export interface ThreadDto {
   id: string;
   uid: string;
   title: string;
-  totalTokens: number;
   messageCount: number;
+  totalTokens: number;
+  metadata: Record<string, any>;
   messages: MessageDto[];
   createdAt: string;
   updatedAt: string;

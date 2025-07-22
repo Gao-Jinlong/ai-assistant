@@ -1,16 +1,18 @@
 import { ResponseWrapper } from '.';
 import { del, get, post, put } from './fetch';
+
 export interface User {
   id: string;
   email: string;
   password: string;
   name: string;
+  nickname: string;
   avatar: string;
 }
 export interface LoginResponse {
   user: User;
   token: {
-    accessToken: string;
+    access_token: string;
   };
 }
 export interface RegisterData extends Pick<User, 'email' | 'password'> {}

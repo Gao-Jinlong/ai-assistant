@@ -53,6 +53,7 @@ export default function Login() {
 
   const handleSubmit = useCallback(
     async (values: z.infer<typeof formSchema>) => {
+      console.log('🚀 ~ values:', values);
       setLoading(true);
       setMessage(null);
 
@@ -70,6 +71,7 @@ export default function Login() {
           }, 1000);
         }
       } catch (error) {
+        console.error('🚀 ~ error:', error);
         if (error instanceof TRPCClientError) {
           setMessage({
             type: 'error',

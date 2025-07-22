@@ -16,60 +16,10 @@ export interface ThreadStoreActions {
 
 export interface ThreadStore extends ThreadStoreState, ThreadStoreActions {}
 
-const mockThreads: ThreadDto[] = [
-  {
-    id: '1',
-    uid: '1',
-    title: 'Thread 1',
-    totalTokens: 100,
-    messageCount: 10,
-    messages: [
-      {
-        id: '1',
-        threadId: '1',
-        content: 'Hello, world!',
-        role: 'user',
-        createdAt: '2021-01-01',
-        updatedAt: '2021-01-01',
-      },
-      {
-        id: '2',
-        threadId: '1',
-        content: 'Hello, world!',
-        role: 'ai',
-        createdAt: '2021-01-01',
-        updatedAt: '2021-01-01',
-      },
-    ],
-    createdAt: '2021-01-01',
-    updatedAt: '2021-01-01',
-  },
-  {
-    id: '2',
-    uid: '2',
-    title: 'Thread 2',
-    totalTokens: 200,
-    messageCount: 20,
-    messages: [],
-    createdAt: '2021-01-01',
-    updatedAt: '2021-01-01',
-  },
-  {
-    id: '3',
-    uid: '3',
-    title: 'Thread 3',
-    totalTokens: 300,
-    messageCount: 30,
-    messages: [],
-    createdAt: '2021-01-01',
-    updatedAt: '2021-01-01',
-  },
-];
-
 const createThreadSlice: Store<ThreadStore> = (set, get, store) => ({
   isResponding: false,
-  threads: mockThreads,
-  currentThread: mockThreads[0],
+  threads: [],
+  currentThread: null,
   messageList: [],
   sendMessage: (message) => {
     set({ isResponding: true });

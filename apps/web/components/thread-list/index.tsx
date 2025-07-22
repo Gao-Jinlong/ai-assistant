@@ -5,6 +5,7 @@ import { useEffect, useMemo } from 'react';
 import { CreateButton } from './create-button';
 import { useQuery } from '@tanstack/react-query';
 import service from '@web/service';
+import ThreadListItem from './ThreadListItem';
 
 const ThreadList = ({ isSimple }: { isSimple: boolean }) => {
   const router = useBoundStore((state) => state.router);
@@ -36,11 +37,20 @@ const ThreadList = ({ isSimple }: { isSimple: boolean }) => {
             <CreateButton isSimple={isSimple} />
           </div>
 
-          <div className="flex h-full flex-1 flex-col gap-2 px-4">
-            {threads.map((thread) => (
-              <div key={thread.id}>{thread.uid}</div>
-            ))}
-          </div>
+          <AnimatePresence>
+            {!isSimple && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex h-full flex-1 flex-col gap-2 px-4"
+              >
+                {threads.map((thread) => (
+                  <ThreadListItem key={thread.id} thread={thread} />
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       ) : null}
     </AnimatePresence>

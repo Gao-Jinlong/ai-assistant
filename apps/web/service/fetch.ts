@@ -1,4 +1,6 @@
 import ky, { Options } from 'ky';
+import { LoginResponse } from './user';
+import { LOGIN_INFO_KEY } from '@web/constant';
 
 const request = ky.create({
   prefixUrl: process.env.NEXT_PUBLIC_API_URL,
@@ -7,7 +9,20 @@ const request = ky.create({
   },
   retry: 0,
   hooks: {
-    beforeRequest: [],
+    beforeRequest: [
+      (request) => {
+        const localLoginInfo = localStorage.getItem(LOGIN_INFO_KEY);
+        if (localLoginInfo) {
+          const parsed = JSON.parse(localLoginInfo);
+          const loginInfo: LoginResponse = parsed.state?.loginInfo;
+
+          const accessToken = loginInfo.token.access_token;
+          if (accessToken) {
+            request.headers.set('Authorization', `Bearer ${accessToken}`);
+          }
+        }
+      },
+    ],
   },
   timeout: 120 * 1000,
 });
