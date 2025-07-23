@@ -1,14 +1,14 @@
-import { ThreadDto } from '@web/service/thread';
+import { MessageDto } from '@web/service/thread';
 import MessageItem from './message-item';
 import { cn } from '@web/lib/utils';
 
 export interface MessageListProps {
-  thread: ThreadDto;
+  messages: MessageDto[];
 }
-const MessageList = ({ thread }: MessageListProps) => {
+const MessageList = ({ messages }: MessageListProps) => {
   return (
     <div className="flex h-full w-full flex-col gap-4 overflow-auto p-8">
-      {thread.messages.map((message) => (
+      {messages.map((message) => (
         <div
           key={message.id}
           className={cn('flex', message.role === 'user' && 'justify-end')}

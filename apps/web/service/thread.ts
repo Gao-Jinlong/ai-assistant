@@ -1,5 +1,5 @@
 import { ResponseWrapper } from '.';
-import { get } from './fetch';
+import { get, post } from './fetch';
 
 export type MessageRole = 'user' | 'ai';
 
@@ -17,13 +17,15 @@ export interface ThreadDto {
 
 export interface MessageDto {
   id: string;
-  threadId?: string;
   content: string;
   role: MessageRole;
   createdAt: string;
   updatedAt: string;
 }
-export const getThreads = async () => {
-  const threads = await get<ResponseWrapper<ThreadDto[]>>('thread');
-  return threads;
+export const getThreads = () => {
+  return get<ResponseWrapper<ThreadDto[]>>('thread');
+};
+
+export const createThread = () => {
+  return post<ResponseWrapper<ThreadDto>>('thread');
 };

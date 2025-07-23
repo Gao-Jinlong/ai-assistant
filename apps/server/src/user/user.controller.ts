@@ -12,6 +12,7 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginDto } from './dto/login.dto';
+import { Public } from '@server/auth/public.decorator';
 
 @Controller('user')
 export class UserController {
@@ -21,6 +22,7 @@ export class UserController {
    * 用户注册
    */
   @Post('register')
+  @Public()
   async register(@Body() createUserDto: CreateUserDto) {
     return await this.userService.register(createUserDto);
   }
@@ -29,6 +31,7 @@ export class UserController {
    * 用户登录
    */
   @Post('login')
+  @Public()
   async login(@Body() loginDto: LoginDto) {
     return await this.userService.login(loginDto);
   }

@@ -7,11 +7,15 @@ import { SendHorizontal } from 'lucide-react';
 import useBoundStore from '@web/store';
 import { Textarea } from '../ui/textarea';
 import { motion } from 'motion/react';
+import { ThreadDto } from '@web/service/thread';
 
-const ThreadInput = () => {
+export interface ThreadInputProps {
+  thread: ThreadDto | null;
+  onSend: (message: string) => void;
+}
+const ThreadInput = ({ thread, onSend }: ThreadInputProps) => {
   const [input, setInput] = useState('');
   const t = useTranslations('thread');
-  const sendMessage = useBoundStore((state) => state.sendMessage);
   const isResponding = useBoundStore((state) => state.isResponding);
 
   const onChange: React.ChangeEventHandler<HTMLTextAreaElement> = useCallback(
@@ -22,9 +26,9 @@ const ThreadInput = () => {
   );
 
   const handleSend = useCallback(() => {
-    sendMessage(input);
+    onSend(input);
     setInput('');
-  }, [input, sendMessage]);
+  }, [input, onSend]);
 
   const handleKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement> =
     useCallback(

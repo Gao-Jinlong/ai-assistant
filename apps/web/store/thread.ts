@@ -11,6 +11,7 @@ export interface ThreadStoreActions {
   setThreads: (threads: ThreadDto[]) => void;
   setCurrentThread: (current: ThreadDto | null) => void;
   setIsResponding: (isResponding: boolean) => void;
+  appendMessage: (message: MessageDto) => void;
   sendMessage: (message: string) => void;
 }
 
@@ -21,14 +22,17 @@ const createThreadSlice: Store<ThreadStore> = (set, get, store) => ({
   threads: [],
   currentThread: null,
   messageList: [],
+  appendMessage: (message) => {
+    set({
+      messageList: [...get().messageList, message],
+    });
+  },
   sendMessage: (message) => {
-    set({ isResponding: true });
     set({
       messageList: [
         ...get().messageList,
         {
           id: nanoid(),
-          threadId: get().currentThread?.id ?? '',
           content: message,
           role: 'user',
           createdAt: new Date().toISOString(),
