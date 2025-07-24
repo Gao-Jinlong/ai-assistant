@@ -1,5 +1,5 @@
 import { ResponseWrapper } from '.';
-import { get, post } from './fetch';
+import { del, get, post } from './fetch';
 
 export type MessageRole = 'user' | 'ai';
 
@@ -28,4 +28,8 @@ export const getThreads = () => {
 
 export const createThread = () => {
   return post<ResponseWrapper<ThreadDto>>('thread');
+};
+
+export const deleteThread = (id: string) => {
+  return del<ResponseWrapper<ThreadDto>>(`thread/${id}`);
 };

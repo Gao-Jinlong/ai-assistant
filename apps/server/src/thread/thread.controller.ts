@@ -1,7 +1,10 @@
 import {
   BadRequestException,
   Controller,
+  Delete,
   Get,
+  Param,
+  ParseIntPipe,
   Post,
   Req,
   Res,
@@ -29,6 +32,18 @@ export class ThreadController {
       throw new BadRequestException('user is required');
     }
     return this.threadService.getThreads(user.id);
+  }
+
+  @Delete(':id')
+  async deleteThread(
+    @Req() req: Request,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    const user = req['user'];
+    if (!user) {
+      throw new BadRequestException('user is required');
+    }
+    return this.threadService.deleteThread(user.id, id);
   }
 
   // mock SSE 消息推送接口

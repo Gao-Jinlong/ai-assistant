@@ -1,6 +1,7 @@
 import { MessageDto } from '@web/service/thread';
 import { useCallback, useState, useRef, useEffect } from 'react';
 import { LOGIN_INFO_KEY } from '@web/constant';
+import { sse } from '@web/service/fetch';
 
 export interface UseSSEMessagesProps {
   onMessage: (message: MessageDto) => void;
@@ -49,18 +50,9 @@ export const useSSEMessages = ({
       abortControllerRef.current = controller;
 
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}thread/messages`,
-          {
-            method: 'GET',
-            headers: {
-              Authorization: `Bearer ${token}`,
-              Accept: 'text/event-stream',
-              'Cache-Control': 'no-cache',
-            },
-            signal: controller.signal,
-          },
-        );
+        const response = await sse(`thread/messages`, {
+          signal: controller.signal,
+        });
 
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -113,7 +105,7 @@ export const useSSEMessages = ({
         }
       } catch (error: unknown) {
         if (error instanceof Error && error.name === 'AbortError') {
-          console.log('SSE connection aborted');
+          console.log('SSE connection aborted', error);
         } else {
           console.error('SSE connection error:', error);
         }

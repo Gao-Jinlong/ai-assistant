@@ -7,6 +7,7 @@ import { useSSEMessages } from '@web/hooks/useSSEMessages';
 import useBoundStore from '@web/store';
 import { useCallback, useEffect } from 'react';
 import service from '@web/service';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export default function ChatPage() {
   const thread = useBoundStore((state) => state.currentThread);
@@ -16,31 +17,43 @@ export default function ChatPage() {
   const setCurrentThread = useBoundStore((state) => state.setCurrentThread);
   const loginInfo = useBoundStore((state) => state.loginInfo);
 
-  const { sendMessage: sendMessageSSE, disconnect } = useSSEMessages({
+  const { sendMessage: sendMessageSSE } = useSSEMessages({
     onMessage: appendMessage,
     onLoadingChange: setIsResponding,
+  });
+  // TODO: 用 https://github.com/lukemorales/query-key-factory 管理 queryKey
+  const threadQuery = useQuery({
+    queryKey: ['thread'],
+    queryFn: service.thread.getThreads,
+  });
+  const createThread = useMutation({
+    mutationFn: service.thread.createThread,
+    onSuccess: (resp) => {
+      setCurrentThread(resp.data);
+    },
   });
 
   const handleSendMessage = useCallback(
     async (message: string) => {
-      let current = thread;
-      if (!current) {
-        // 获取 userId
-        const userId = loginInfo?.user?.id;
-        if (!userId) return;
-        // 创建新会话
-        const res = await service.thread.createThread();
-        if (res?.data) {
-          setCurrentThread(res.data);
-          current = res.data;
-        } else {
+      if (!thread) {
+        if (!loginInfo?.user?.id) return;
+        const res = await createThread.mutateAsync();
+        threadQuery.refetch();
+        if (!res?.data) {
           return;
         }
       }
       sendMessage(message);
       sendMessageSSE(message);
     },
-    [thread, sendMessage, sendMessageSSE, loginInfo, setCurrentThread],
+    [
+      thread,
+      sendMessage,
+      sendMessageSSE,
+      loginInfo?.user?.id,
+      createThread,
+      threadQuery,
+    ],
   );
 
   return (

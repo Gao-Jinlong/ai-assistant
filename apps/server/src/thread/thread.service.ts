@@ -58,4 +58,15 @@ export class ThreadService {
 
     return threads;
   }
+
+  async deleteThread(userId: string, id: number) {
+    const result = await this.prisma.db.thread.delete({
+      where: {
+        id,
+        userUid: userId,
+      },
+    });
+
+    return result;
+  }
 }

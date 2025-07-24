@@ -49,7 +49,7 @@ const Sidebar = ({ onCollapsedChange }: SidebarProps) => {
       </div>
 
       {/* 主导航区域 */}
-      <div className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden py-4">
+      <div className="flex flex-1 flex-col overflow-hidden py-4">
         <Navigation isSimple={isCollapsed} />
 
         {/* 分隔线 */}

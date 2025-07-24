@@ -13,6 +13,7 @@ export interface ThreadStoreActions {
   setIsResponding: (isResponding: boolean) => void;
   appendMessage: (message: MessageDto) => void;
   sendMessage: (message: string) => void;
+  deleteThread: (thread: ThreadDto) => void;
 }
 
 export interface ThreadStore extends ThreadStoreState, ThreadStoreActions {}
@@ -44,6 +45,11 @@ const createThreadSlice: Store<ThreadStore> = (set, get, store) => ({
   setThreads: (threads) => set({ threads }),
   setCurrentThread: (current) => set({ currentThread: current }),
   setIsResponding: (isResponding) => set({ isResponding }),
+  deleteThread: (thread) => {
+    set({
+      threads: get().threads.filter((t) => t.id !== thread.id),
+    });
+  },
 });
 
 export { createThreadSlice };

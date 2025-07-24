@@ -2,6 +2,7 @@ import ky, { Options } from 'ky';
 import { LoginResponse } from './user';
 import { LOGIN_INFO_KEY } from '@web/constant';
 import { getLocale } from '@web/utils';
+import { merge } from 'es-toolkit';
 
 function handleAuthorization(request: Request) {
   const localLoginInfo = localStorage.getItem(LOGIN_INFO_KEY);
@@ -67,4 +68,18 @@ const patch = <T>(url: string, options?: Options) => {
   return request.patch<T>(url, options).json();
 };
 
-export { request, get, post, put, del, patch };
+const sse = (url: string, options?: Options) => {
+  const sseOptions = merge(
+    {
+      headers: {
+        ...options?.headers,
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+      },
+    },
+    options ?? {},
+  );
+  return request.get(url, sseOptions);
+};
+
+export { request, get, post, put, del, patch, sse };

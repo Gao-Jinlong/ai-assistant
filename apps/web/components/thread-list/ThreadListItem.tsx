@@ -13,22 +13,32 @@ import { cn } from '@web/lib/utils';
 
 export interface ThreadListItemProps {
   thread: ThreadDto;
+  onDelete: (thread: ThreadDto) => void;
 }
-const ThreadListItem: FC<ThreadListItemProps> = ({ thread }) => {
+const ThreadListItem: FC<ThreadListItemProps> = ({ thread, onDelete }) => {
   const [open, setOpen] = useState(false);
 
   const onClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
   }, []);
 
+  const handleDelete = useCallback(() => {
+    onDelete(thread);
+  }, [onDelete, thread]);
+
   return (
     <motion.div
+      layout
+      layoutId={`thread-list-item-${thread.id}`}
       className={cn(
         'rounded-lg px-3 py-2 hover:bg-gray-100',
         open && 'bg-gray-100',
       )}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
+      exit={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
     >
       <div className="flex cursor-pointer items-center justify-between">
         <div className="text-sm">{thread.title || '未命名'}</div>
@@ -38,7 +48,7 @@ const ThreadListItem: FC<ThreadListItemProps> = ({ thread }) => {
             <Ellipsis className="h-4 w-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-30">
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleDelete}>
               <span className="text-red-500">删除</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
