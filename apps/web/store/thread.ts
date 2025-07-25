@@ -42,7 +42,17 @@ const createThreadSlice: Store<ThreadStore> = (set, get, store) => ({
       ],
     });
   },
-  setThreads: (threads) => set({ threads }),
+  setThreads: (threads) => {
+    threads.sort((a, b) => {
+      if (a.updatedAt && b.updatedAt) {
+        return (
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        );
+      }
+      return 0;
+    });
+    set({ threads });
+  },
   setCurrentThread: (current) => set({ currentThread: current }),
   setIsResponding: (isResponding) => set({ isResponding }),
   deleteThread: (thread) => {

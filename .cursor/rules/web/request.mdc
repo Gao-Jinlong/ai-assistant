@@ -1,0 +1,18 @@
+---
+description: web 端网络请求用法说明
+globs: 
+alwaysApply: false
+---
+# web 接口实现规范
+
+## 基本规则
+
+- 所有的 api 都应该放在 web/service 文件夹下对应 api 路径的文件中
+- 遵循 restful 规则创建接口
+- 在 react 组件中使用网络请求时，通过 "@tanstack/react-query" 库进行封装
+- 在使用 "@tanstack/react-query" 的 useQuery 方法时，通过 "@lukemorales/query-key-factory" 进行 queryKey 的管理
+
+## 附加材料
+
+
+lukemorales/query-key-factory 详细用法参考文档 [query-key-factory.mdc](mdc:.cursor/rules/web/query-key-factory.mdc)

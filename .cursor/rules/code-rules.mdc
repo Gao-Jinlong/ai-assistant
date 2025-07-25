@@ -7,3 +7,4 @@ alwaysApply: true
 
 
 - 单个组件/页面尽量不要超过 300 行，如果超过需要考虑拆分为多个功能单一的组件，
+- 当编写 web 端网络请求相关代码时可以查看具体说明 [request.mdc](mdc:.cursor/rules/web/request.mdc)

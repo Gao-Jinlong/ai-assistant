@@ -1,12 +1,12 @@
 'use client';
 import useBoundStore from '@web/store';
 import { AnimatePresence, motion } from 'motion/react';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { CreateButton } from './create-button';
 import { useQuery } from '@tanstack/react-query';
-import service from '@web/service';
 import ThreadListItem from './ThreadListItem';
 import { deleteThread, ThreadDto } from '@web/service/thread';
+import queries from '@web/queries';
 
 const ThreadList = ({ isSimple }: { isSimple: boolean }) => {
   const router = useBoundStore((state) => state.router);
@@ -14,8 +14,7 @@ const ThreadList = ({ isSimple }: { isSimple: boolean }) => {
   const threads = useBoundStore((state) => state.threads);
   const isThread = useMemo(() => router.key === 'thread', [router]);
   const threadQuery = useQuery({
-    queryKey: ['thread'],
-    queryFn: service.thread.getThreads,
+    ...queries.thread.getThreads,
     onSuccess: (resp) => {
       setThreads(resp.data);
     },

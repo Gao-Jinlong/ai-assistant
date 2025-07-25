@@ -5,9 +5,10 @@ import ThreadDefault from '@web/components/thread-default';
 import ThreadInput from '@web/components/thread-input';
 import { useSSEMessages } from '@web/hooks/useSSEMessages';
 import useBoundStore from '@web/store';
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import service from '@web/service';
 import { useMutation, useQuery } from '@tanstack/react-query';
+import queries from '@web/queries';
 
 export default function ChatPage() {
   const thread = useBoundStore((state) => state.currentThread);
@@ -21,11 +22,7 @@ export default function ChatPage() {
     onMessage: appendMessage,
     onLoadingChange: setIsResponding,
   });
-  // TODO: 用 https://github.com/lukemorales/query-key-factory 管理 queryKey
-  const threadQuery = useQuery({
-    queryKey: ['thread'],
-    queryFn: service.thread.getThreads,
-  });
+  const threadQuery = useQuery(queries.thread.getThreads);
   const createThread = useMutation({
     mutationFn: service.thread.createThread,
     onSuccess: (resp) => {

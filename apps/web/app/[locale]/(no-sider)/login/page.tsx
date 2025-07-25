@@ -53,7 +53,6 @@ export default function Login() {
 
   const handleSubmit = useCallback(
     async (values: z.infer<typeof formSchema>) => {
-      console.log('🚀 ~ values:', values);
       setLoading(true);
       setMessage(null);
 
