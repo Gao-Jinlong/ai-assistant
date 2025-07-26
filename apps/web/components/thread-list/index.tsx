@@ -10,7 +10,11 @@ import queries from '@web/queries';
 
 const ThreadList = ({ isSimple }: { isSimple: boolean }) => {
   const router = useBoundStore((state) => state.router);
+
+  const currentThread = useBoundStore((state) => state.currentThread);
   const setThreads = useBoundStore((state) => state.setThreads);
+  const setCurrentThread = useBoundStore((state) => state.setCurrentThread);
+  const clearCurrent = useBoundStore((state) => state.clearCurrent);
   const threads = useBoundStore((state) => state.threads);
   const isThread = useMemo(() => router.key === 'thread', [router]);
   const threadQuery = useQuery({
@@ -20,6 +24,12 @@ const ThreadList = ({ isSimple }: { isSimple: boolean }) => {
     },
   });
 
+  const onClick = useCallback(
+    async (thread: ThreadDto) => {
+      setCurrentThread(thread);
+    },
+    [setCurrentThread],
+  );
   const onDelete = useCallback(
     async (thread: ThreadDto) => {
       await deleteThread(thread.id);
@@ -27,6 +37,10 @@ const ThreadList = ({ isSimple }: { isSimple: boolean }) => {
     },
     [threadQuery],
   );
+
+  const handleCreate = useCallback(() => {
+    clearCurrent();
+  }, [clearCurrent]);
 
   return (
     <AnimatePresence>
@@ -41,22 +55,24 @@ const ThreadList = ({ isSimple }: { isSimple: boolean }) => {
           className="flex h-full flex-1 flex-col gap-4 overflow-hidden"
         >
           <div className="flex px-4">
-            <CreateButton isSimple={isSimple} />
+            <CreateButton isSimple={isSimple} onClick={handleCreate} />
           </div>
 
-          <div className="scrollbar-hide flex flex-1 flex-col gap-2 overflow-y-auto overflow-x-hidden px-4">
+          <div className="scrollbar-hide flex flex-1 flex-col overflow-y-auto overflow-x-hidden px-4">
             {!isSimple && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex h-full flex-1 flex-col gap-2 px-4"
+                className="flex h-full flex-1 flex-col gap-1 px-4"
               >
                 {threads.map((thread) => (
                   <ThreadListItem
                     key={thread.id}
+                    isActive={currentThread?.id === thread.id}
                     thread={thread}
                     onDelete={onDelete}
+                    onClick={onClick}
                   />
                 ))}
               </motion.div>

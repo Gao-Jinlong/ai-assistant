@@ -72,4 +72,16 @@ export class ThreadController {
     };
     send();
   }
+
+  @Get(':id/messages')
+  async getThreadMessages(
+    @Req() req: Request,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    const user = req['user'];
+    if (!user) {
+      throw new BadRequestException('user is required');
+    }
+    return this.threadService.getThreadMessages(user, id);
+  }
 }

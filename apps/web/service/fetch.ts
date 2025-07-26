@@ -8,9 +8,9 @@ function handleAuthorization(request: Request) {
   const localLoginInfo = localStorage.getItem(LOGIN_INFO_KEY);
   if (localLoginInfo) {
     const parsed = JSON.parse(localLoginInfo);
-    const loginInfo: LoginResponse = parsed.state?.loginInfo;
+    const loginInfo: LoginResponse | undefined = parsed.state?.loginInfo;
 
-    const accessToken = loginInfo.token.access_token;
+    const accessToken = loginInfo?.token?.access_token;
     if (accessToken) {
       request.headers.set('Authorization', `Bearer ${accessToken}`);
     }

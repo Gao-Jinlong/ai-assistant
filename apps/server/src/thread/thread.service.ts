@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { StorageType } from '@prisma/client';
+import { JwtPayload } from '@server/auth/auth.service';
 import { PrismaService } from '@server/prisma/prisma.service';
 import { generateUid } from '@server/utils/uid';
+import { nanoid } from 'nanoid';
 
 @Injectable()
 export class ThreadService {
@@ -68,5 +70,32 @@ export class ThreadService {
     });
 
     return result;
+  }
+
+  async getThreadMessages(user: JwtPayload, id: number) {
+    // const messages = await this.prisma.db.message.findMany({
+    //   where: {
+    //     threadId: id,
+    //   },
+    // });
+    const mockMessages = [
+      {
+        id: nanoid(),
+        content: 'Hello, world!',
+        role: 'user',
+      },
+      {
+        id: nanoid(),
+        content: 'Hello, ' + user.email,
+        role: 'ai',
+      },
+      {
+        id: nanoid(),
+        content: '消息id' + id,
+        role: 'ai',
+      },
+    ];
+
+    return mockMessages;
   }
 }

@@ -10,7 +10,6 @@ export interface ThreadDto {
   messageCount: number;
   totalTokens: number;
   metadata: Record<string, any>;
-  messages: MessageDto[];
   createdAt: string;
   updatedAt: string;
 }
@@ -32,4 +31,8 @@ export const createThread = () => {
 
 export const deleteThread = (id: string) => {
   return del<ResponseWrapper<ThreadDto>>(`thread/${id}`);
+};
+
+export const getThreadMessages = (id: ThreadDto['id']) => {
+  return get<ResponseWrapper<MessageDto[]>>(`thread/${id}/messages`);
 };

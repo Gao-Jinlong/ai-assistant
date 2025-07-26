@@ -9,6 +9,7 @@ import { useCallback } from 'react';
 import service from '@web/service';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import queries from '@web/queries';
+import { toast } from 'sonner';
 
 export default function ChatPage() {
   const thread = useBoundStore((state) => state.currentThread);
@@ -16,7 +17,6 @@ export default function ChatPage() {
   const appendMessage = useBoundStore((state) => state.appendMessage);
   const setIsResponding = useBoundStore((state) => state.setIsResponding);
   const setCurrentThread = useBoundStore((state) => state.setCurrentThread);
-  const loginInfo = useBoundStore((state) => state.loginInfo);
 
   const { sendMessage: sendMessageSSE } = useSSEMessages({
     onMessage: appendMessage,
@@ -32,25 +32,28 @@ export default function ChatPage() {
 
   const handleSendMessage = useCallback(
     async (message: string) => {
-      if (!thread) {
-        if (!loginInfo?.user?.id) return;
-        const res = await createThread.mutateAsync();
-        threadQuery.refetch();
-        if (!res?.data) {
-          return;
+      try {
+        if (!thread) {
+          const res = await createThread.mutateAsync();
+          threadQuery.refetch();
+          if (!res?.data) {
+            return;
+          }
+        }
+        sendMessage(message);
+        sendMessageSSE(message);
+      } catch (error) {
+        console.error(error);
+        if (createThread.isError) {
+          console.log('🚀 ~ ChatPage ~ createThread:', createThread.error);
+        } else if (error instanceof Error) {
+          toast.error(error.message);
+        } else {
+          toast.error('发送失败');
         }
       }
-      sendMessage(message);
-      sendMessageSSE(message);
     },
-    [
-      thread,
-      sendMessage,
-      sendMessageSSE,
-      loginInfo?.user?.id,
-      createThread,
-      threadQuery,
-    ],
+    [thread, sendMessage, sendMessageSSE, createThread, threadQuery],
   );
 
   return (

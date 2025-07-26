@@ -4,14 +4,25 @@ import { Plus } from 'lucide-react';
 import { Button } from '../ui/button';
 import { AnimatePresence, motion } from 'motion/react';
 import { useTranslations } from 'next-intl';
+import { useCallback } from 'react';
 
-export const CreateButton = ({ isSimple }: { isSimple: boolean }) => {
+export interface CreateButtonProps {
+  isSimple: boolean;
+  onClick?: () => void;
+}
+export const CreateButton = ({ isSimple, onClick }: CreateButtonProps) => {
   const t = useTranslations();
+
+  const handleClick = useCallback(() => {
+    onClick?.();
+  }, [onClick]);
+
   return (
     <Button
       size={isSimple ? 'sm' : 'default'}
       variant="default"
       className="w-full transition-all duration-300"
+      onClick={handleClick}
     >
       <Plus />
       <AnimatePresence>
