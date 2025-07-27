@@ -29,7 +29,6 @@ import {
 import { StatCard } from '@web/components/dashboard/stat-card';
 import { ProgressBar } from '@web/components/dashboard/progress-bar';
 import { TaskItem } from '@web/components/dashboard/task-item';
-import SimpleSidebar from '@web/components/sidebar/sidebar';
 
 // 模拟数据
 const mockStats = [

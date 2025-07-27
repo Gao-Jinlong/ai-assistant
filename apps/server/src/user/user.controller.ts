@@ -7,16 +7,22 @@ import {
   Param,
   Delete,
   ParseIntPipe,
+  Inject,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { Public } from '@server/auth/public.decorator';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+  ) {}
 
   /**
    * 用户注册
@@ -33,7 +39,10 @@ export class UserController {
   @Post('login')
   @Public()
   async login(@Body() loginDto: LoginDto) {
-    return await this.userService.login(loginDto);
+    this.logger.info('用户登录', loginDto);
+    const result = await this.userService.login(loginDto);
+    this.logger.info('用户登录成功', result);
+    return result;
   }
 
   /**

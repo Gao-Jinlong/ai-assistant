@@ -41,6 +41,7 @@ export default function ChatPage() {
           }
         }
         sendMessage(message);
+        // TODO 切换到对话中的会话时恢复接收消息
         sendMessageSSE(message);
       } catch (error) {
         console.error(error);

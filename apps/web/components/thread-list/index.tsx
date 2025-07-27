@@ -52,19 +52,19 @@ const ThreadList = ({ isSimple }: { isSimple: boolean }) => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.3 }}
-          className="flex h-full flex-1 flex-col gap-4 overflow-hidden"
+          className="flex h-full flex-1 flex-col gap-4 overflow-hidden px-4"
         >
-          <div className="flex px-4">
+          <div className="flex">
             <CreateButton isSimple={isSimple} onClick={handleCreate} />
           </div>
 
-          <div className="scrollbar-hide flex flex-1 flex-col overflow-y-auto overflow-x-hidden px-4">
+          <div className="scrollbar-hide flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
             {!isSimple && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex h-full flex-1 flex-col gap-1 px-4"
+                className="flex h-full flex-1 flex-col gap-1"
               >
                 {threads.map((thread) => (
                   <ThreadListItem

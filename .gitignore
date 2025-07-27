@@ -8,3 +8,6 @@ build
 
 # 本地存储
 apps/server/data/storage
+
+# 日志
+apps/server/logs

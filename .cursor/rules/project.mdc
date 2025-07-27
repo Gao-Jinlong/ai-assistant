@@ -20,6 +20,7 @@ AI Assistant 是一个基于 NestJS + Next.js 的 AI 知识库管理应用，使
 - Prisma
 - LangGraph
 - Zod
+- Winston 日志
 
 ### 前端技术栈
 - Next.js 15
