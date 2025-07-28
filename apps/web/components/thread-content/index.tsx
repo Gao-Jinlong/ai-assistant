@@ -10,12 +10,13 @@ const ThreadContent = () => {
 
   useQuery({
     ...queries.thread.getThreadMessages(thread.id),
+    refetchOnWindowFocus: false,
     onSuccess: (data) => {
       setMessageList(data.data);
     },
   });
   return (
-    <div className="flex h-full w-full flex-1 flex-col">
+    <div className="flex h-full w-full flex-1 flex-col items-center justify-center overflow-auto">
       {thread && <MessageList messages={messageList} />}
     </div>
   );

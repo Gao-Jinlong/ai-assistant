@@ -57,10 +57,6 @@ import { createWinstonLogger } from './common/factories/createWinstonLogger';
   controllers: [AppController],
   providers: [
     AppService,
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: AuthGuard,
-    // },
     {
       provide: APP_PIPE,
       useClass: ZodValidationPipe,

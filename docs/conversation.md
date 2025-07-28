@@ -1,125 +1,118 @@
-# 对话流程图
-
-```mermaid
-graph TD
-    U[用户] --> M[发送消息]
-    M --> IF{是否为新对话}
-    IF -->|是| Create[创建新对话]
-    IF -->|否| FindFile[查找对话文件]
-    Create-->|创建对话存储文件| CreateFile[创建对话存储文件]
-    CreateFile-->|创建成功| LLM[调用模型]
-    FindFile-->|查找成功| LLM
-
-    LLM-->|模型返回| Save[保存消息]
-    Save-->|返回消息| U
-```
-
-## 对话存储文件结构
-
-使用纯文本 + XML 标记格式存储对话，方便解析和流处理
+# 流程图
 
 ## 对话流程图
 
-**客户端**
+web 端
 
 ```mermaid
-graph LR
-    Pending{{等待}} --> Input[用户输入文本]
-    Input --enter--> Update[更新对话列表]
-    Update -->|发送请求| Request[发送请求]
-    Request --> NetworkError{网络错误}
-    NetworkError --否-->Process[处理请求]
-    NetworkError --是-->ErrorState{{错误状态}}
-    ErrorState -->|重试| Request
-    Process --> ServerError{服务异常}
-    ServerError --是--> ServerErrorState{{服务器错误}}
-    ServerErrorState -->ErrorState
-    ServerError --否--> Response[返回消息]
-    Response --> Update
+stateDiagram-v2
+    
+
+    [*] --> 等待用户输入
+    state input_method <<fork>>
+    等待用户输入 --> input_method
+    input_method --> 输入文本
+    input_method --> 输入文件
+    input_method --> 问题推荐
+
+    state send_wait <<join>>
+    输入文本 --> send_wait
+    输入文件 --> send_wait
+    问题推荐 --> send_wait
+
+    state is_new <<choice>>
+    send_wait --> 发送消息
+    发送消息 --> is_new: 是否为新对话
+    is_new --> 新对话: 是
+    is_new --> 旧对话: 否
+
+    新对话 --> 创建对话: createThread
+
+    旧对话 --> 查找对话: findThread
+    查找对话 --> 显示历史消息
+
+    state send_message <<join>>
+    创建对话 --> send_message
+    显示历史消息 --> send_message
+
+    send_message --> 等待响应: sse
+
+    state response_wait <<join>>
+    等待响应 --> response_wait
+
+    response_wait --> 思考过程
+    response_wait --> 回答消息
+    response_wait --> 图表工具
+
+    state display_message <<join>>
+    思考过程 --> display_message
+    回答消息 --> display_message
+    图表工具 --> display_message
+
+    display_message --> 更新对话列表
+
+    state is_end <<choice>>
+    更新对话列表 --> is_end : 是否结束对话
+    is_end --> [*] : 是
+    is_end --> 继续对话 : 否
+
+    继续对话 --> 等待用户输入
+
 ```
+
+server 端
 
 ```mermaid
-sequenceDiagram
-    participant User as 用户
-    participant UI as 界面
-    participant Client as 客户端
-    participant Server as 服务端
+stateDiagram-v2
 
-    %% 正常流程
-    User->>UI: 输入文本
-    UI->>Client: 更新对话列表
-    Client->>Server: 发送请求
+    [*] --> 等待客户端消息
 
-    %% 网络错误处理
-    alt 网络错误
-        Server-->>Client: 网络错误
-        Client->>Client: 进入错误状态
-        Client->>Server: 重试请求
-        Server-->>Client: 请求成功
-    end
+    state input_method <<choice>>
+    等待客户端消息 --> input_method
+    input_method --> 创建对话: createThread
+    input_method --> 查找对话: findThread
 
-    %% 服务异常处理
-    alt 服务异常
-        Server-->>Client: 服务异常
-        Client->>Client: 进入服务器错误状态
-        Client->>Client: 进入错误状态
-        Client->>Server: 重试请求
-        Server-->>Client: 请求成功
-    end
 
-    %% 正常响应
-    Server-->>Client: 返回消息
-    Client->>UI: 更新界面
-    UI-->>User: 显示结果
+
+    state load_thread <<join>>
+    查找对话 --> load_thread
+    创建对话 --> load_thread
+
+    load_thread --> 加载对话列表
+
+    加载对话列表 --> 添加新消息
+
+    添加新消息 --> 调用AI
+
+    调用AI --> 等待AI响应   
+
+    state ai_response <<choice>>
+    等待AI响应 --> ai_response
+    ai_response --> 发送消息到客户端
+    ai_response --> 存储消息
+
+    state response_wait <<join>>
+    发送消息到客户端 --> response_wait
+    存储消息 --> response_wait
+
+    state is_end <<choice>>
+    response_wait --> 是否结束响应
+    是否结束响应 --> is_end
+    is_end --> 发送结束消息 : 是
+    is_end --> 等待AI响应 : 否
+
+    发送结束消息 --> [*]
+
+
+
+
+
+
 ```
 
-服务端
 
-```mermaid
-graph LR
-    PendingState{{等待}} --> Request[请求]
-    Request --> IsNewConversation{是否为新对话}
-    IsNewConversation --是--> Create[创建新对话]
-    IsNewConversation --否--> FindFile[查找对话文件]
-    Create -->|创建成功| Update[更新对话列表]
-    FindFile -->|查找成功| Update
-    Update --> RequestLLM[请求模型]
-    RequestLLM --> LLM[模型]
-    LLM --> Response[返回消息]
-    Response --> Update
-    Update --> PendingState
-```
 
-```mermaid
-sequenceDiagram
-    participant Client as 客户端
-    participant Server as 服务端
-    participant DB as 数据库
-    participant File as 文件存储
-    participant LLM as AI模型
 
-    %% 新对话流程
-    Note over Client: 用户发送消息
-    Client->>Server: 发送消息请求
-    Server->>DB: 检查是否为新对话
-    DB-->>Server: 返回对话状态
 
-    alt 新对话
-        Server->>File: 创建新对话文件
-        File-->>Server: 创建成功
-        Server->>DB: 创建对话记录
-        DB-->>Server: 创建成功
-    else 已有对话
-        Server->>File: 读取对话文件
-        File-->>Server: 返回对话内容
-    end
 
-    Server->>LLM: 请求模型响应
-    LLM-->>Server: 返回模型响应
-    Server->>File: 保存新消息
-    File-->>Server: 保存成功
-    Server->>DB: 更新对话元数据
-    DB-->>Server: 更新成功
-    Server-->>Client: 返回完整响应
-    Client->>Client: 更新UI显示
-```
+## 对话存储文件结构

@@ -2,6 +2,7 @@ import { MessageDto } from '@web/service/thread';
 import { useCallback, useState, useRef, useEffect } from 'react';
 import { LOGIN_INFO_KEY } from '@web/constant';
 import { sse } from '@web/service/fetch';
+import useBoundStore from '@web/store';
 
 export interface UseSSEMessagesProps {
   onMessage: (message: MessageDto) => void;
@@ -12,8 +13,10 @@ export const useSSEMessages = ({
   onMessage,
   onLoadingChange,
 }: UseSSEMessagesProps) => {
-  const [messages, setMessages] = useState<MessageDto[]>([]);
+  const thread = useBoundStore((state) => state.currentThread);
+
   const abortControllerRef = useRef<AbortController | null>(null);
+  // TODO: 切换
 
   const sendMessage = useCallback(
     async (message: string) => {
@@ -48,7 +51,6 @@ export const useSSEMessages = ({
       // 创建新的 AbortController
       const controller = new AbortController();
       abortControllerRef.current = controller;
-
       try {
         const response = await sse(`thread/messages`, {
           signal: controller.signal,
@@ -76,18 +78,19 @@ export const useSSEMessages = ({
 
             buffer += decoder.decode(value, { stream: true });
 
-            // 处理 SSE 消息格式：data: {...}\n\n
+            // 处理 SSE 消息格式： id: 1 \n data: {...}\n\n
             let boundaryIndex;
             while ((boundaryIndex = buffer.indexOf('\n\n')) !== -1) {
-              const chunk = buffer.slice(0, boundaryIndex).trim();
+              const chunkStr = buffer.slice(0, boundaryIndex).trim();
               buffer = buffer.slice(boundaryIndex + 2);
 
+              const chunkArr = chunkStr.split('\n');
+              const chunk = chunkArr[1];
               if (chunk.startsWith('data:')) {
                 const dataStr = chunk.replace(/^data:\s*/, '').trim();
                 if (dataStr) {
                   try {
                     const messageData = JSON.parse(dataStr);
-                    setMessages((prev) => [...prev, messageData]);
                     onMessage(messageData);
                   } catch (parseError) {
                     console.error(
@@ -114,7 +117,7 @@ export const useSSEMessages = ({
         abortControllerRef.current = null;
       }
     },
-    [onMessage, onLoadingChange],
+    [onLoadingChange, thread, onMessage],
   );
 
   // 清理函数
@@ -131,5 +134,5 @@ export const useSSEMessages = ({
     };
   }, [disconnect]);
 
-  return { messages, sendMessage, disconnect };
+  return { sendMessage, disconnect };
 };

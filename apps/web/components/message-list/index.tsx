@@ -7,7 +7,7 @@ export interface MessageListProps {
 }
 const MessageList = ({ messages }: MessageListProps) => {
   return (
-    <div className="flex h-full w-full flex-col gap-4 overflow-auto p-8">
+    <div className="flex h-full w-full max-w-4xl flex-col gap-4 p-8">
       {messages.map((message) => (
         <div
           key={message.id}

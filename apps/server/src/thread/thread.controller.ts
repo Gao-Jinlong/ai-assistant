@@ -8,9 +8,12 @@ import {
   Post,
   Req,
   Res,
+  Sse,
 } from '@nestjs/common';
 import { ThreadService } from './thread.service';
 import { Request, Response } from 'express';
+import { interval, map } from 'rxjs';
+import { nanoid } from 'nanoid';
 
 @Controller('thread')
 export class ThreadController {
@@ -47,30 +50,39 @@ export class ThreadController {
   }
 
   // mock SSE 消息推送接口
-  @Get('messages')
+  @Sse('messages')
   async sseMessages(@Req() req: Request, @Res() res: Response) {
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    res.flushHeaders();
+    // res.setHeader('Content-Type', 'text/event-stream');
+    // res.setHeader('Cache-Control', 'no-cache');
+    // res.setHeader('Connection', 'keep-alive');
+    // res.flushHeaders();
     // 简单推送 2 条 mock 消息
-    let count = 0;
-    const send = () => {
-      if (count === 0) {
-        res.write(
-          `data: ${JSON.stringify({ id: '1', content: 'AI 回复内容1', role: 'ai', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() })}\n\n`,
-        );
-        count++;
-        setTimeout(send, 1000);
-      } else if (count === 1) {
-        res.write(
-          `data: ${JSON.stringify({ id: '2', content: 'AI 回复内容2', role: 'ai', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() })}\n\n`,
-        );
-        count++;
-        setTimeout(() => res.end(), 1000);
-      }
-    };
-    send();
+    // let count = 0;
+    // const send = () => {
+    //   if (count === 0) {
+    //     res.write(
+    //       `data: ${JSON.stringify({ id: '1', content: 'AI 回复内容1', role: 'ai', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() })}\n\n`,
+    //     );
+    //     count++;
+    //     setTimeout(send, 1000);
+    //   } else if (count === 1) {
+    //     res.write(
+    //       `data: ${JSON.stringify({ id: '2', content: 'AI 回复内容2', role: 'ai', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() })}\n\n`,
+    //     );
+    //     count++;
+    //     setTimeout(() => res.end(), 1000);
+    //   }
+    // };
+    // send();
+
+    return interval(1000).pipe(
+      map((_) => ({
+        id: nanoid(),
+        content: nanoid(),
+        createdAt: new Date().toISOString(),
+        role: 'ai',
+      })),
+    );
   }
 
   @Get(':id/messages')
