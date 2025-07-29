@@ -16,7 +16,7 @@ export const useSSEMessages = ({
   const thread = useBoundStore((state) => state.currentThread);
 
   const abortControllerRef = useRef<AbortController | null>(null);
-  // TODO: 切换
+  // TODO: 切换thread 时，需要断开连接
 
   const sendMessage = useCallback(
     async (message: string) => {
@@ -117,7 +117,7 @@ export const useSSEMessages = ({
         abortControllerRef.current = null;
       }
     },
-    [onLoadingChange, thread, onMessage],
+    [onLoadingChange, onMessage],
   );
 
   // 清理函数

@@ -5,7 +5,7 @@ import ThreadDefault from '@web/components/thread-default';
 import ThreadInput from '@web/components/thread-input';
 import { useSSEMessages } from '@web/hooks/useSSEMessages';
 import useBoundStore from '@web/store';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import service from '@web/service';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import queries from '@web/queries';
@@ -22,6 +22,7 @@ export default function ChatPage() {
     onMessage: appendMessage,
     onLoadingChange: setIsResponding,
   });
+
   const threadQuery = useQuery(queries.thread.getThreads);
   const createThread = useMutation({
     mutationFn: service.thread.createThread,

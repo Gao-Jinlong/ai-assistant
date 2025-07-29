@@ -23,6 +23,8 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { Request } from 'express';
 import { nanoid } from 'nanoid';
 import { createWinstonLogger } from './common/factories/createWinstonLogger';
+import { MessageModule } from './message/message.module';
+import { MessageModule } from './message/message.module';
 
 @Module({
   imports: [
@@ -53,6 +55,7 @@ import { createWinstonLogger } from './common/factories/createWinstonLogger';
     AuthModule,
     StorageModule,
     ThreadModule,
+    MessageModule,
   ],
   controllers: [AppController],
   providers: [
