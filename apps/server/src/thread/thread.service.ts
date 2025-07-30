@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { StorageType } from '@prisma/client';
 import { JwtPayload } from '@server/auth/auth.service';
 import { PrismaService } from '@server/prisma/prisma.service';
 import { generateUid } from '@server/utils/uid';
@@ -32,8 +31,6 @@ export class ThreadService {
         uid: generateUid('thread'),
         userUid: userId,
         title: null,
-        storageType: StorageType.LOCAL,
-        storagePath: 'threads',
         totalTokens: 0,
       },
     });

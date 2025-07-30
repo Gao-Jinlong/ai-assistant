@@ -14,7 +14,6 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { PrismaService } from './prisma/prisma.service';
-import { StorageModule } from './storage/storage.module';
 import { ClsModule, ClsMiddleware } from 'nestjs-cls';
 import { CommonModule } from './common/common.module';
 import { ThreadModule } from './thread/thread.module';
@@ -24,7 +23,8 @@ import { Request } from 'express';
 import { nanoid } from 'nanoid';
 import { createWinstonLogger } from './common/factories/createWinstonLogger';
 import { MessageModule } from './message/message.module';
-import { MessageModule } from './message/message.module';
+import { ModelManagerModule } from './model-manager/model-manager.module';
+import { AgentModule } from './agent/agent.module';
 
 @Module({
   imports: [
@@ -53,9 +53,10 @@ import { MessageModule } from './message/message.module';
     UserModule,
     PrismaModule,
     AuthModule,
-    StorageModule,
     ThreadModule,
     MessageModule,
+    ModelManagerModule,
+    AgentModule,
   ],
   controllers: [AppController],
   providers: [
