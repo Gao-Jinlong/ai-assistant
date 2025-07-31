@@ -2,6 +2,7 @@ import { Controller, Post, Body, Get, Res } from '@nestjs/common';
 import { AgentService } from './agent.service';
 import { BaseMessage } from '@langchain/core/messages';
 import { Response } from 'express';
+import { ChatRequestDto } from './dto/chat-request.dto';
 
 interface ChatRequest {
   message: string;
@@ -31,25 +32,25 @@ export class AgentController {
 
   @Get('test')
   async test() {
-    const result = await this.agentService.run();
+    const result = await this.agentService.runBlock('你好');
     return { result };
   }
 
-  @Post('chat')
-  async chat(@Body() request: ChatRequest): Promise<ChatResponse> {
-    const { message, history = [] } = request;
+  @Post('chat/block')
+  async chat(@Body() request: ChatRequestDto): Promise<ChatResponse> {
+    const { message } = request;
 
     if (!message || message.trim() === '') {
       throw new Error('消息内容不能为空');
     }
 
-    const result = await this.agentService.chat(message, history);
+    const result = await this.agentService.runBlock(message);
     return result;
   }
 
   @Post('chat/stream')
   async chatStream(@Body() request: ChatRequest, @Res() res: Response) {
-    const { message, history = [] } = request;
+    const { message } = request;
 
     if (!message || message.trim() === '') {
       res.status(400).json({ error: '消息内容不能为空' });
@@ -66,12 +67,15 @@ export class AgentController {
         'Access-Control-Allow-Headers': 'Cache-Control',
       });
 
-      const stream = await this.agentService.chatStream(message, history);
+      const stream = await this.agentService.runStream(message);
 
-      for await (const chunk of stream) {
-        const data = JSON.stringify({ chunk: chunk.toString() });
-        res.write(`data: ${data}\n\n`);
-      }
+      stream.pipeTo(
+        new WritableStream({
+          write(chunk) {
+            res.write(`data: ${chunk}\n\n`);
+          },
+        }),
+      );
 
       res.write('data: [DONE]\n\n');
       res.end();

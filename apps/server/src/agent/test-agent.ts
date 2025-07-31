@@ -37,7 +37,7 @@ async function testAgent() {
   try {
     // 测试基础对话
     console.log('📝 测试基础对话功能...');
-    const result1 = await agentService.chat('你好，请介绍一下自己');
+    const result1 = await agentService.run('你好，请介绍一下自己');
     console.log('👤 用户:', '你好，请介绍一下自己');
     console.log('🤖 助手:', result1.response);
     console.log('📊 消息数量:', result1.messages.length);
@@ -45,7 +45,7 @@ async function testAgent() {
 
     // 测试多轮对话
     console.log('📝 测试多轮对话功能...');
-    const result2 = await agentService.chat(
+    const result2 = await agentService.run(
       '我刚才问了什么问题？',
       result1.messages,
     );

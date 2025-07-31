@@ -1,4 +1,5 @@
 import { BaseChatModel } from '@langchain/core/language_models/chat_models';
+import { ChatOpenAI } from '@langchain/openai';
 
 export enum MODEL_TYPE {
   LLM = 'llm',
@@ -8,5 +9,5 @@ export enum MODEL_TYPE {
 export interface ModelInstance {
   name: string;
   type: MODEL_TYPE;
-  model: BaseChatModel;
+  model: ChatOpenAI;
 }

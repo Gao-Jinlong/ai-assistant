@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { HttpException, Injectable, OnModuleInit } from '@nestjs/common';
 import { ModelInstance, MODEL_TYPE } from './interface';
 import { ChatOpenAI } from '@langchain/openai';
 import { ConfigService } from '@nestjs/config';
@@ -10,26 +10,22 @@ export class ModelManagerService implements OnModuleInit {
   constructor(private configService: ConfigService) {
     this.modelMap = new Map();
   }
-  onModuleInit() {
-    this.modelMap.set('qwen-plus', {
-      name: 'qwen-plus',
-      type: MODEL_TYPE.LLM,
-      model: new ChatOpenAI({
-        model: 'qwen-plus',
-        apiKey: this.configService.get('TONGYI_API_KEY'),
-        configuration: {
-          baseURL: this.configService.get('TONGYI_BASE_URL'),
-        },
-      }),
-    });
-  }
-
+  onModuleInit() {}
   async getModel(name: string): Promise<ModelInstance | undefined> {
     if (!this.modelMap.has(name)) {
       this.modelMap.set(name, this.createModel(name, MODEL_TYPE.LLM));
     }
 
     return this.modelMap.get(name);
+  }
+  async getModelByType(type: MODEL_TYPE) {
+    const model = this.modelMap
+      .entries()
+      .find(([_, model]) => model.type === type)?.[1];
+    if (!model) {
+      throw new HttpException('model not found', 500);
+    }
+    return model;
   }
 
   createModel(name: string, type: MODEL_TYPE) {
