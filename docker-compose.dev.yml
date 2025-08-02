@@ -1,0 +1,36 @@
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: ai-assistant-postgres-dev
+    # 注意需要和 server 的 .env 文件保持一致
+    environment:
+      POSTGRES_DB: ai-assistant-dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./apps/server/data/backup:/backup
+    ports:
+      - '5432:5432'
+    networks:
+      - ai-assistant-dev-network
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: ai-assistant-redis-dev
+    volumes:
+      - redis_dev_data:/data
+    ports:
+      - '6379:6379'
+    networks:
+      - ai-assistant-dev-network
+
+volumes:
+  postgres_dev_data:
+  redis_dev_data:
+
+networks:
+  ai-assistant-dev-network:
+    driver: bridge

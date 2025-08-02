@@ -16,47 +16,41 @@ export class AgentService {
 
   // 主要的对话接口
   async runBlock(userInput: string) {
-    try {
-      // 获取模型实例
-      const modelInstance =
-        await this.modelManagerService.getModel('qwen-plus');
-
-      if (!modelInstance) {
-        throw new Error('模型不存在');
-      }
-
-      // 构建消息历史
-      const messages = [...conversationHistory, new HumanMessage(userInput)];
-
-      // 调用模型
-      const response = await modelInstance.model.invoke(messages);
-
-      // 构建响应 - 处理不同的响应类型
-      let responseContent: string;
-      if (typeof response === 'string') {
-        responseContent = response;
-      } else if (
-        response &&
-        typeof response === 'object' &&
-        'content' in response
-      ) {
-        // 使用 any 类型来避免 TypeScript 严格检查
-        responseContent = String((response as any).content);
-      } else {
-        responseContent = String(response);
-      }
-
-      const aiMessage = new AIMessage(responseContent);
-      const allMessages = [...messages, aiMessage];
-
-      return {
-        response: responseContent,
-        messages: allMessages,
-      };
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : '未知错误';
-      throw new Error(`对话处理失败: ${errorMessage}`);
-    }
+    // try {
+    //   // 获取模型实例
+    //   const modelInstance =
+    //     await this.modelManagerService.getModel('qwen-plus');
+    //   if (!modelInstance) {
+    //     throw new Error('模型不存在');
+    //   }
+    //   // 构建消息历史
+    //   const messages = [...conversationHistory, new HumanMessage(userInput)];
+    //   // 调用模型
+    //   const response = await modelInstance.model.invoke(messages);
+    //   // 构建响应 - 处理不同的响应类型
+    //   let responseContent: string;
+    //   if (typeof response === 'string') {
+    //     responseContent = response;
+    //   } else if (
+    //     response &&
+    //     typeof response === 'object' &&
+    //     'content' in response
+    //   ) {
+    //     // 使用 any 类型来避免 TypeScript 严格检查
+    //     responseContent = String((response as any).content);
+    //   } else {
+    //     responseContent = String(response);
+    //   }
+    //   const aiMessage = new AIMessage(responseContent);
+    //   const allMessages = [...messages, aiMessage];
+    //   return {
+    //     response: responseContent,
+    //     messages: allMessages,
+    //   };
+    // } catch (error: unknown) {
+    //   const errorMessage = error instanceof Error ? error.message : '未知错误';
+    //   throw new Error(`对话处理失败: ${errorMessage}`);
+    // }
   }
 
   // 流式对话接口 - 基础版本
@@ -130,29 +124,27 @@ export class AgentService {
     userInput: string,
     conversationHistory: BaseMessage[] = [],
   ) {
-    try {
-      // 这里可以实现更复杂的 LangGraph 逻辑
-      // 比如添加工具调用、记忆管理、内容审核等
-
-      // 目前使用简单的模型调用
-      const result = await this.run(userInput, conversationHistory);
-
-      return {
-        response: result.response,
-        messages: result.messages,
-        // 可以添加额外的元数据
-        metadata: {
-          modelUsed: 'qwen-plus-2025-01-25',
-          processingSteps: [
-            'input_processing',
-            'model_call',
-            'output_formatting',
-          ],
-        },
-      };
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : '未知错误';
-      throw new Error(`图对话处理失败: ${errorMessage}`);
-    }
+    // try {
+    //   // 这里可以实现更复杂的 LangGraph 逻辑
+    //   // 比如添加工具调用、记忆管理、内容审核等
+    //   // 目前使用简单的模型调用
+    //   const result = await this.run(userInput, conversationHistory);
+    //   return {
+    //     response: result.response,
+    //     messages: result.messages,
+    //     // 可以添加额外的元数据
+    //     metadata: {
+    //       modelUsed: 'qwen-plus-2025-01-25',
+    //       processingSteps: [
+    //         'input_processing',
+    //         'model_call',
+    //         'output_formatting',
+    //       ],
+    //     },
+    //   };
+    // } catch (error: unknown) {
+    //   const errorMessage = error instanceof Error ? error.message : '未知错误';
+    //   throw new Error(`图对话处理失败: ${errorMessage}`);
+    // }
   }
 }

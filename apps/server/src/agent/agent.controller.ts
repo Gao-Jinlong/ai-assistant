@@ -44,8 +44,13 @@ export class AgentController {
       throw new Error('消息内容不能为空');
     }
 
-    const result = await this.agentService.runBlock(message);
-    return result;
+    // const result = await this.agentService.runBlock(message);
+    // return result;
+
+    return {
+      response: 'test',
+      messages: [],
+    };
   }
 
   @Post('chat/stream')
@@ -96,7 +101,16 @@ export class AgentController {
       throw new Error('消息内容不能为空');
     }
 
-    const result = await this.agentService.chatWithGraph(message, history);
-    return result;
+    // const result = await this.agentService.chatWithGraph(message, history);
+    // return result;
+
+    return {
+      response: 'test',
+      messages: [],
+      metadata: {
+        modelUsed: 'test',
+        processingSteps: [],
+      },
+    };
   }
 }
