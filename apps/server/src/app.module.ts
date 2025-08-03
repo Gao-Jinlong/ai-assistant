@@ -25,6 +25,7 @@ import { createWinstonLogger } from './common/factories/createWinstonLogger';
 import { MessageModule } from './message/message.module';
 import { ModelManagerModule } from './model-manager/model-manager.module';
 import { AgentModule } from './agent/agent.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -50,23 +51,19 @@ import { AgentModule } from './agent/agent.module';
       inject: [ConfigService],
     }),
     CommonModule, // 添加公共模块
-    UserModule,
     PrismaModule,
+
+    // 业务模块
+    UserModule,
     AuthModule,
     ThreadModule,
     MessageModule,
     ModelManagerModule,
     AgentModule,
+    ChatModule,
   ],
   controllers: [AppController],
-  providers: [
-    AppService,
-    {
-      provide: APP_PIPE,
-      useClass: ZodValidationPipe,
-    },
-    PrismaService,
-  ],
+  providers: [AppService, PrismaService],
   exports: [PrismaService],
 })
 export class AppModule implements NestModule {

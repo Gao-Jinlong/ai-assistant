@@ -50,9 +50,15 @@ stateDiagram-v2
     图表工具 --> display_message
 
     display_message --> 更新对话列表
+    
+    state response_end <<choice>>
+
+    更新对话列表 --> response_end : 是否收到结束消息
+    response_end --> 是否结束对话 : 是
+    response_end --> 等待响应: 否
 
     state is_end <<choice>>
-    更新对话列表 --> is_end : 是否结束对话
+    是否结束对话 --> is_end : 是否结束对话
     is_end --> [*] : 是
     is_end --> 继续对话 : 否
 
@@ -65,26 +71,15 @@ server 端
 ```mermaid
 stateDiagram-v2
 
-    [*] --> 等待客户端消息
+    [*] --> 等待客户端请求
 
-    state input_method <<choice>>
-    等待客户端消息 --> input_method
-    input_method --> 创建对话: createThread
-    input_method --> 查找对话: findThread
+    等待客户端请求 --> 加载对话历史消息: loadThreadHistory
 
-
-
-    state load_thread <<join>>
-    查找对话 --> load_thread
-    创建对话 --> load_thread
-
-    load_thread --> 加载对话列表
-
-    加载对话列表 --> 添加新消息
+    加载对话历史消息 --> 添加新消息
 
     添加新消息 --> 调用AI
 
-    调用AI --> 等待AI响应   
+    调用AI --> 等待AI响应
 
     state ai_response <<choice>>
     等待AI响应 --> ai_response

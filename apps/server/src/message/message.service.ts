@@ -24,7 +24,7 @@ export class MessageService {
     return result;
   }
 
-  async getMemoryByThread(threadUid: Thread['uid']): Promise<BaseMessage[]> {
+  async getHistoryByThread(threadUid: Thread['uid']): Promise<BaseMessage[]> {
     const messages = await this.prisma.db.message.findMany({
       where: {
         threadUid,

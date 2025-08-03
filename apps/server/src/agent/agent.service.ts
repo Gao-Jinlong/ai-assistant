@@ -14,76 +14,13 @@ export class AgentService {
     private messageService: MessageService,
   ) {}
 
-  // 主要的对话接口
-  async runBlock(userInput: string) {
-    // try {
-    //   // 获取模型实例
-    //   const modelInstance =
-    //     await this.modelManagerService.getModel('qwen-plus');
-    //   if (!modelInstance) {
-    //     throw new Error('模型不存在');
-    //   }
-    //   // 构建消息历史
-    //   const messages = [...conversationHistory, new HumanMessage(userInput)];
-    //   // 调用模型
-    //   const response = await modelInstance.model.invoke(messages);
-    //   // 构建响应 - 处理不同的响应类型
-    //   let responseContent: string;
-    //   if (typeof response === 'string') {
-    //     responseContent = response;
-    //   } else if (
-    //     response &&
-    //     typeof response === 'object' &&
-    //     'content' in response
-    //   ) {
-    //     // 使用 any 类型来避免 TypeScript 严格检查
-    //     responseContent = String((response as any).content);
-    //   } else {
-    //     responseContent = String(response);
-    //   }
-    //   const aiMessage = new AIMessage(responseContent);
-    //   const allMessages = [...messages, aiMessage];
-    //   return {
-    //     response: responseContent,
-    //     messages: allMessages,
-    //   };
-    // } catch (error: unknown) {
-    //   const errorMessage = error instanceof Error ? error.message : '未知错误';
-    //   throw new Error(`对话处理失败: ${errorMessage}`);
-    // }
-  }
-
-  // 流式对话接口 - 基础版本
-  async runStream(userInput: string, conversationHistory: BaseMessage[] = []) {
-    try {
-      // 获取模型实例
-      const modelInstance = await this.modelManagerService.getModel(
-        'qwen-plus-2025-01-25',
-      );
-
-      if (!modelInstance) {
-        throw new Error('模型不存在');
-      }
-
-      // 构建消息历史
-      const messages = [...conversationHistory, new HumanMessage(userInput)];
-
-      // 流式调用模型
-      const stream = await modelInstance.model.stream(messages);
-
-      return stream;
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : '未知错误';
-      throw new Error(`流式对话处理失败: ${errorMessage}`);
-    }
-  }
   async run(data: ChatRequestDto) {
     const { threadId, message } = data;
     const modelInstance = await this.modelManagerService.getModelByType(
       MODEL_TYPE.LLM,
     );
 
-    const memory = await this.messageService.getMemoryByThread(threadId);
+    const memory = await this.messageService.getHistoryByThread(threadId);
 
     const tools: Tool[] = [];
 

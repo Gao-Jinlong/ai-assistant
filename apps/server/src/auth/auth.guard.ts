@@ -13,7 +13,7 @@ import { IS_PUBLIC_KEY } from './public.decorator';
 
 declare module 'express' {
   interface Request {
-    user: JwtPayload;
+    jwt: JwtPayload;
   }
 }
 
@@ -44,7 +44,7 @@ export class AuthGuard implements CanActivate {
       const payload = await this.jwtService.verifyAsync(token, {
         secret: this.config.get('jwt.secret'),
       });
-      request['user'] = payload;
+      request['jwt'] = payload;
     } catch {
       throw new UnauthorizedException();
     }

@@ -5,10 +5,13 @@ import {
   HttpException,
   HttpStatus,
   Logger,
+  Inject,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ApiResponse } from '../interfaces/response.interface';
 import { ResponseUtil } from '../utils/response.util';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { ClsService } from 'nestjs-cls';
 
 /**
  * 全局 HTTP 异常过滤器
@@ -16,7 +19,12 @@ import { ResponseUtil } from '../utils/response.util';
  */
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
-  private readonly logger = new Logger(HttpExceptionFilter.name);
+  // private readonly logger = new Logger(HttpExceptionFilter.name);
+
+  constructor(
+    private readonly cls: ClsService,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+  ) {}
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
@@ -25,6 +33,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
     let status: number;
     let message: string;
     let code: number;
+
+    const traceId = this.cls.getId();
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
@@ -39,6 +49,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
       }
 
       code = status;
+
+      this.logger.error(`HTTP 异常: ${code} ${message}`, {
+        traceId,
+      });
     } else {
       // 处理非 HTTP 异常
       status = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -46,7 +60,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
       code = status;
 
       // 记录未知错误
-      this.logger.error('未知错误:', exception);
+      this.logger.error(`未知错误: ${exception}`, {
+        traceId,
+      });
     }
 
     const errorResponse = ResponseUtil.error(code, message);
