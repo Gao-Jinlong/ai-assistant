@@ -14,7 +14,6 @@ export class ChatController {
     @Body() body: CreateChatDto,
   ) {
     const jwtPayload = req['jwt'];
-    console.log('🚀 ~ ChatController ~ sseMessages ~ jwtPayload:', jwtPayload);
 
     return this.chatService.sseMessages(res, jwtPayload, body);
   }

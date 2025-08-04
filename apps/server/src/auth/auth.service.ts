@@ -9,7 +9,7 @@ import { TRPCError } from '@trpc/server';
 
 export interface JwtPayload {
   email: string;
-  id: string;
+  uid: string;
 }
 
 @Injectable()
@@ -38,7 +38,7 @@ export class AuthService {
   }
 
   async generateToken(user: User) {
-    const payload = { email: user.email, id: user.uid };
+    const payload: JwtPayload = { email: user.email, uid: user.uid };
     const token = this.jwtService.sign(payload);
 
     return {

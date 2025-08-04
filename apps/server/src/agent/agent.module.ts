@@ -8,5 +8,6 @@ import { MessageModule } from '@server/message/message.module';
   imports: [ModelManagerModule, MessageModule],
   controllers: [AgentController],
   providers: [AgentService],
+  exports: [AgentService],
 })
 export class AgentModule {}

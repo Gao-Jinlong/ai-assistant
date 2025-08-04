@@ -1,5 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from '@server/prisma/prisma.service';
 import { Response } from 'express';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
@@ -24,12 +23,24 @@ export class ChatService {
     jwtPayload: JwtPayload,
     body: CreateChatDto,
   ) {
-    const { threadUid, message: userMessage } = body;
+    const { threadUid, message } = body;
+    // const { uid, email } = jwtPayload;
 
     const thread = await this.prisma.db.thread.findUnique({
       where: { uid: threadUid },
     });
+    if (!thread) {
+      throw new BadRequestException('Thread not found');
+    }
 
-    this.agentService.run(thread);
+    const memory = await this.messageService.getHistoryByThread(thread.uid);
+
+    const stream = this.agentService.run({ thread, memory, message });
+
+    for await (const chunk of await stream) {
+      res.write(chunk);
+    }
+
+    res.end();
   }
 }

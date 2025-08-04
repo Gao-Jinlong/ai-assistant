@@ -6,6 +6,16 @@ import { ChatRequestDto } from './dto/chat-request.dto';
 import { MessageService } from '@server/message/message.service';
 import { Tool } from '@langchain/core/tools';
 import { PromptTemplate } from '@langchain/core/prompts';
+import { Thread } from '@prisma/client';
+import { Runnable } from '@langchain/core/runnables';
+import {
+  END,
+  MessagesAnnotation,
+  START,
+  StateGraph,
+} from '@langchain/langgraph';
+import { TavilySearchResults } from '@langchain/community/tools/tavily_search';
+import { ToolNode } from '@langchain/langgraph/prebuilt';
 
 @Injectable()
 export class AgentService {
@@ -14,74 +24,50 @@ export class AgentService {
     private messageService: MessageService,
   ) {}
 
-  async run(data: ChatRequestDto) {
-    const { threadId, message } = data;
+  async run(data: { thread: Thread; memory: BaseMessage[]; message: string }) {
+    const { thread, memory, message } = data;
+
+    const graph = await this.createGraph();
+    const app = graph.compile();
+
+    const stream = await app.stream({
+      messages: [new HumanMessage(message)],
+    });
+
+    return stream;
+  }
+
+  async createGraph() {
     const modelInstance = await this.modelManagerService.getModelByType(
       MODEL_TYPE.LLM,
     );
+    const tools = [new TavilySearchResults({ maxResults: 3 })];
+    const toolNode = new ToolNode(tools);
 
-    const memory = await this.messageService.getHistoryByThread(threadId);
+    const model = modelInstance.model.bindTools(tools);
 
-    const tools: Tool[] = [];
+    function shouldContinue({ messages }: typeof MessagesAnnotation.State) {
+      const lastMessage = messages[messages.length - 1] as AIMessage;
 
-    const agent = modelInstance.model.bindTools(tools);
+      if (lastMessage.tool_calls?.length) {
+        return 'tools';
+      }
+      return END;
+    }
 
-    const retriveContent = [];
+    async function callModel(state: typeof MessagesAnnotation.State) {
+      const response = await model.invoke(state.messages);
 
-    const prompt = PromptTemplate.fromTemplate(
-      `
-      你是一个AI助手，你的任务是回答用户的问题。
+      return { messages: [response] };
+    }
 
-      对话历史：
-      {history}
+    const graph = new StateGraph(MessagesAnnotation)
+      .addNode('agent', callModel)
+      .addNode('tools', toolNode)
+      .addEdge(START, 'agent')
+      .addEdge('tools', 'agent')
+      .addConditionalEdges('agent', shouldContinue);
 
-      相关信息：
-      {retriveContent}
-
-      可以使用的工具：
-      {tools}
-
-      用户的问题：
-      {question}
-      `,
-    );
-
-    // const chain = prompt | agent | modelInstance.model;
-
-    // const result = await chain.invoke({
-    //   history: memory,
-    //   retriveContent,
-    //   tools,
-    //   question: message,
-    // });
-  }
-
-  // 使用 LangGraph 的高级对话接口（当需要复杂流程时使用）
-  async chatWithGraph(
-    userInput: string,
-    conversationHistory: BaseMessage[] = [],
-  ) {
-    // try {
-    //   // 这里可以实现更复杂的 LangGraph 逻辑
-    //   // 比如添加工具调用、记忆管理、内容审核等
-    //   // 目前使用简单的模型调用
-    //   const result = await this.run(userInput, conversationHistory);
-    //   return {
-    //     response: result.response,
-    //     messages: result.messages,
-    //     // 可以添加额外的元数据
-    //     metadata: {
-    //       modelUsed: 'qwen-plus-2025-01-25',
-    //       processingSteps: [
-    //         'input_processing',
-    //         'model_call',
-    //         'output_formatting',
-    //       ],
-    //     },
-    //   };
-    // } catch (error: unknown) {
-    //   const errorMessage = error instanceof Error ? error.message : '未知错误';
-    //   throw new Error(`图对话处理失败: ${errorMessage}`);
-    // }
+    return graph;
   }
 }

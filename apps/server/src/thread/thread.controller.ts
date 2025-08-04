@@ -37,7 +37,7 @@ export class ThreadController {
     if (!user) {
       throw new BadRequestException('user is required');
     }
-    return this.threadService.createThread(user.id);
+    return this.threadService.createThread(user.uid);
   }
 
   @Get()
@@ -46,7 +46,7 @@ export class ThreadController {
     if (!user) {
       throw new BadRequestException('user is required');
     }
-    return this.threadService.getThreads(user.id);
+    return this.threadService.getThreads(user.uid);
   }
 
   @Delete(':id')
@@ -58,7 +58,7 @@ export class ThreadController {
     if (!user) {
       throw new BadRequestException('user is required');
     }
-    return this.threadService.deleteThread(user.id, id);
+    return this.threadService.deleteThread(user.uid, id);
   }
 
   // mock SSE 消息推送接口
