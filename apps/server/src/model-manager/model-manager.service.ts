@@ -1,46 +1,40 @@
-import { HttpException, Injectable, OnModuleInit } from '@nestjs/common';
-import { ModelInstance, MODEL_TYPE } from './interface';
-import { ChatOpenAI } from '@langchain/openai';
+import { Injectable } from '@nestjs/common';
+import { MODEL_TYPE } from './interface';
 import { ConfigService } from '@nestjs/config';
+import { ChatOpenAI } from '@langchain/openai';
+import { BaseChatModel } from '@langchain/core/language_models/chat_models';
 
 @Injectable()
-export class ModelManagerService implements OnModuleInit {
-  private modelMap: Map<string, ModelInstance>;
+export class ModelManagerService {
+  private modelMap: Map<MODEL_TYPE, BaseChatModel>;
 
-  constructor(private configService: ConfigService) {
+  constructor(private readonly configService: ConfigService) {
     this.modelMap = new Map();
   }
-  onModuleInit() {}
-  async getModel(name: string): Promise<ModelInstance | undefined> {
-    if (!this.modelMap.has(name)) {
-      this.modelMap.set(name, this.createModel(name, MODEL_TYPE.LLM));
+
+  getModel(type: MODEL_TYPE) {
+    let modelInstance: BaseChatModel;
+    if (!this.modelMap.has(type)) {
+      // @ts-expect-error 暂时忽略类型错误
+      modelInstance = this.createModel(type);
+      this.modelMap.set(type, modelInstance);
+    } else {
+      modelInstance = this.modelMap.get(type)!;
     }
-
-    return this.modelMap.get(name);
+    return modelInstance;
   }
-  async getModelByType(type: MODEL_TYPE) {
-    const model = this.modelMap
-      .entries()
-      .find(([_, model]) => model.type === type)?.[1];
-    if (!model) {
-      throw new HttpException('model not found', 500);
+  createModel(type: MODEL_TYPE) {
+    switch (type) {
+      case MODEL_TYPE.LLM:
+        return new ChatOpenAI({
+          model: 'qwen-plus-2025-01-25',
+          apiKey: this.configService.get('TONGYI_API_KEY')!,
+          configuration: {
+            baseURL: this.configService.get('TONGYI_BASE_URL')!,
+          },
+        });
+      default:
+        throw new Error('Invalid model type');
     }
-    return model;
-  }
-
-  createModel(name: string, type: MODEL_TYPE) {
-    const config = {
-      model: 'qwen-plus-2025-01-25',
-      apiKey: this.configService.get('TONGYI_API_KEY'),
-      configuration: {
-        baseURL: this.configService.get('TONGYI_BASE_URL'),
-      },
-    };
-
-    return {
-      name,
-      type,
-      model: new ChatOpenAI(config),
-    };
   }
 }

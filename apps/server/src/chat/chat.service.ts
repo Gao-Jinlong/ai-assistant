@@ -18,11 +18,7 @@ export class ChatService {
     private readonly agentService: AgentService,
   ) {}
 
-  async sseMessages(
-    res: Response,
-    jwtPayload: JwtPayload,
-    body: CreateChatDto,
-  ) {
+  async chat(res: Response, jwtPayload: JwtPayload, body: CreateChatDto) {
     const { threadUid, message } = body;
     // const { uid, email } = jwtPayload;
 
@@ -38,7 +34,7 @@ export class ChatService {
     const stream = this.agentService.run({ thread, memory, message });
 
     for await (const chunk of await stream) {
-      res.write(chunk);
+      res.write(JSON.stringify(chunk));
     }
 
     res.end();

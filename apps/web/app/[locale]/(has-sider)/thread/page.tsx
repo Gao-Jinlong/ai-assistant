@@ -34,16 +34,21 @@ export default function ChatPage() {
   const handleSendMessage = useCallback(
     async (message: string) => {
       try {
-        if (!thread) {
+        let currentThread = thread;
+        if (!currentThread) {
           const res = await createThread.mutateAsync();
           threadQuery.refetch();
           if (!res?.data) {
-            return;
+            throw new Error('创建会话失败');
           }
+          currentThread = res.data;
+        }
+        if (!currentThread?.uid) {
+          throw new Error('会话不存在');
         }
         sendMessage(message);
         // TODO 切换到对话中的会话时恢复接收消息
-        sendMessageSSE(message);
+        sendMessageSSE(currentThread.uid, message);
       } catch (error) {
         console.error(error);
         if (createThread.isError) {

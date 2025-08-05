@@ -1,4 +1,4 @@
-import { Body, Controller, Req, Res, Sse } from '@nestjs/common';
+import { Body, Controller, Post, Req, Res, Sse } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { Request, Response } from 'express';
@@ -7,14 +7,14 @@ import { Request, Response } from 'express';
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
-  @Sse('message')
-  async sseMessages(
+  @Post()
+  async chat(
     @Req() req: Request,
     @Res() res: Response,
     @Body() body: CreateChatDto,
   ) {
     const jwtPayload = req['jwt'];
 
-    return this.chatService.sseMessages(res, jwtPayload, body);
+    return this.chatService.chat(res, jwtPayload, body);
   }
 }

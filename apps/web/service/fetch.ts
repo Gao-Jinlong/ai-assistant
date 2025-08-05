@@ -69,17 +69,8 @@ const patch = <T>(url: string, options?: Options) => {
 };
 
 const sse = (url: string, options?: Options) => {
-  const sseOptions = merge(
-    {
-      headers: {
-        ...options?.headers,
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-      },
-    },
-    options ?? {},
-  );
-  return request.get(url, sseOptions);
+  const sseOptions = merge({}, options ?? {});
+  return request(url, sseOptions);
 };
 
 export { request, get, post, put, del, patch, sse };

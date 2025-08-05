@@ -2,20 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { ModelManagerService } from '@server/model-manager/model-manager.service';
 import { BaseMessage, HumanMessage, AIMessage } from '@langchain/core/messages';
 import { MODEL_TYPE } from '@server/model-manager/interface';
-import { ChatRequestDto } from './dto/chat-request.dto';
 import { MessageService } from '@server/message/message.service';
-import { Tool } from '@langchain/core/tools';
-import { PromptTemplate } from '@langchain/core/prompts';
+import { StructuredTool, Tool } from '@langchain/core/tools';
 import { Thread } from '@prisma/client';
-import { Runnable } from '@langchain/core/runnables';
 import {
   END,
   MessagesAnnotation,
   START,
   StateGraph,
 } from '@langchain/langgraph';
-import { TavilySearchResults } from '@langchain/community/tools/tavily_search';
 import { ToolNode } from '@langchain/langgraph/prebuilt';
+// import { TavilySearchResults } from '@langchain/community/tools/tavily_search';
+import { TavilySearch } from '@langchain/tavily';
 
 @Injectable()
 export class AgentService {
@@ -38,13 +36,13 @@ export class AgentService {
   }
 
   async createGraph() {
-    const modelInstance = await this.modelManagerService.getModelByType(
-      MODEL_TYPE.LLM,
-    );
-    const tools = [new TavilySearchResults({ maxResults: 3 })];
+    const model = this.modelManagerService.getModel(MODEL_TYPE.LLM);
+    const tools: Tool[] = [
+      new TavilySearch({ maxResults: 3 }) as unknown as Tool,
+    ];
     const toolNode = new ToolNode(tools);
 
-    const model = modelInstance.model.bindTools(tools);
+    model.bindTools?.(tools);
 
     function shouldContinue({ messages }: typeof MessagesAnnotation.State) {
       const lastMessage = messages[messages.length - 1] as AIMessage;
@@ -63,8 +61,8 @@ export class AgentService {
 
     const graph = new StateGraph(MessagesAnnotation)
       .addNode('agent', callModel)
-      .addNode('tools', toolNode)
       .addEdge(START, 'agent')
+      .addNode('tools', toolNode)
       .addEdge('tools', 'agent')
       .addConditionalEdges('agent', shouldContinue);
 
