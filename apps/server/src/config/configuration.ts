@@ -19,4 +19,8 @@ export default () => ({
     enableConsole: process.env.LOG_CONSOLE !== 'false',
     enableFile: process.env.LOG_FILE !== 'false',
   },
+  mock: {
+    enable: true,
+    path: process.env.MOCK_PATH || './mock',
+  },
 });

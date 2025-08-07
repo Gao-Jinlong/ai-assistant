@@ -15,6 +15,11 @@ export class ChatController {
   ) {
     const jwtPayload = req['jwt'];
 
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive'); // 保持连接
+    res.setHeader('Transfer-Encoding', 'chunked'); // 分块传输
+
     return this.chatService.chat(res, jwtPayload, body);
   }
 }

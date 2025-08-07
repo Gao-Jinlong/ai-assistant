@@ -1,12 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { ModelManagerService } from '@server/model-manager/model-manager.service';
-import { BaseMessage, HumanMessage, AIMessage } from '@langchain/core/messages';
+import {
+  BaseMessage,
+  HumanMessage,
+  AIMessage,
+  BaseMessageLike,
+  isAIMessageChunk,
+} from '@langchain/core/messages';
 import { MODEL_TYPE } from '@server/model-manager/interface';
 import { MessageService } from '@server/message/message.service';
-import { StructuredTool, Tool } from '@langchain/core/tools';
+import { Tool } from '@langchain/core/tools';
 import { Thread } from '@prisma/client';
 import {
   END,
+  Annotation,
   MessagesAnnotation,
   START,
   StateGraph,
@@ -28,14 +35,24 @@ export class AgentService {
     const graph = await this.createGraph();
     const app = graph.compile();
 
-    const stream = await app.stream({
-      messages: [new HumanMessage(message)],
-    });
+    const stream = await app.stream(
+      {
+        messages: [new HumanMessage(message)],
+      },
+      {
+        streamMode: 'messages',
+      },
+    );
 
     return stream;
   }
 
   async createGraph() {
+    const state = Annotation.Root({
+      messages: Annotation<BaseMessageLike[]>({
+        reducer: (x, y) => x.concat(y),
+      }),
+    });
     const model = this.modelManagerService.getModel(MODEL_TYPE.LLM);
     const tools: Tool[] = [
       new TavilySearch({ maxResults: 3 }) as unknown as Tool,

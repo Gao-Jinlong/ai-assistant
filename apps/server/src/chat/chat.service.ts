@@ -7,6 +7,11 @@ import { CreateChatDto } from './dto/create-chat.dto';
 import { MessageService } from '@server/message/message.service';
 import { JwtPayload } from '@server/auth/auth.service';
 import { AgentService } from '@server/agent/agent.service';
+import { AIMessageChunk, isAIMessageChunk } from '@langchain/core/messages';
+import { ConfigService } from '@nestjs/config';
+import path from 'node:path';
+import fs from 'node:fs';
+import { chatUtils } from '@server/utils';
 
 @Injectable()
 export class ChatService {
@@ -16,6 +21,7 @@ export class ChatService {
 
     private readonly messageService: MessageService,
     private readonly agentService: AgentService,
+    private readonly configService: ConfigService,
   ) {}
 
   async chat(res: Response, jwtPayload: JwtPayload, body: CreateChatDto) {
@@ -31,12 +37,36 @@ export class ChatService {
 
     const memory = await this.messageService.getHistoryByThread(thread.uid);
 
-    const stream = this.agentService.run({ thread, memory, message });
+    const stream = await this.agentService.run({ thread, memory, message });
 
-    for await (const chunk of await stream) {
-      res.write(JSON.stringify(chunk));
+    const mockPath = this.configService.get('mock.path') ?? './mock';
+    const file = fs.createWriteStream(path.join(mockPath, 'chat.txt'));
+
+    for await (const [message, _metadata] of stream) {
+      if (isAIMessageChunk(message as AIMessageChunk)) {
+        const formattedMessage = chatUtils.formatMessageChunk(
+          message as AIMessageChunk,
+        );
+        res.write('data: ' + JSON.stringify(formattedMessage) + '\n\n');
+      } else {
+        res.write('data: ' + JSON.stringify(message) + '\n\n');
+      }
     }
 
     res.end();
+  }
+
+  processAIMessageChunk(res: Response, message: AIMessageChunk) {
+    const { content, tool_call_chunks, ...rest } = message;
+
+    if (tool_call_chunks?.length) {
+      return;
+    } else {
+      return {
+        content,
+        tool_call_chunks,
+        ...rest,
+      };
+    }
   }
 }
