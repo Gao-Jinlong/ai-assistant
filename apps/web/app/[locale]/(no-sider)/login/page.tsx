@@ -22,7 +22,7 @@ import { AuthLayout } from '@web/components/auth/auth-layout';
 import { AuthMessage } from '@web/components/auth/auth-message';
 import { AuthFooter } from '@web/components/auth/auth-footer';
 import Link from 'next/link';
-import service from '@web/service';
+import { userService } from '@web/service';
 import useBoundStore from '@web/store';
 
 const formSchema = z.object({
@@ -57,7 +57,7 @@ export default function Login() {
       setMessage(null);
 
       try {
-        const result = await service.user.login(values);
+        const result = await userService.login(values);
 
         if (result) {
           setMessage({

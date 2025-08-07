@@ -1,19 +1,12 @@
 import ky, { Options } from 'ky';
-import { LoginResponse } from './user';
 import { LOGIN_INFO_KEY } from '@web/constant';
-import { getLocale } from '@web/utils';
+import { requestUtils } from '@web/utils';
 import { merge } from 'es-toolkit';
 
 function handleAuthorization(request: Request) {
-  const localLoginInfo = localStorage.getItem(LOGIN_INFO_KEY);
-  if (localLoginInfo) {
-    const parsed = JSON.parse(localLoginInfo);
-    const loginInfo: LoginResponse | undefined = parsed.state?.loginInfo;
-
-    const accessToken = loginInfo?.token?.access_token;
-    if (accessToken) {
-      request.headers.set('Authorization', `Bearer ${accessToken}`);
-    }
+  const accessToken = requestUtils.getToken();
+  if (accessToken) {
+    request.headers.set('Authorization', `Bearer ${accessToken}`);
   }
 }
 
@@ -28,8 +21,10 @@ async function handleUnauthorized(
     // 获取当前语言
     let locale = 'zh';
     try {
-      locale = getLocale();
-    } catch {}
+      locale = requestUtils.getLocale();
+    } catch {
+      locale = 'zh';
+    }
     // 跳转到登录页
     window.location.href = `/${locale}/login`;
   }

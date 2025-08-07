@@ -7,7 +7,11 @@ import { CreateChatDto } from './dto/create-chat.dto';
 import { MessageService } from '@server/message/message.service';
 import { JwtPayload } from '@server/auth/auth.service';
 import { AgentService } from '@server/agent/agent.service';
-import { AIMessageChunk, isAIMessageChunk } from '@langchain/core/messages';
+import {
+  AIMessage,
+  AIMessageChunk,
+  isAIMessageChunk,
+} from '@langchain/core/messages';
 import { ConfigService } from '@nestjs/config';
 import path from 'node:path';
 import fs from 'node:fs';
@@ -43,14 +47,10 @@ export class ChatService {
     const file = fs.createWriteStream(path.join(mockPath, 'chat.txt'));
 
     for await (const [message, _metadata] of stream) {
-      if (isAIMessageChunk(message as AIMessageChunk)) {
-        const formattedMessage = chatUtils.formatMessageChunk(
-          message as AIMessageChunk,
-        );
-        res.write('data: ' + JSON.stringify(formattedMessage) + '\n\n');
-      } else {
-        res.write('data: ' + JSON.stringify(message) + '\n\n');
-      }
+      const formattedMessage = chatUtils.formatMessage(message);
+      const finalMessage = 'data: ' + JSON.stringify(formattedMessage) + '\n\n';
+      res.write(finalMessage);
+      file.write(finalMessage);
     }
 
     res.end();

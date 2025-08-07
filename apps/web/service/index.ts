@@ -1,14 +1,7 @@
-import * as fetch from './fetch';
-import * as user from './user';
-import * as thread from './thread';
-
-const service = {
-  fetch,
-  user,
-  thread,
-};
-
-export default service;
+export * from './fetch';
+export * as userService from './user';
+export * as threadService from './thread';
+export * as chatService from './chat';
 
 export interface ResponseWrapper<T> {
   code: number;

@@ -1,0 +1,12 @@
+data: {"type":"message_chunk","data":{"id":"chatcmpl-6d53dae3-ae31-9529-8d3b-b764b6c13b6e","data":""}}
+
+data: {"type":"message_chunk","data":{"id":"chatcmpl-6d53dae3-ae31-9529-8d3b-b764b6c13b6e","data":"你好"}}
+
+data: {"type":"message_chunk","data":{"id":"chatcmpl-6d53dae3-ae31-9529-8d3b-b764b6c13b6e","data":"！"}}
+
+data: {"type":"message_chunk","data":{"id":"chatcmpl-6d53dae3-ae31-9529-8d3b-b764b6c13b6e","data":"今天"}}
+
+data: {"type":"message_chunk","data":{"id":"chatcmpl-6d53dae3-ae31-9529-8d3b-b764b6c13b6e","data":"过得怎么样？"}}
+
+data: {"type":"message_chunk","data":{"id":"chatcmpl-6d53dae3-ae31-9529-8d3b-b764b6c13b6e","data":""}}
+

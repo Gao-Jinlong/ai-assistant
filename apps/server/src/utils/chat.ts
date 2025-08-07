@@ -25,7 +25,7 @@ export function formatMessageChunk(chunk: AIMessageChunk) {
 }
 
 export function formatMessage(message: BaseMessage) {
-  if (isAIMessageChunk(message)) {
+  if (isAIMessageChunk(message as AIMessageChunk)) {
     return formatMessageChunk(message as AIMessageChunk);
   } else {
     return message;
