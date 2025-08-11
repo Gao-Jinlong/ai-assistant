@@ -1,16 +1,17 @@
 import { cn } from '@web/lib/utils';
-import { MessageDto } from '@web/service/thread';
+import { MessageChunkDto } from '@web/service/thread';
 import { cva } from 'class-variance-authority';
+import { memo } from 'react';
 
 export interface MessageItemProps {
-  message: MessageDto;
+  message: MessageChunkDto;
 }
 
 const messageItemVariants = cva('flex gap-2', {
   variants: {
     role: {
-      user: 'text-right',
-      ai: 'text-left',
+      user: 'justify-end',
+      assistant: 'text-left',
     },
   },
   defaultVariants: {
@@ -24,13 +25,13 @@ const MessageItem = ({ message }: MessageItemProps) => {
       <div
         className={cn(
           'w-auto rounded-md p-4',
-          message.role === 'user' && 'bg-secondary',
+          message.role === 'user' ? 'bg-secondary' : 'justify-start text-left',
         )}
       >
-        {message.content}
+        {message.data.content}
       </div>
     </div>
   );
 };
 
-export default MessageItem;
+export default memo(MessageItem);

@@ -1,7 +1,10 @@
 import { ResponseWrapper } from '.';
 import { del, get, post } from './fetch';
 
-export type MessageRole = 'user' | 'ai';
+export type MessageRole = 'user' | 'assistant';
+export enum MESSAGE_TYPE {
+  MESSAGE_CHUNK = 'message_chunk',
+}
 
 export interface ThreadDto {
   id: string;
@@ -14,9 +17,13 @@ export interface ThreadDto {
   updatedAt: string;
 }
 
-export interface MessageDto {
+export interface MessageChunkDto {
   id: string;
-  content: string;
+  groupId: string;
+  data: {
+    content: string;
+  };
+  type: MESSAGE_TYPE;
   role: MessageRole;
   createdAt: string;
   updatedAt: string;
@@ -34,5 +41,5 @@ export const deleteThread = (id: string) => {
 };
 
 export const getThreadMessages = (id: ThreadDto['id']) => {
-  return get<ResponseWrapper<MessageDto[]>>(`thread/${id}/messages`);
+  return get<ResponseWrapper<MessageChunkDto[]>>(`thread/${id}/messages`);
 };

@@ -20,7 +20,7 @@ export default () => ({
     enableFile: process.env.LOG_FILE !== 'false',
   },
   mock: {
-    enable: true,
+    enable: process.env.MOCK_ENABLE !== 'false',
     path: process.env.MOCK_PATH || './mock',
   },
 });

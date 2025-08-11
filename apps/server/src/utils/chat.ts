@@ -4,29 +4,50 @@ import {
   BaseMessage,
   isAIMessageChunk,
 } from '@langchain/core/messages';
+import { nanoid } from 'nanoid';
+import { MESSAGE_ROLE } from '@server/interface';
 
-export function formatMessageChunk(chunk: AIMessageChunk) {
-  const { content, tool_call_chunks, id, ..._rest } = chunk;
+export function formatMessageChunk(
+  chunk: AIMessageChunk,
+  groupId: string,
+  role: MESSAGE_ROLE,
+) {
+  const { content, tool_call_chunks, ..._rest } = chunk;
+  /**
+   * 本条消息 id
+   */
+  const id = nanoid();
+
   if (tool_call_chunks?.length) {
     return {
       type: MESSAGE_TYPE.TOOL_CALL_CHUNK,
       id,
-      data: tool_call_chunks[0].args,
+      groupId,
+      role,
+      data: {
+        args: tool_call_chunks[0].args,
+      },
     };
   } else {
     return {
       type: MESSAGE_TYPE.MESSAGE_CHUNK,
+      id,
+      groupId,
+      role,
       data: {
-        id,
-        data: content,
+        content,
       },
     };
   }
 }
 
-export function formatMessage(message: BaseMessage) {
+export function formatMessage(
+  message: BaseMessage,
+  groupId: string,
+  role: MESSAGE_ROLE,
+) {
   if (isAIMessageChunk(message as AIMessageChunk)) {
-    return formatMessageChunk(message as AIMessageChunk);
+    return formatMessageChunk(message as AIMessageChunk, groupId, role);
   } else {
     return message;
   }

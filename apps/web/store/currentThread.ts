@@ -1,18 +1,18 @@
-import { MessageDto, ThreadDto } from '@web/service/thread';
+import { MESSAGE_TYPE, MessageChunkDto, ThreadDto } from '@web/service/thread';
 import { Store } from '.';
 import { nanoid } from 'nanoid';
 export interface CurrentThreadStoreState {
   currentThread: ThreadDto | null;
-  messageList: MessageDto[];
+  messageList: MessageChunkDto[];
   isResponding: boolean;
 }
 export interface CurrentThreadStoreActions {
   clearCurrent: () => void;
   setCurrentThread: (current: ThreadDto | null) => void;
   setIsResponding: (isResponding: boolean) => void;
-  appendMessage: (message: MessageDto) => void;
+  appendMessage: (message: MessageChunkDto) => void;
   sendMessage: (message: string) => void;
-  setMessageList: (messageList: MessageDto[]) => void;
+  setMessageList: (messageList: MessageChunkDto[]) => void;
 }
 
 export interface CurrentThreadStore
@@ -30,9 +30,20 @@ const createThreadSlice: Store<CurrentThreadStore> = (set, get, store) => ({
     });
   },
   appendMessage: (message) => {
-    set({
-      messageList: [...get().messageList, message],
-    });
+    const { messageList } = get();
+    const lastMessage = messageList[messageList.length - 1];
+
+    if (message.id && lastMessage?.groupId === message.groupId) {
+      const newMessage = mergeMessage(lastMessage, message);
+      set({
+        messageList: [...messageList.slice(0, -1), newMessage],
+      });
+      return;
+    } else {
+      set({
+        messageList: [...messageList, message],
+      });
+    }
   },
   sendMessage: (message) => {
     set({
@@ -40,7 +51,11 @@ const createThreadSlice: Store<CurrentThreadStore> = (set, get, store) => ({
         ...get().messageList,
         {
           id: nanoid(),
-          content: message,
+          type: MESSAGE_TYPE.MESSAGE_CHUNK,
+          groupId: get().currentThread?.uid ?? '',
+          data: {
+            content: message,
+          },
           role: 'user',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -54,3 +69,18 @@ const createThreadSlice: Store<CurrentThreadStore> = (set, get, store) => ({
 });
 
 export { createThreadSlice as createCurrentThreadSlice };
+
+function mergeMessage(
+  lastMessage: MessageChunkDto,
+  message: MessageChunkDto,
+): MessageChunkDto {
+  const { data, updatedAt } = message;
+
+  const mergedMessage = {
+    ...lastMessage,
+    updatedAt,
+  };
+  mergedMessage.data.content += data.content;
+
+  return mergedMessage;
+}

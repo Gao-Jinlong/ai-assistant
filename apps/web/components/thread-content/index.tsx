@@ -8,11 +8,12 @@ const ThreadContent = () => {
   const messageList = useBoundStore((state) => state.messageList);
   const setMessageList = useBoundStore((state) => state.setMessageList);
 
+  // TODO 点击历史记录时回显历史消息
   useQuery({
     ...queries.thread.getThreadMessages(thread.id),
     refetchOnWindowFocus: false,
     onSuccess: (data) => {
-      setMessageList(data.data);
+      // setMessageList(data.data);
     },
   });
   return (
