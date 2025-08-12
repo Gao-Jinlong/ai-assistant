@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import '../globals.css';
 import ClientLayout from './client-layout';
 import 'allotment/dist/style.css';
+import 'katex/dist/katex.min.css';
 import { cn } from '@web/lib/utils';
 import { ReactNode } from 'react';
 import { NextIntlClientProvider } from 'next-intl';

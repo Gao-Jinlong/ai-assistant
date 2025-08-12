@@ -128,4 +128,19 @@
   .scrollbar-hide {
     scrollbar-width: none;
   }
+
+  /* KaTeX 数学公式样式 */
+  .katex {
+    font-size: 1em;
+  }
+
+  .katex-display {
+    margin: 1em 0;
+    text-align: center;
+  }
+
+  .katex-display>.katex {
+    display: inline-block;
+    white-space: nowrap;
+  }
 }
