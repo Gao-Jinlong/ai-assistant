@@ -23,4 +23,12 @@ export default () => ({
     enable: process.env.MOCK_ENABLE !== 'false',
     path: process.env.MOCK_PATH || './mock',
   },
+  cache: {
+    ttl: parseInt(process.env.CACHE_TTL || '300', 10), // 默认 5 分钟
+    max: parseInt(process.env.CACHE_MAX || '1000', 10), // 最大缓存项数
+    type: process.env.CACHE_TYPE || 'memory', // 缓存类型：memory | redis
+    redis: {
+      url: process.env.REDIS_URL || 'redis://localhost:6379',
+    },
+  },
 });

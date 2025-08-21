@@ -26,6 +26,7 @@ import { MessageModule } from './message/message.module';
 import { ModelManagerModule } from './model-manager/model-manager.module';
 import { AgentModule } from './agent/agent.module';
 import { ChatModule } from './chat/chat.module';
+import { CacheModule } from './cache/cache.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { ChatModule } from './chat/chat.module';
     }),
     CommonModule, // 添加公共模块
     PrismaModule,
+    CacheModule, // 添加缓存模块
 
     // 业务模块
     UserModule,

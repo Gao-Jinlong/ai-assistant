@@ -21,7 +21,7 @@ import katex from 'katex';
 import { $applyNodeReplacement, DecoratorNode, DOMExportOutput } from 'lexical';
 import * as React from 'react';
 
-const EquationComponent = React.lazy(() => import('./EquationComponent.tsx'));
+const EquationComponent = React.lazy(() => import('./EquationComponent'));
 
 export type SerializedEquationNode = Spread<
   {
