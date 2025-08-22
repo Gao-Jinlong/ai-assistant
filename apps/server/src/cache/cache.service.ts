@@ -28,7 +28,7 @@ export class CacheService {
    */
   async set<T = unknown>(key: string, value: T, ttl?: number): Promise<void> {
     try {
-      await this.cacheManager.set(key, value, ttl);
+      await this.cacheManager.set(key, value, ttl ? ttl * 1000 : undefined);
     } catch (error) {
       console.error(`Failed to set cache for key: ${key}`, error);
     }

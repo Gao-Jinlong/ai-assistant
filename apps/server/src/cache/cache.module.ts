@@ -6,6 +6,7 @@ import { CacheController } from './cache.controller';
 import Keyv from 'keyv';
 import { CacheableMemory } from 'cacheable';
 import { createKeyv } from '@keyv/redis';
+import { UserCacheExample } from './examples/user-cache.example';
 
 @Global()
 @Module({
@@ -28,8 +29,8 @@ import { createKeyv } from '@keyv/redis';
       inject: [ConfigService],
     }),
   ],
-  controllers: [CacheController],
+  controllers: [CacheController, UserCacheExample],
   providers: [CacheService],
-  exports: [CacheService, NestCacheModule],
+  exports: [CacheService],
 })
 export class CacheModule {}

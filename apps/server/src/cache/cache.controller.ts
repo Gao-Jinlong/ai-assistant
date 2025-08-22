@@ -14,12 +14,12 @@ import { Public } from '../auth/public.decorator';
 
 interface SetCacheDto {
   key: string;
-  value: any;
+  value: unknown;
   ttl?: number;
 }
 
 interface SetMultipleCacheDto {
-  items: Array<{ key: string; value: any }>;
+  items: Array<{ key: string; value: unknown }>;
   ttl?: number;
 }
 
@@ -92,9 +92,9 @@ export class CacheController {
   @Get()
   @Public()
   async getMultiple(@Query('keys') keys: string) {
-    const keyArray = keys.split(',').map(k => k.trim());
+    const keyArray = keys.split(',').map((k) => k.trim());
     const values = await this.cacheService.mget(keyArray);
-    
+
     return keyArray.map((key, index) => ({
       key,
       value: values[index],
@@ -112,7 +112,7 @@ export class CacheController {
     await this.cacheService.mset(dto.items, dto.ttl);
     return {
       message: `Batch cache set for ${dto.items.length} items`,
-      keys: dto.items.map(item => item.key),
+      keys: dto.items.map((item) => item.key),
     };
   }
 
@@ -123,7 +123,7 @@ export class CacheController {
   @Public()
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteMultiple(@Query('keys') keys: string) {
-    const keyArray = keys.split(',').map(k => k.trim());
+    const keyArray = keys.split(',').map((k) => k.trim());
     await this.cacheService.mdel(keyArray);
     return {
       message: `Batch cache deleted for ${keyArray.length} items`,

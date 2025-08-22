@@ -8,6 +8,8 @@ import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { CacheService } from '../cache.service';
+import { CacheEvictKeys } from '../decorators/cache.decorator';
+import { Request } from 'express';
 
 /**
  * 缓存失效拦截器
@@ -20,8 +22,11 @@ export class CacheEvictInterceptor implements NestInterceptor {
     private readonly reflector: Reflector,
   ) {}
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const evictKeys = this.reflector.get<string[] | Function>(
+  intercept<T = unknown>(
+    context: ExecutionContext,
+    next: CallHandler<T>,
+  ): Observable<T> {
+    const evictKeys = this.reflector.get<CacheEvictKeys>(
       'cache:evict',
       context.getHandler(),
     );
@@ -32,13 +37,11 @@ export class CacheEvictInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       tap(async () => {
-        const request = context.switchToHttp().getRequest();
-        const args = [request.params, request.query, request.body];
-        
+        const request = context.switchToHttp().getRequest<Request>();
+
         // 生成实际的缓存键数组
-        const actualKeys = typeof evictKeys === 'function' 
-          ? evictKeys(...args) 
-          : evictKeys;
+        const actualKeys =
+          typeof evictKeys === 'function' ? evictKeys(request) : evictKeys;
 
         // 批量删除缓存
         await this.cacheService.mdel(actualKeys);

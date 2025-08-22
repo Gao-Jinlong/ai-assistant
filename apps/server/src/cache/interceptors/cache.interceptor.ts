@@ -8,7 +8,12 @@ import { Reflector } from '@nestjs/core';
 import { Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { CacheService } from '../cache.service';
-import { CACHE_KEY_METADATA, CACHE_TTL_METADATA } from '../decorators/cache.decorator';
+import {
+  CACHE_KEY_METADATA,
+  CACHE_TTL_METADATA,
+  CacheKey,
+} from '../decorators/cache.decorator';
+import { Request } from 'express';
 
 /**
  * 缓存拦截器
@@ -21,11 +26,11 @@ export class CacheInterceptor implements NestInterceptor {
     private readonly reflector: Reflector,
   ) {}
 
-  async intercept(
+  async intercept<T = unknown>(
     context: ExecutionContext,
-    next: CallHandler,
-  ): Promise<Observable<any>> {
-    const cacheKey = this.reflector.get<string | Function>(
+    next: CallHandler<T>,
+  ): Promise<Observable<T>> {
+    const cacheKey = this.reflector.get<CacheKey | undefined>(
       CACHE_KEY_METADATA,
       context.getHandler(),
     );
@@ -34,16 +39,14 @@ export class CacheInterceptor implements NestInterceptor {
       return next.handle();
     }
 
-    const request = context.switchToHttp().getRequest();
-    const args = [request.params, request.query, request.body];
-    
+    const request = context.switchToHttp().getRequest<Request>();
+
     // 生成实际的缓存键
-    const actualKey = typeof cacheKey === 'function' 
-      ? cacheKey(...args) 
-      : cacheKey;
+    const actualKey =
+      typeof cacheKey === 'function' ? cacheKey(request) : cacheKey;
 
     // 尝试从缓存获取数据
-    const cachedResult = await this.cacheService.get(actualKey);
+    const cachedResult: T | undefined = await this.cacheService.get(actualKey);
     if (cachedResult !== undefined) {
       return of(cachedResult);
     }
