@@ -221,8 +221,8 @@ export class UserCacheExample {
 
   private async updateUserInDatabase(
     userId: string,
-    profileData: any,
-  ): Promise<any> {
+    profileData: unknown,
+  ): Promise<unknown> {
     // 模拟数据库更新
     return { id: userId, ...profileData, updatedAt: new Date() };
   }
@@ -239,7 +239,7 @@ export class UserCacheExample {
   private async calculateUserStats(
     userId: string,
     period: string,
-  ): Promise<any> {
+  ): Promise<unknown> {
     // 模拟统计计算
     return {
       userId,
@@ -252,8 +252,8 @@ export class UserCacheExample {
 
   private async performUserSearch(
     query: string,
-    filters?: any,
-  ): Promise<any[]> {
+    filters?: Record<string, unknown>,
+  ): Promise<unknown[]> {
     // 模拟搜索操作
     return [
       { id: 1, name: `User matching ${query}`, relevance: 0.9 },
@@ -264,8 +264,8 @@ export class UserCacheExample {
   private async fetchPaginatedUsers(
     page: number,
     limit: number,
-    filters?: any,
-  ): Promise<any> {
+    filters?: Record<string, unknown>,
+  ): Promise<unknown> {
     // 模拟分页查询
     const total = 1000;
     const users = Array.from({ length: limit }, (_, i) => ({
