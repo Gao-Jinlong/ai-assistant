@@ -224,10 +224,16 @@ export class UserCacheExample {
     profileData: unknown,
   ): Promise<unknown> {
     // 模拟数据库更新
-    return { id: userId, ...profileData, updatedAt: new Date() };
+    return {
+      id: userId,
+      ...(profileData as Record<string, unknown>),
+      updatedAt: new Date(),
+    };
   }
 
-  private async fetchUsersFromDatabase(userIds: string[]): Promise<any[]> {
+  private async fetchUsersFromDatabase(
+    userIds: string[],
+  ): Promise<Record<string, unknown>[]> {
     // 模拟批量数据库查询
     return userIds.map((id) => ({
       id,

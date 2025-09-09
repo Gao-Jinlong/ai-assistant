@@ -5,7 +5,7 @@ import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { cva } from 'class-variance-authority';
-import { memo, useEffect, useRef } from 'react';
+import { memo, useEffect } from 'react';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { HeadingNode, QuoteNode } from '@lexical/rich-text';
 import { ListItemNode, ListNode } from '@lexical/list';
@@ -17,7 +17,7 @@ import {
   EquationNode,
   $createEquationNode,
 } from '@web/lib/lexical/nodes/EquationNode';
-import { $getRoot, $createTextNode, $createParagraphNode } from 'lexical';
+import { $getRoot, $createTextNode } from 'lexical';
 import 'katex/dist/katex.css';
 
 export interface MessageItemProps {
@@ -43,86 +43,98 @@ function SetMessage({ message }: MessageItemProps) {
   const [editor] = useLexicalComposerContext();
   useEffect(() => {
     editor.update(() => {
-      $convertFromMarkdownString(content, TRANSFORMERS);
+      // 清空编辑器
+      const root = $getRoot();
+      root.clear();
 
-      // // 清空编辑器
-      // const root = $getRoot();
-      // root.clear();
-      // // 使用更简单的方法：先处理Markdown，然后处理数学公式
-      // let content = message.data.content;
-      // // 找到所有数学公式并创建临时的标记
-      // const mathExpressions: Array<{
-      //   match: string;
-      //   equation: string;
-      //   inline: boolean;
-      //   id: string;
-      // }> = [];
-      // let idCounter = 0;
-      // // 处理块级公式
-      // content = content.replace(/\$\$([\s\S]*?)\$\$/g, (match, equation) => {
-      //   const id = `TEMP_MATH_BLOCK_${idCounter++}`;
-      //   mathExpressions.push({
-      //     match: id,
-      //     equation: equation.trim(),
-      //     inline: false,
-      //     id,
-      //   });
-      //   return `\n${id}\n`; // 块级公式前后用换行，确保独立段落
-      // });
-      // // 处理行内公式
-      // content = content.replace(/\$([^$\n]+?)\$/g, (match, equation) => {
-      //   const id = `TEMP_MATH_INLINE_${idCounter++}`;
-      //   mathExpressions.push({
-      //     match: id,
-      //     equation: equation.trim(),
-      //     inline: true,
-      //     id,
-      //   });
-      //   return id; // 行内公式不加空格，保持在同一行
-      // });
-      // // 先用默认转换器处理 Markdown
-      // $convertFromMarkdownString(content, TRANSFORMERS);
-      // // 然后找到并替换所有的数学公式标记
-      // mathExpressions.forEach(({ id, equation, inline }) => {
-      //   let replaced = false;
-      //   let attempts = 0;
-      //   const maxAttempts = 5;
-      //   // 重复查找直到找到或达到最大尝试次数
-      //   while (!replaced && attempts < maxAttempts) {
-      //     attempts++;
-      //     const textNodes = root.getAllTextNodes();
-      //     for (const textNode of textNodes) {
-      //       const textContent = textNode.getTextContent();
-      //       const idIndex = textContent.indexOf(id);
-      //       if (idIndex !== -1) {
-      //         const before = textContent.substring(0, idIndex);
-      //         const after = textContent.substring(idIndex + id.length);
-      //         const equationNode = $createEquationNode(equation, inline);
-      //         if (before && after) {
-      //           // 情况1: 中间有公式 "text FORMULA text"
-      //           textNode.setTextContent(before);
-      //           const afterNode = $createTextNode(after);
-      //           textNode.insertAfter(equationNode);
-      //           equationNode.insertAfter(afterNode);
-      //         } else if (before) {
-      //           // 情况2: 公式在末尾 "text FORMULA"
-      //           textNode.setTextContent(before);
-      //           textNode.insertAfter(equationNode);
-      //         } else if (after) {
-      //           // 情况3: 公式在开头 "FORMULA text"
-      //           const afterNode = $createTextNode(after);
-      //           textNode.replace(equationNode);
-      //           equationNode.insertAfter(afterNode);
-      //         } else {
-      //           // 情况4: 整个节点就是公式 "FORMULA"
-      //           textNode.replace(equationNode);
-      //         }
-      //         replaced = true;
-      //         break;
-      //       }
-      //     }
-      //   }
-      // });
+      // 使用更简单的方法：先处理Markdown，然后处理数学公式
+      let processedContent = content;
+      // 找到所有数学公式并创建临时的标记
+      const mathExpressions: Array<{
+        match: string;
+        equation: string;
+        inline: boolean;
+        id: string;
+      }> = [];
+      let idCounter = 0;
+
+      // 处理块级公式 $$
+      processedContent = processedContent.replace(
+        /\$\$([\s\S]*?)\$\$/g,
+        (match, equation) => {
+          const id = `TEMP_MATH_BLOCK_${idCounter++}`;
+          mathExpressions.push({
+            match: id,
+            equation: equation.trim(),
+            inline: false,
+            id,
+          });
+          return `\n${id}\n`; // 块级公式前后用换行，确保独立段落
+        },
+      );
+
+      // 处理行内公式 $
+      processedContent = processedContent.replace(
+        /\$([^$\n]+?)\$/g,
+        (match, equation) => {
+          const id = `TEMP_MATH_INLINE_${idCounter++}`;
+          mathExpressions.push({
+            match: id,
+            equation: equation.trim(),
+            inline: true,
+            id,
+          });
+          return id; // 行内公式不加空格，保持在同一行
+        },
+      );
+
+      // 先用默认转换器处理 Markdown
+      $convertFromMarkdownString(processedContent, TRANSFORMERS);
+
+      // 然后找到并替换所有的数学公式标记
+      mathExpressions.forEach(({ id, equation, inline }) => {
+        let replaced = false;
+        let attempts = 0;
+        const maxAttempts = 5;
+
+        // 重复查找直到找到或达到最大尝试次数
+        while (!replaced && attempts < maxAttempts) {
+          attempts++;
+          const textNodes = root.getAllTextNodes();
+          for (const textNode of textNodes) {
+            const textContent = textNode.getTextContent();
+            const idIndex = textContent.indexOf(id);
+            if (idIndex !== -1) {
+              const before = textContent.substring(0, idIndex);
+              const after = textContent.substring(idIndex + id.length);
+              const equationNode = $createEquationNode(equation, inline);
+
+              if (before && after) {
+                // 情况1: 中间有公式 "text FORMULA text"
+                textNode.setTextContent(before);
+                const afterNode = $createTextNode(after);
+                textNode.insertAfter(equationNode);
+                equationNode.insertAfter(afterNode);
+              } else if (before) {
+                // 情况2: 公式在末尾 "text FORMULA"
+                textNode.setTextContent(before);
+                textNode.insertAfter(equationNode);
+              } else if (after) {
+                // 情况3: 公式在开头 "FORMULA text"
+                const afterNode = $createTextNode(after);
+                textNode.replace(equationNode);
+                equationNode.insertAfter(afterNode);
+              } else {
+                // 情况4: 整个节点就是公式 "FORMULA"
+                textNode.replace(equationNode);
+              }
+
+              replaced = true;
+              break;
+            }
+          }
+        }
+      });
     });
   }, [editor, content]);
   return null;

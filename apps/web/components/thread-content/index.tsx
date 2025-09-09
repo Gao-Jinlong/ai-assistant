@@ -6,7 +6,7 @@ import queries from '@web/queries';
 const ThreadContent = () => {
   const thread = useBoundStore((state) => state.currentThread)!;
   const messageList = useBoundStore((state) => state.messageList);
-  const setMessageList = useBoundStore((state) => state.setMessageList);
+  const _setMessageList = useBoundStore((state) => state.setMessageList);
 
   // TODO 点击历史记录时回显历史消息
   useQuery({

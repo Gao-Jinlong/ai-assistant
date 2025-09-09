@@ -38,6 +38,24 @@ export default function KatexRenderer({
     }
   }, [equation, inline]);
 
+  // 行内公式不需要图片元素，块级公式为了兼容性保留
+  if (inline) {
+    return (
+      <span
+        role="button"
+        tabIndex={-1}
+        onDoubleClick={onDoubleClick}
+        ref={katexElementRef}
+        style={{
+          display: 'inline',
+          textAlign: 'left',
+          margin: '0 0.5em',
+        }}
+      />
+    );
+  }
+
+  // 块级公式保留图片元素以确保 Android 兼容性
   return (
     // We use an empty image tag either side to ensure Android doesn't try and compose from the
     // inner text from Katex. There didn't seem to be any other way of making this work,
@@ -54,6 +72,11 @@ export default function KatexRenderer({
         tabIndex={-1}
         onDoubleClick={onDoubleClick}
         ref={katexElementRef}
+        style={{
+          display: 'block',
+          textAlign: 'center',
+          margin: '1em 0',
+        }}
       />
       <img
         src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
