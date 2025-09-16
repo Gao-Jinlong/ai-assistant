@@ -65,9 +65,12 @@ export default function KatexRenderer({
         src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
         width="0"
         height="0"
+        style={{
+          margin: 0,
+        }}
         alt=""
       />
-      <span
+      <div
         role="button"
         tabIndex={-1}
         onDoubleClick={onDoubleClick}
@@ -83,6 +86,9 @@ export default function KatexRenderer({
         width="0"
         height="0"
         alt=""
+        style={{
+          margin: 0,
+        }}
       />
     </>
   );
