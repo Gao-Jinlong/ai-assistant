@@ -28,7 +28,7 @@ export default () => ({
     max: parseInt(process.env.CACHE_MAX || '1000', 10), // 最大缓存项数
     type: process.env.CACHE_TYPE || 'memory', // 缓存类型：memory | redis
     redis: {
-      url: process.env.REDIS_URL || 'redis://localhost:6379',
+      url: process.env.REDIS_URL || 'redis://localhost:16379',
     },
   },
 });

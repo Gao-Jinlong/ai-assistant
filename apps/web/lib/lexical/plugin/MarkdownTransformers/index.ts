@@ -11,6 +11,7 @@ import {
   ELEMENT_TRANSFORMERS,
   ElementTransformer,
   MULTILINE_ELEMENT_TRANSFORMERS,
+  MultilineElementTransformer,
   TEXT_FORMAT_TRANSFORMERS,
   TEXT_MATCH_TRANSFORMERS,
   TextMatchTransformer,
@@ -83,30 +84,52 @@ export const EQUATION: TextMatchTransformer = {
   trigger: '$',
   type: 'text-match',
 };
-// TODO 块级公式
-export const EQUATION_BLOCK: ElementTransformer = {
+// 块级公式 transformer - 处理多行块级公式
+export const EQUATION_BLOCK: MultilineElementTransformer = {
   dependencies: [EquationNode],
   export: (node) => {
     if (!$isEquationNode(node)) {
       return null;
     }
-    return `$$${node.getEquation()}$$`;
+    // 只导出非内联的公式为块级格式
+    return node.__inline ? null : `$$${node.getEquation()}$$`;
   },
-  regExp: /^\$\$([\s\S]*?)\$\$$/,
-  replace: (parentNode, children, match, isImport) => {
-    console.log('🚀 ~ parentNode:', parentNode, 'match:', match);
-    if (match && match[1]) {
-      const equation = match[1].trim();
-      const equationNode = $createEquationNode(equation, false);
+  regExpStart: /^([\s\S]*?)\$\$/,
+  regExpEnd: /^([\s\S]*?)\$\$$/,
+  replace: (
+    rootNode,
+    children,
+    startMatch,
+    endMatch,
+    linesInBetween,
+    isImport,
+  ) => {
+    // 提取公式内容
+    let equation = '';
 
-      // 清空父节点的所有子节点
-      parentNode.clear();
-
-      // 插入公式节点
-      parentNode.append(equationNode);
+    if (linesInBetween && linesInBetween.length > 0) {
+      // 合并中间行的内容，保持换行符
+      equation = linesInBetween.join('\n').trim();
     }
+
+    // 创建块级公式节点
+    const equationNode = $createEquationNode(equation, false); // false 表示块级
+
+    // 替换匹配的内容
+    if (children && children.length > 0) {
+      // 如果有子节点，替换第一个子节点
+      const firstChild = children[0];
+      if (firstChild) {
+        firstChild.replace(equationNode);
+      }
+    } else {
+      // 如果没有子节点，直接插入
+      rootNode.append(equationNode);
+    }
+
+    return true;
   },
-  type: 'element',
+  type: 'multiline-element',
 };
 
 export const PLAYGROUND_TRANSFORMERS: Array<Transformer> = [

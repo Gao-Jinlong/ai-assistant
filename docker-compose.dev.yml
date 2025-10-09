@@ -23,7 +23,7 @@ services:
     volumes:
       - redis_dev_data:/data
     ports:
-      - '6379:6379'
+      - '16379:6379'
     networks:
       - ai-assistant-dev-network
 
