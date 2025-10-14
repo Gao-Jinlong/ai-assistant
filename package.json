@@ -12,7 +12,7 @@
     "start:server": "pnpm --filter server start:prod",
     "start:web": "pnpm --filter web start",
     "start:db": "node scripts/start-db.js",
-    "start": "pnpm run start:db && pnpm run dev"
+    "start": "node scripts/start-with-info.js"
   },
   "keywords": [],
   "author": "",

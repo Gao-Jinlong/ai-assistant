@@ -30,5 +30,9 @@ async function bootstrap() {
   app.enableCors();
 
   await app.listen(port);
+  console.log(`🚀 Server is running on http://localhost:${port}`);
+  if (isDev) {
+    console.log(`📚 API Documentation: http://localhost:${port}/docs`);
+  }
 }
 bootstrap();

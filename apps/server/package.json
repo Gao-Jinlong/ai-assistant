@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "dev": "npm-run-all2 --sequential prisma:migrate:dev prisma:generate start:debug",
+    "dev": "npm-run-all2 --sequential prisma:migrate:dev prisma:generate start:debug:no-clear",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:push": "prisma db push",
@@ -20,6 +20,7 @@
     "start": "nest start",
     "start:dev": "cross-env DEBUG=* NODE_ENV=development nest start --watch",
     "start:debug": "cross-env NODE_ENV=development nest start --debug --watch",
+    "start:debug:no-clear": "cross-env NODE_ENV=development nest start --debug --watch --preserveWatchOutput",
     "start:prod": "cross-env NODE_ENV=production node dist/main",
     "start:repl": "nest start --entryFile repl",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",

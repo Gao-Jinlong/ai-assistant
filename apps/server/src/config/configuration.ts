@@ -1,6 +1,6 @@
 export default () => ({
   isDev: process.env.NODE_ENV === 'development',
-  port: parseInt(process.env.PORT || '4000', 10),
+  port: parseInt(process.env.SERVER_PORT || process.env.PORT || '4000', 10),
   jwt: {
     secret: process.env.JWT_SECRET || 'secret',
     expiresIn: process.env.JWT_EXPIRES_IN || '6h',
@@ -28,7 +28,9 @@ export default () => ({
     max: parseInt(process.env.CACHE_MAX || '1000', 10), // 最大缓存项数
     type: process.env.CACHE_TYPE || 'memory', // 缓存类型：memory | redis
     redis: {
-      url: process.env.REDIS_URL || 'redis://localhost:16379',
+      url:
+        process.env.REDIS_URL ||
+        `redis://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || '16379'}`,
     },
   },
 });

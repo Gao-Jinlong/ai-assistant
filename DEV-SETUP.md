@@ -3,6 +3,7 @@
 ## 概述
 
 本项目采用混合开发模式：
+
 - **数据库服务**: 使用 Docker 运行 PostgreSQL 和 Redis
 - **应用代码**: 在本地开发环境中运行
 
@@ -28,16 +29,17 @@ pnpm start:db
 ```powershell
 docker-compose -f docker-compose.dev.yml up -d
 ```
+
 ### 2. 启动开发服务器
 
 #### 方式一：分别启动前后端
 
 ```powershell
-# 启动后端 (端口 4000)
+# 启动后端 (端口 4000，可通过 SERVER_PORT 环境变量修改)
 cd apps/server
 pnpm -F="@ai-assistant/server" dev
 
-# 新开一个终端，启动前端 (端口 3000)
+# 新开一个终端，启动前端 (端口 3000，可通过 NEXT_PORT 环境变量修改)
 cd apps/web
 pnpm -F="@ai-assistant/web" dev
 ```
@@ -97,9 +99,9 @@ docker-compose -f docker-compose.dev.yml logs postgres
 ```powershell
 # 检查端口占用
 netstat -ano | findstr :5432
-netstat -ano | findstr :6379
-netstat -ano | findstr :3000
-netstat -ano | findstr :4000
+netstat -ano | findstr :16379
+netstat -ano | findstr :3000  # 前端端口 (可通过 NEXT_PORT 修改)
+netstat -ano | findstr :4000  # 后端端口 (可通过 SERVER_PORT 修改)
 ```
 
 ### 3. 依赖安装问题
@@ -115,4 +117,4 @@ pnpm install
 1. **使用 VS Code**: 推荐使用 VS Code 进行开发，支持 TypeScript 和调试
 2. **热重载**: 前后端都支持热重载，代码修改会自动重启
 3. **数据库工具**: 推荐使用 Prisma Studio 或 pgAdmin 管理数据库
-4. **日志查看**: 使用 `docker-compose logs` 查看服务日志 
+4. **日志查看**: 使用 `docker-compose logs` 查看服务日志
