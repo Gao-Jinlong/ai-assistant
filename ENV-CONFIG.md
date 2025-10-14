@@ -60,11 +60,11 @@
 
 ## 修改端口示例
 
-### 修改前端端口为 3001
+### 修改前端端口为 3000
 
 ```bash
 # 在 .env 文件中设置
-NEXT_PORT=3001
+NEXT_PORT=3000
 NEXT_PUBLIC_API_URL=http://localhost:4000
 ```
 
@@ -80,7 +80,7 @@ NEXT_PUBLIC_API_URL=http://localhost:5000
 
 ```bash
 # 在 .env 文件中设置
-NEXT_PORT=3001
+NEXT_PORT=3000
 SERVER_PORT=5000
 NEXT_PUBLIC_API_URL=http://localhost:5000
 ```
