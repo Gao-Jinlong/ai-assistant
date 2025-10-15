@@ -29,8 +29,10 @@ const ThreadContent = () => {
       // 使用 setTimeout 确保 DOM 更新完成后再滚动
       setTimeout(() => {
         if (messageListContainer.current) {
-          messageListContainer.current.scrollTop =
-            messageListContainer.current.scrollHeight;
+          messageListContainer.current.scrollTo({
+            top: messageListContainer.current.scrollHeight,
+            behavior: 'instant',
+          });
         }
       }, 0);
     }

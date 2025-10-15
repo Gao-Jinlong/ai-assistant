@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  Body,
   Controller,
   Delete,
   Get,
@@ -9,18 +8,13 @@ import {
   ParseIntPipe,
   Post,
   Req,
-  Res,
-  Sse,
 } from '@nestjs/common';
 import { ThreadService } from './thread.service';
-import { Request, Response } from 'express';
-import { interval, map, takeUntil, Subject } from 'rxjs';
-import { nanoid } from 'nanoid';
+import { Request } from 'express';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { ClsService } from 'nestjs-cls';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CreateChatDto } from '@server/chat/dto/create-chat.dto';
+import { ApiTags } from '@nestjs/swagger';
 
 @Controller('thread')
 @ApiTags('thread')

@@ -109,7 +109,7 @@ export class ChatService {
         // 原样按行写回，包括空行，确保符合 SSE 的 "\n\n" 分隔
         res.write(line + '\n');
         // 轻微延迟，模拟流式返回
-        await new Promise((resolve) => setTimeout(resolve, 10));
+        await new Promise((resolve) => setTimeout(resolve, Math.random() * 10));
       }
 
       return true;
