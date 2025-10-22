@@ -7,7 +7,7 @@ import { CreateChatDto } from './dto/create-chat.dto';
 import { MessageService } from '@server/message/message.service';
 import { JwtPayload } from '@server/auth/auth.service';
 import { AgentService } from '@server/agent/agent.service';
-import { AIMessageChunk } from '@langchain/core/messages';
+import { AIMessage, AIMessageChunk } from '@langchain/core/messages';
 import { ConfigService } from '@nestjs/config';
 import path from 'node:path';
 import fs from 'node:fs';
@@ -60,10 +60,22 @@ export class ChatService {
       stream = streamUtils.asyncIterableToGenerator(agentStream);
     }
 
+    let mergedMessage = '';
     for await (const line of stream) {
+      const data = streamUtils.parseSSEMessage(
+        line as `data: ${string}`,
+      ) as AIMessageChunk;
+      if (data) {
+        mergedMessage += data.content;
+      }
       res.write(line);
     }
     res.end();
+
+    // TODO
+    await this.messageService.appendMessage(thread, [
+      new AIMessage(mergedMessage),
+    ]);
   }
 
   processAIMessageChunk(res: Response, message: AIMessageChunk) {
