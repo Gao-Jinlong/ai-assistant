@@ -7,20 +7,13 @@ import { CreateChatDto } from './dto/create-chat.dto';
 import { MessageService } from '@server/message/message.service';
 import { JwtPayload } from '@server/auth/auth.service';
 import { AgentService } from '@server/agent/agent.service';
-import {
-  AIMessage,
-  AIMessageChunk,
-  HumanMessage,
-  type BaseMessage,
-} from '@langchain/core/messages';
+import { AIMessageChunk } from '@langchain/core/messages';
 import { ConfigService } from '@nestjs/config';
 import path from 'node:path';
 import fs from 'node:fs';
 import readline from 'node:readline';
-import { chatUtils } from '@server/utils';
 import { nanoid } from 'nanoid';
-import { MESSAGE_ROLE } from '@server/interface';
-import type { IterableReadableStream } from '@langchain/core/utils/stream';
+import { streamUtils } from '@server/utils';
 
 @Injectable()
 export class ChatService {
@@ -53,24 +46,18 @@ export class ChatService {
 
     const memory = await this.messageService.getHistoryByThread(thread.uid);
 
-    let stream: AsyncIterable<string>;
+    let stream: AsyncIterable<unknown>;
 
     // 开发环境下优先走本地 mock 文件，减少 API 成本
     if (isDev && mockEnable) {
       stream = this.streamMockSSE(res);
     } else {
-      // 由于 IterableReadableStream<StreamMessageOutput> 没有 pipe 方法，需手动转换
       const agentStream = await this.agentService.run({
         thread,
         memory,
         message,
       });
-      async function* extractContent(iterable: AsyncIterable<unknown>) {
-        for await (const chunk of iterable) {
-          yield (chunk as { content: string }).content;
-        }
-      }
-      stream = extractContent(agentStream);
+      stream = streamUtils.asyncIterableToGenerator(agentStream);
     }
 
     for await (const line of stream) {
