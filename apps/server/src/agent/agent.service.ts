@@ -29,7 +29,11 @@ export class AgentService {
     private messageService: MessageService,
   ) {}
 
-  async run(data: { thread: Thread; memory: BaseMessage[]; message: string }) {
+  async run(data: {
+    thread: Thread;
+    memory: BaseMessage[];
+    message: BaseMessageLike;
+  }) {
     const { thread, memory, message } = data;
 
     const graph = await this.createGraph();
@@ -37,7 +41,7 @@ export class AgentService {
 
     const stream = await agent.stream(
       {
-        messages: [new HumanMessage(message)],
+        messages: [...memory, message],
       },
       {
         streamMode: 'messages',

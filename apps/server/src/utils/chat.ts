@@ -1,9 +1,5 @@
 import { MESSAGE_TYPE } from '@server/chat/chat.interface';
-import {
-  AIMessageChunk,
-  BaseMessage,
-  isAIMessageChunk,
-} from '@langchain/core/messages';
+import { AIMessageChunk, BaseMessage } from '@langchain/core/messages';
 import { nanoid } from 'nanoid';
 import { MESSAGE_ROLE } from '@server/interface';
 
@@ -46,7 +42,7 @@ export function formatMessage(
   groupId: string,
   role: MESSAGE_ROLE,
 ) {
-  if (isAIMessageChunk(message as AIMessageChunk)) {
+  if (AIMessageChunk.isInstance(message as AIMessageChunk)) {
     return formatMessageChunk(message as AIMessageChunk, groupId, role);
   } else {
     return message;

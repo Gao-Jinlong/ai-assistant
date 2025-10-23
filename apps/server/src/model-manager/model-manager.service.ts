@@ -15,7 +15,6 @@ export class ModelManagerService {
   getModel(type: MODEL_TYPE) {
     let modelInstance: BaseChatModel;
     if (!this.modelMap.has(type)) {
-      // @ts-expect-error 暂时忽略类型错误
       modelInstance = this.createModel(type);
       this.modelMap.set(type, modelInstance);
     } else {

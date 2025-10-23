@@ -1,3 +1,13 @@
 packages:
-  # all apps in direct subdirs of apps/
-  - 'apps/*'
+  - apps/*
+
+onlyBuiltDependencies:
+  - '@nestjs/core'
+  - '@prisma/client'
+  - '@prisma/engines'
+  - '@scarf/scarf'
+  - esbuild
+  - prisma
+  - protobufjs
+  - sharp
+  - unrs-resolver
