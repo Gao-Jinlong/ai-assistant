@@ -1,11 +1,15 @@
-import { MessageChunkDto, MESSAGE_TYPE } from '@web/service/thread';
+import {
+  SSEMessage,
+  MESSAGE_TYPE,
+  MessageChunkData,
+} from '@web/service/thread';
 import { useCallback, useRef, useEffect } from 'react';
 import { requestUtils } from '@web/utils';
 import { toast } from 'sonner';
 import { chatService } from '@web/service';
 
 export interface UseSSEMessagesProps {
-  onMessage: (message: MessageChunkDto) => void;
+  onMessage: (message: SSEMessage<MessageChunkData>) => void;
   onLoadingChange: (loading: boolean) => void;
 }
 
@@ -17,9 +21,9 @@ export const useSSEMessages = ({
   // TODO: 切换thread 时，需要断开连接
 
   const handleMessage = useCallback(
-    (data: MessageChunkDto) => {
+    (data: SSEMessage) => {
       if (data.type === MESSAGE_TYPE.MESSAGE_CHUNK) {
-        onMessage(data);
+        onMessage(data as SSEMessage<MessageChunkData>);
       }
     },
     [onMessage],

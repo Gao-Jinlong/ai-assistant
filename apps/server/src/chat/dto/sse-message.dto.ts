@@ -1,40 +1,4 @@
-import { ResponseWrapper } from '.';
-import { del, get, post } from './fetch';
-
-export type MessageRole = 'user' | 'assistant';
-export enum MESSAGE_TYPE {
-  // 内容相关
-  MESSAGE_CHUNK = 'message_chunk', // 文本消息块
-  MESSAGE_START = 'message_start', // 消息开始(可包含元数据)
-  MESSAGE_END = 'message_end', // 消息结束(可包含统计信息)
-
-  // 工具调用相关
-  TOOL_CALL_START = 'tool_call_start', // 工具调用开始
-  TOOL_CALL_CHUNK = 'tool_call_chunk', // 工具调用参数块
-  TOOL_CALL_END = 'tool_call_end', // 工具调用结束
-  TOOL_RESULT = 'tool_result', // 工具执行结果
-
-  // 思考过程相关(预留)
-  REASONING_START = 'reasoning_start', // 思考开始
-  REASONING_CHUNK = 'reasoning_chunk', // 思考过程块
-  REASONING_END = 'reasoning_end', // 思考结束
-
-  // 系统消息
-  ERROR = 'error', // 错误消息
-  DONE = 'done', // 流结束
-  PING = 'ping', // 心跳(可选)
-}
-
-export interface ThreadDto {
-  id: string;
-  uid: string;
-  title: string;
-  messageCount: number;
-  totalTokens: number;
-  metadata: Record<string, any>;
-  createdAt: string;
-  updatedAt: string;
-}
+import { MESSAGE_TYPE } from '../chat.interface';
 
 /**
  * 统一 SSE 消息格式
@@ -146,34 +110,3 @@ export interface ReasoningChunkData {
   content: string; // 思考内容
   step?: number; // 思考步骤
 }
-
-/**
- * 兼容旧版本的 MessageChunkDto
- * @deprecated 使用 SSEMessage 替代
- */
-export interface MessageChunkDto {
-  id: string;
-  groupId: string;
-  data: {
-    content: string;
-  };
-  type: MESSAGE_TYPE;
-  role: MessageRole;
-  createdAt: string;
-  updatedAt: string;
-}
-export const getThreads = () => {
-  return get<ResponseWrapper<ThreadDto[]>>('thread');
-};
-
-export const createThread = () => {
-  return post<ResponseWrapper<ThreadDto>>('thread');
-};
-
-export const deleteThread = (id: string) => {
-  return del<ResponseWrapper<ThreadDto>>(`thread/${id}`);
-};
-
-export const getThreadMessages = (id: ThreadDto['id']) => {
-  return get<ResponseWrapper<MessageChunkDto[]>>(`thread/${id}/messages`);
-};
