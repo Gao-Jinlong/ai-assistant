@@ -10,7 +10,7 @@ export class ZodValidationExceptionFilter implements ExceptionFilter {
   catch(exception: ZodValidationException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const zodError = exception.getZodError();
+    const zodError = exception.getZodError() as ZodError;
 
     const status = 400;
     const message = this.formatZodError(zodError);
