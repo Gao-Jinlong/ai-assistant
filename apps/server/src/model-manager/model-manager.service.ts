@@ -27,7 +27,7 @@ export class ModelManagerService {
     switch (type) {
       case MODEL_TYPE.LLM:
         return new ChatOpenAI({
-          model: 'qwen-plus-2025-01-25',
+          model: 'qwen3-max-2025-09-23',
           apiKey: this.configService.get('TONGYI_API_KEY')!,
           configuration: {
             baseURL: this.configService.get('TONGYI_BASE_URL')!,

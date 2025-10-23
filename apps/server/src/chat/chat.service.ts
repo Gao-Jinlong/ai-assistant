@@ -7,13 +7,18 @@ import { CreateChatDto } from './dto/create-chat.dto';
 import { MessageService } from '@server/message/message.service';
 import { JwtPayload } from '@server/auth/auth.service';
 import { AgentService } from '@server/agent/agent.service';
-import { AIMessage, AIMessageChunk } from '@langchain/core/messages';
+import {
+  AIMessageChunk,
+  type BaseMessage,
+  type BaseMessageChunk,
+} from '@langchain/core/messages';
 import { ConfigService } from '@nestjs/config';
 import path from 'node:path';
 import fs from 'node:fs';
 import readline from 'node:readline';
-import { nanoid } from 'nanoid';
 import { streamUtils } from '@server/utils';
+import { Thread } from '@prisma/client';
+import { from, share, type Observable } from 'rxjs';
 
 @Injectable()
 export class ChatService {
@@ -28,11 +33,6 @@ export class ChatService {
 
   async chat(res: Response, jwtPayload: JwtPayload, body: CreateChatDto) {
     const { threadUid, message } = body;
-    // const { uid, email } = jwtPayload;
-    /**
-     * 本组对话 id，用于区分不同对话
-     */
-    const groupId = nanoid();
 
     const isDev = this.configService.get('isDev');
     const mockEnable = this.configService.get('mock.enable');
@@ -46,53 +46,37 @@ export class ChatService {
 
     const memory = await this.messageService.getHistoryByThread(thread.uid);
 
-    let stream: AsyncIterable<unknown>;
+    let stream: AsyncIterable<BaseMessageChunk>;
 
     // 开发环境下优先走本地 mock 文件，减少 API 成本
-    if (isDev && mockEnable) {
-      stream = this.streamMockSSE(res);
+    if (isDev && !mockEnable) {
+      stream = this.streamMockSSE();
     } else {
       const agentStream = await this.agentService.run({
         thread,
         memory,
         message,
       });
-      stream = streamUtils.asyncIterableToGenerator(agentStream);
+      stream = await streamUtils.streamMessageOutputToGenerator(agentStream);
     }
 
-    let mergedMessage = '';
-    for await (const line of stream) {
-      const data = streamUtils.parseSSEMessage(
-        line as `data: ${string}`,
-      ) as AIMessageChunk;
-      if (data) {
-        mergedMessage += data.content;
-      }
-      res.write(line);
-    }
-    res.end();
+    const source$ = from(stream).pipe(share());
 
-    // TODO
-    await this.messageService.appendMessage(thread, [
-      new AIMessage(mergedMessage),
-    ]);
+    // 同时设置两个订阅，确保流共享
+    this.transmitObservableToResponse(res, source$);
+    this.saveMessageByObservable(thread, source$);
+
+    source$.subscribe({
+      complete: () => {
+        res.end();
+      },
+      error: (error) => {
+        this.logger.error('Error in chat', { error });
+        res.end();
+      },
+    });
   }
-
-  processAIMessageChunk(res: Response, message: AIMessageChunk) {
-    const { content, tool_call_chunks, ...rest } = message;
-
-    if (tool_call_chunks?.length) {
-      return;
-    } else {
-      return {
-        content,
-        tool_call_chunks,
-        ...rest,
-      };
-    }
-  }
-
-  private async *streamMockSSE(res: Response): AsyncIterable<string> {
+  private async *streamMockSSE(): AsyncIterable<BaseMessageChunk> {
     try {
       const mockPath = this.configService.get('mock.path') ?? './mock';
       const filePath = path.join(mockPath, 'chat.txt');
@@ -108,11 +92,75 @@ export class ChatService {
       });
 
       for await (const line of rl) {
-        yield line + '\n';
+        const messageChunk = streamUtils.parseSSEMessage(
+          line as `data: ${string}`,
+        ) as { data: BaseMessage };
+        if (messageChunk) {
+          yield new AIMessageChunk(messageChunk.data.content.toString());
+        }
         await new Promise((resolve) => setTimeout(resolve, 50));
       }
     } catch (error) {
       this.logger.error('Failed to stream SSE from mock file', { error });
     }
+  }
+  private async saveMessageByObservable(
+    thread: Thread,
+    source$: Observable<BaseMessageChunk>,
+  ) {
+    let mergedMessage = new AIMessageChunk('');
+
+    source$.subscribe({
+      next: (messageChunk) => {
+        mergedMessage = mergedMessage.concat(messageChunk);
+      },
+      error: (error) => {
+        this.logger.error('Error in saveMessageByObservable', {
+          error,
+          threadUid: thread.uid,
+        });
+      },
+      complete: async () => {
+        try {
+          await this.messageService.appendMessage(thread, [mergedMessage]);
+          this.logger.info('Message saved successfully', {
+            threadUid: thread.uid,
+          });
+        } catch (error) {
+          this.logger.error('Failed to save message', {
+            error,
+            threadUid: thread.uid,
+          });
+        }
+      },
+    });
+  }
+  private transmitObservableToResponse(
+    res: Response,
+    source$: Observable<BaseMessageChunk>,
+  ) {
+    source$.subscribe({
+      next: (messageChunk) => {
+        try {
+          const message = streamUtils.formatDataToSSE({
+            role: messageChunk.response_metadata.role,
+            content: messageChunk.content,
+          });
+          res.write(message);
+        } catch (error) {
+          this.logger.error('Error formatting message chunk', { error });
+        }
+      },
+      error: (error) => {
+        this.logger.error('Error in transportMessageToClient', { error });
+        res.write(
+          `data: ${JSON.stringify({ type: 'error', message: 'Stream error occurred' })}\n\n`,
+        );
+      },
+      complete: () => {
+        this.logger.info('Message stream completed');
+        res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
+      },
+    });
   }
 }

@@ -33,9 +33,9 @@ export class AgentService {
     const { thread, memory, message } = data;
 
     const graph = await this.createGraph();
-    const app = graph.compile();
+    const agent = graph.compile();
 
-    const stream = await app.stream(
+    const stream = await agent.stream(
       {
         messages: [new HumanMessage(message)],
       },

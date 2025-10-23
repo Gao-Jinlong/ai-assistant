@@ -1,8 +1,15 @@
-export async function* asyncIterableToGenerator<T = unknown>(
-  iterable: AsyncIterable<T>,
+import {
+  AIMessageChunk,
+  type BaseMessage,
+  type BaseMessageChunk,
+} from '@langchain/core/messages';
+import type { MESSAGE_ROLE } from '@server/interface';
+
+export async function* streamMessageOutputToGenerator(
+  streamMessageOutput: AsyncIterable<[BaseMessage, Record<string, unknown>]>,
 ) {
-  for await (const chunk of iterable) {
-    yield chunk;
+  for await (const [message, _metadata] of streamMessageOutput) {
+    yield new AIMessageChunk(message.content.toString());
   }
 }
 
@@ -17,4 +24,8 @@ export function parseSSEMessage(message: `data: ${string}`): unknown {
   }
 
   return JSON.parse(data);
+}
+
+export function formatDataToSSE(data: unknown) {
+  return `data:${JSON.stringify(data)}\n\n`;
 }
