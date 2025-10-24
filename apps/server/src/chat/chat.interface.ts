@@ -1,3 +1,8 @@
+export enum MESSAGE_ROLE {
+  ASSISTANT = 'assistant',
+  USER = 'user',
+}
+
 export enum MESSAGE_TYPE {
   // 内容相关
   MESSAGE_CHUNK = 'message_chunk', // 文本消息块

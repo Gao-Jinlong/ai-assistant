@@ -1,7 +1,6 @@
-import { MESSAGE_TYPE } from '@server/chat/chat.interface';
+import { MESSAGE_TYPE, type MESSAGE_ROLE } from '@server/chat/chat.interface';
 import { AIMessageChunk, BaseMessage } from '@langchain/core/messages';
 import { nanoid } from 'nanoid';
-import { MESSAGE_ROLE } from '@server/interface';
 
 export function formatMessageChunk(
   chunk: AIMessageChunk,

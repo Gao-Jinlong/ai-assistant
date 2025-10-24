@@ -5,19 +5,18 @@ import { Inject } from '@nestjs/common';
 import { nanoid } from 'nanoid';
 import {
   AIMessageChunk,
-  BaseMessage,
-  BaseMessageChunk,
   ToolCall,
+  type BaseMessage,
 } from '@langchain/core/messages';
 import { MessageFormatterService } from './message-formatter.service';
 import { SSEMessage, MessageMetadata } from './dto/sse-message.dto';
 import { ErrorCode } from '@server/common/errors/error-codes';
+import type { IterableReadableStream } from '@langchain/core/utils/stream';
 
 /**
  * 消息流处理器
  * 负责从 agent stream 中提取不同类型的消息并生成统一格式的事件
  */
-@Injectable()
 export class MessageStreamProcessor {
   private readonly groupId: string;
   private readonly startTime: number;
@@ -40,21 +39,31 @@ export class MessageStreamProcessor {
    * 处理 LangChain 消息流并生成统一格式的 SSE 消息
    */
   async *processStream(
-    stream: AsyncIterable<BaseMessageChunk>,
-    model: string,
+    stream: IterableReadableStream<
+      | ['messages', [BaseMessage, Partial<MessageMetadata>]]
+      | ['custom', Partial<MessageMetadata>]
+    >,
   ): AsyncGenerator<SSEMessage, void, unknown> {
     try {
       // 发送消息开始事件
-      yield this.messageFormatter.formatMessageStart(model, {
+      yield this.messageFormatter.formatMessageStart({
         groupId: this.groupId,
         timestamp: this.startTime,
       });
 
       for await (const chunk of stream) {
-        if (chunk instanceof AIMessageChunk) {
-          yield* this.processAIMessageChunk(chunk, model);
-        } else {
-          this.logger.warn('Received non-AI message chunk', { chunk });
+        const [type, payload] = chunk;
+        switch (type) {
+          case 'messages':
+            yield* this.processMessagesChunk(payload);
+            break;
+          case 'custom':
+            // yield* this.processCustomChunk(payload);
+            break;
+          default: {
+            const _exhaustiveCheck: never = type;
+            throw new Error(`Unexpected type: ${_exhaustiveCheck}`);
+          }
         }
       }
 
@@ -62,7 +71,6 @@ export class MessageStreamProcessor {
       if (this.currentToolCall) {
         yield this.messageFormatter.formatToolCallEnd(this.currentToolCall, {
           groupId: this.groupId,
-          model,
         });
         this.currentToolCall = null;
       }
@@ -74,7 +82,6 @@ export class MessageStreamProcessor {
         this.totalTokens,
         {
           groupId: this.groupId,
-          model,
           latency,
         },
       );
@@ -82,7 +89,6 @@ export class MessageStreamProcessor {
       // 发送流结束事件
       yield this.messageFormatter.formatDone({
         groupId: this.groupId,
-        model,
         usage: this.totalTokens,
         latency,
       });
@@ -94,7 +100,6 @@ export class MessageStreamProcessor {
         { groupId: this.groupId },
         {
           groupId: this.groupId,
-          model,
         },
       );
     }
@@ -103,27 +108,29 @@ export class MessageStreamProcessor {
   /**
    * 处理 AI 消息块
    */
-  private async *processAIMessageChunk(
-    chunk: AIMessageChunk,
-    model: string,
+  private async *processMessagesChunk(
+    chunk: [BaseMessage, Partial<MessageMetadata>],
   ): AsyncGenerator<SSEMessage, void, unknown> {
-    const baseMetadata = {
+    const [message, metadata] = chunk;
+    const baseMetadata: Partial<MessageMetadata> = {
+      ...metadata,
       groupId: this.groupId,
-      model,
     };
 
-    // 检查是否有工具调用
-    if (this.messageFormatter.hasToolCalls(chunk)) {
-      yield* this.processToolCalls(chunk, baseMetadata);
-    }
+    if (message instanceof AIMessageChunk) {
+      // 检查是否有工具调用
+      if (this.messageFormatter.hasToolCalls(message)) {
+        yield* this.processToolCalls(message, baseMetadata);
+      }
+      const textContent = this.messageFormatter.extractTextContent(message);
 
-    // 处理文本内容
-    const textContent = this.messageFormatter.extractTextContent(chunk);
-    if (textContent) {
-      yield this.messageFormatter.formatMessageChunk(chunk, {
-        ...baseMetadata,
-        messageId: `msg_${this.messageChunkIndex++}`,
-      });
+      // 处理文本内容
+      if (textContent) {
+        yield this.messageFormatter.formatMessageChunk(message, {
+          ...baseMetadata,
+          messageChunkIndex: this.messageChunkIndex++,
+        });
+      }
     }
   }
 

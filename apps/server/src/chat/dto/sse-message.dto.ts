@@ -14,12 +14,30 @@ export interface SSEMessage<T = unknown> {
  * 消息元数据
  */
 export interface MessageMetadata {
-  messageId?: string; // 消息ID
-  groupId?: string; // 消息组ID(同一轮对话)
-  timestamp: number; // 时间戳
-  model?: string; // 使用的模型
-  usage?: TokenUsage; // Token使用情况
-  latency?: number; // 延迟(ms)
+  /**
+   * 消息块索引
+   */
+  messageChunkIndex?: number;
+  /**
+   * 消息组ID(同一轮对话)
+   */
+  groupId?: string;
+  /**
+   * 时间戳
+   */
+  timestamp: number;
+  /**
+   * 使用的模型
+   */
+  model?: string;
+  /**
+   * Token使用情况
+   */
+  usage?: TokenUsage;
+  /**
+   * 延迟(ms)
+   */
+  latency?: number;
 }
 
 /**
@@ -55,7 +73,6 @@ export interface MessageChunkData {
  */
 export interface MessageStartData {
   role: 'assistant';
-  model: string; // 使用的模型
 }
 
 /**

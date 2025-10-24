@@ -44,7 +44,7 @@ export class AgentService {
         messages: [...memory, message],
       },
       {
-        streamMode: 'messages',
+        streamMode: ['messages', 'custom'],
       },
     );
 

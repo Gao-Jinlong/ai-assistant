@@ -13,8 +13,8 @@ export class MessageMetadataBuilder {
   /**
    * 设置消息ID
    */
-  setMessageId(messageId: string): this {
-    this.metadata.messageId = messageId;
+  setMessageId(messageId: number): this {
+    this.metadata.messageChunkIndex = messageId;
     return this;
   }
 

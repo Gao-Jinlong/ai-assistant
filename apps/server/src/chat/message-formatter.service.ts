@@ -6,10 +6,9 @@ import { nanoid } from 'nanoid';
 import {
   AIMessageChunk,
   BaseMessage,
-  BaseMessageChunk,
   ToolCall,
 } from '@langchain/core/messages';
-import { MESSAGE_TYPE } from './chat.interface';
+import { MESSAGE_ROLE, MESSAGE_TYPE } from './chat.interface';
 import {
   SSEMessage,
   MessageChunkData,
@@ -45,12 +44,11 @@ export class MessageFormatterService {
     chunk: AIMessageChunk,
     metadata?: Partial<MessageMetadata>,
   ): SSEMessage<MessageChunkData> {
-    const messageMetadata = new MessageMetadataBuilder()
-      .setMessageId(nanoid())
-      .updateTimestamp();
+    const messageMetadata = new MessageMetadataBuilder().updateTimestamp();
 
     if (metadata) {
-      if (metadata.messageId) messageMetadata.setMessageId(metadata.messageId);
+      if (metadata.messageChunkIndex)
+        messageMetadata.setMessageId(metadata.messageChunkIndex);
       if (metadata.groupId) messageMetadata.setGroupId(metadata.groupId);
       if (metadata.model) messageMetadata.setModel(metadata.model);
       if (metadata.usage) messageMetadata.setUsage(metadata.usage);
@@ -71,12 +69,9 @@ export class MessageFormatterService {
    * 格式化消息开始事件
    */
   formatMessageStart(
-    model: string,
     metadata?: Partial<MessageMetadata>,
   ): SSEMessage<MessageStartData> {
-    const messageMetadata = new MessageMetadataBuilder()
-      .setModel(model)
-      .updateTimestamp();
+    const messageMetadata = new MessageMetadataBuilder().updateTimestamp();
 
     if (metadata) {
       if (metadata.groupId) messageMetadata.setGroupId(metadata.groupId);
@@ -86,8 +81,7 @@ export class MessageFormatterService {
     return {
       type: MESSAGE_TYPE.MESSAGE_START,
       data: {
-        role: 'assistant',
-        model,
+        role: MESSAGE_ROLE.ASSISTANT,
       },
       metadata: messageMetadata.build(),
     };
@@ -134,7 +128,7 @@ export class MessageFormatterService {
     metadata?: Partial<MessageMetadata>,
   ): SSEMessage<ToolCallStartData> {
     const messageMetadata = new MessageMetadataBuilder()
-      .setMessageId(toolCall.id || nanoid())
+      .setMessageId(metadata?.messageChunkIndex || 0)
       .updateTimestamp();
 
     if (metadata) {
@@ -162,7 +156,7 @@ export class MessageFormatterService {
     metadata?: Partial<MessageMetadata>,
   ): SSEMessage<ToolCallChunkData> {
     const messageMetadata = new MessageMetadataBuilder()
-      .setMessageId(toolCallId)
+      .setMessageId(metadata?.messageChunkIndex || 0)
       .updateTimestamp();
 
     if (metadata) {
@@ -189,7 +183,7 @@ export class MessageFormatterService {
     metadata?: Partial<MessageMetadata>,
   ): SSEMessage<ToolCallEndData> {
     const messageMetadata = new MessageMetadataBuilder()
-      .setMessageId(toolCall.id || nanoid())
+      .setMessageId(metadata?.messageChunkIndex || 0)
       .updateTimestamp();
 
     if (metadata) {
@@ -219,7 +213,7 @@ export class MessageFormatterService {
     metadata?: Partial<MessageMetadata>,
   ): SSEMessage<ToolResultData> {
     const messageMetadata = new MessageMetadataBuilder()
-      .setMessageId(toolCallId)
+      .setMessageId(metadata?.messageChunkIndex || 0)
       .updateTimestamp();
 
     if (metadata) {
@@ -338,7 +332,10 @@ export class MessageFormatterService {
   /**
    * 从消息块中提取文本内容
    */
-  extractTextContent(chunk: AIMessageChunk): string {
-    return chunk.content.toString();
+  extractTextContent(message: BaseMessage): string {
+    if (message instanceof AIMessageChunk) {
+      return message.content.toString();
+    }
+    return '';
   }
 }

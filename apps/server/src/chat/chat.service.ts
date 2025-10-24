@@ -9,17 +9,12 @@ import { JwtPayload } from '@server/auth/auth.service';
 import { AgentService } from '@server/agent/agent.service';
 import {
   AIMessageChunk,
+  BaseMessageChunk,
   HumanMessage,
-  type BaseMessage,
-  type BaseMessageChunk,
 } from '@langchain/core/messages';
 import { ConfigService } from '@nestjs/config';
-import path from 'node:path';
-import fs from 'node:fs';
-import readline from 'node:readline';
-import { streamUtils } from '@server/utils';
 import { Thread } from '@prisma/client';
-// import { from, share, type Observable } from 'rxjs'; // 暂时未使用
+import { from, tap, catchError, finalize, share, type Observable } from 'rxjs';
 import { MESSAGE_TYPE } from './chat.interface';
 import { MessageFormatterService } from './message-formatter.service';
 import { MessageStreamProcessor } from './message-stream-processor';
@@ -35,16 +30,16 @@ export class ChatService {
     private readonly agentService: AgentService,
     private readonly configService: ConfigService,
     private readonly messageFormatter: MessageFormatterService,
-    private readonly messageStreamProcessor: MessageStreamProcessor,
   ) {}
 
   async chat(res: Response, jwtPayload: JwtPayload, body: CreateChatDto) {
     const { threadUid, message } = body;
+    const messageStreamProcessor = new MessageStreamProcessor(
+      this.logger,
+      this.messageFormatter,
+    );
 
     const userMessage = new HumanMessage(message);
-
-    const isDev = this.configService.get('isDev');
-    const mockEnable = this.configService.get('mock.enable');
 
     const thread = await this.prisma.db.thread.findUnique({
       where: { uid: threadUid },
@@ -54,28 +49,16 @@ export class ChatService {
     }
 
     const memory = await this.messageService.getHistoryByThread(thread.uid);
+    await this.messageService.appendMessage(thread, [userMessage]);
 
     try {
-      let stream: AsyncIterable<BaseMessageChunk>;
+      const stream = await this.agentService.run({
+        thread,
+        memory,
+        message: userMessage,
+      });
 
-      // 开发环境下优先走本地 mock 文件，减少 API 成本
-      if (isDev && !mockEnable) {
-        stream = this.streamMockSSE();
-      } else {
-        const agentStream = await this.agentService.run({
-          thread,
-          memory,
-          message: userMessage,
-        });
-        stream = await streamUtils.streamMessageOutputToGenerator(agentStream);
-      }
-
-      // 使用新的消息流处理器
-      const model = this.configService.get('model.name') || 'gpt-4';
-      const processedStream = this.messageStreamProcessor.processStream(
-        stream,
-        model,
-      );
+      const processedStream = messageStreamProcessor.processStream(stream);
 
       // 处理统一格式的消息流
       await this.handleProcessedStream(processedStream, res, thread);
@@ -100,105 +83,38 @@ export class ChatService {
     res: Response,
     thread: Thread,
   ) {
-    const messageChunks: AIMessageChunk[] = [];
-    let mergedMessage = new AIMessageChunk('');
+    const source$ = from(processedStream).pipe(share());
 
-    try {
-      for await (const sseMessage of processedStream) {
-        // 发送 SSE 消息到客户端
+    this.saveMessageToDatabase(source$, thread);
+    this.transmitMessageToClient(source$, res);
+  }
+
+  private async transmitMessageToClient(
+    source$: Observable<SSEMessage>,
+    res: Response,
+  ) {
+    source$.subscribe({
+      next: (sseMessage) => {
         res.write(this.messageFormatter.serializeToSSE(sseMessage));
-
-        // 收集消息块用于保存
+      },
+    });
+  }
+  private saveMessageToDatabase(
+    source$: Observable<SSEMessage>,
+    thread: Thread,
+  ) {
+    let messageChunks = new AIMessageChunk('');
+    source$.subscribe({
+      next: (sseMessage) => {
         if (sseMessage.type === MESSAGE_TYPE.MESSAGE_CHUNK) {
-          const messageData = sseMessage.data as { content: string };
-          const chunk = new AIMessageChunk(messageData.content);
-          messageChunks.push(chunk);
-          mergedMessage = mergedMessage.concat(chunk);
+          messageChunks = messageChunks.concat(
+            sseMessage.data as AIMessageChunk,
+          );
         }
-
-        // 处理工具调用结果（如果有的话）
-        if (sseMessage.type === MESSAGE_TYPE.TOOL_RESULT) {
-          const toolResultData = sseMessage.data as {
-            toolCallId: string;
-            toolName: string;
-          };
-          this.logger.info('Tool execution completed', {
-            toolCallId: toolResultData.toolCallId,
-            toolName: toolResultData.toolName,
-          });
-        }
-      }
-
-      // 保存消息到数据库
-      if (messageChunks.length > 0) {
-        await this.messageService.appendMessage(thread, [mergedMessage]);
-        this.logger.info('Message saved successfully', {
-          threadUid: thread.uid,
-          chunkCount: messageChunks.length,
-        });
-      }
-    } catch (error) {
-      this.logger.error('Error handling processed stream', {
-        error,
-        threadUid: thread.uid,
-      });
-
-      const errorMessage = this.messageFormatter.formatError(
-        error as Error,
-        ErrorCode.STREAM_ERROR,
-        { threadUid: thread.uid },
-      );
-
-      res.write(this.messageFormatter.serializeToSSE(errorMessage));
-    } finally {
-      res.end();
-    }
-  }
-
-  private async *streamMockSSE(): AsyncIterable<BaseMessageChunk> {
-    try {
-      const mockPath = this.configService.get('mock.path') ?? './mock';
-      const filePath = path.join(mockPath, 'chat.txt');
-      if (!fs.existsSync(filePath)) {
-        this.logger.warn(`SSE mock file not found at ${filePath}`);
-        return;
-      }
-
-      const readStream = fs.createReadStream(filePath, { encoding: 'utf-8' });
-      const rl = readline.createInterface({
-        input: readStream,
-        crlfDelay: Infinity,
-      });
-
-      for await (const line of rl) {
-        const messageChunk = streamUtils.parseSSEMessage(
-          line as `data: ${string}`,
-        ) as { data: BaseMessage };
-        if (messageChunk) {
-          yield new AIMessageChunk(messageChunk.data.content.toString());
-        }
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      }
-    } catch (error) {
-      this.logger.error('Failed to stream SSE from mock file', { error });
-    }
-  }
-  /**
-   * 保存消息到 Mock 文件（用于开发环境）
-   */
-  private async saveMessageToMockFile(sseMessage: SSEMessage) {
-    try {
-      const mockPath = this.configService.get('mock.path') ?? './mock';
-      const filePath = path.join(mockPath, 'chat.txt');
-
-      if (!fs.existsSync(filePath)) {
-        fs.writeFileSync(filePath, '');
-      }
-
-      const sseData = this.messageFormatter.serializeToSSE(sseMessage);
-      fs.appendFileSync(filePath, sseData);
-    } catch (error) {
-      this.logger.error('Failed to save message to mock file', { error });
-    }
+      },
+      complete: async () => {
+        await this.messageService.appendMessage(thread, [messageChunks]);
+      },
+    });
   }
 }

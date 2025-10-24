@@ -1,11 +1,38 @@
 import { AIMessageChunk, type BaseMessage } from '@langchain/core/messages';
 
-export async function* streamMessageOutputToGenerator(
-  streamMessageOutput: AsyncIterable<[BaseMessage, Record<string, unknown>]>,
+export async function* streamChunkParser(
+  stream: AsyncIterable<
+    ['messages', [BaseMessage, Record<string, unknown>]] | ['custom', unknown]
+  >,
 ) {
-  for await (const [message, _metadata] of streamMessageOutput) {
-    yield new AIMessageChunk(message.content.toString());
+  for await (const item of stream) {
+    const [type, payload] = item;
+    switch (type) {
+      case 'messages':
+        yield* messagesParser(payload);
+        break;
+      case 'custom':
+        yield* customParser(payload);
+        break;
+      default: {
+        const _exhaustiveCheck: never = type;
+        throw new Error(`Unexpected type: ${_exhaustiveCheck}`);
+      }
+    }
   }
+}
+
+async function* messagesParser(
+  streamOutput: [BaseMessage, Record<string, unknown>],
+) {
+  const [message, metadata] = streamOutput;
+  yield new AIMessageChunk({
+    content: message.content.toString(),
+    response_metadata: metadata,
+  });
+}
+async function* customParser(payload: unknown) {
+  yield payload;
 }
 
 export function parseSSEMessage(message: `data: ${string}`): unknown {
