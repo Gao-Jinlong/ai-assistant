@@ -7,14 +7,10 @@ import { CreateChatDto } from './dto/create-chat.dto';
 import { MessageService } from '@server/message/message.service';
 import { JwtPayload } from '@server/auth/auth.service';
 import { AgentService } from '@server/agent/agent.service';
-import {
-  AIMessageChunk,
-  BaseMessageChunk,
-  HumanMessage,
-} from '@langchain/core/messages';
+import { AIMessage, HumanMessage } from '@langchain/core/messages';
 import { ConfigService } from '@nestjs/config';
 import { Thread } from '@prisma/client';
-import { from, tap, catchError, finalize, share, type Observable } from 'rxjs';
+import { from, share, type Observable } from 'rxjs';
 import { MESSAGE_TYPE } from './chat.interface';
 import { MessageFormatterService } from './message-formatter.service';
 import { MessageStreamProcessor } from './message-stream-processor';
@@ -103,17 +99,17 @@ export class ChatService {
     source$: Observable<SSEMessage>,
     thread: Thread,
   ) {
-    let messageChunks = new AIMessageChunk('');
+    let mergedMessage = '';
     source$.subscribe({
       next: (sseMessage) => {
         if (sseMessage.type === MESSAGE_TYPE.MESSAGE_CHUNK) {
-          messageChunks = messageChunks.concat(
-            sseMessage.data as AIMessageChunk,
-          );
+          mergedMessage = mergedMessage.concat(sseMessage.data.content);
         }
       },
       complete: async () => {
-        await this.messageService.appendMessage(thread, [messageChunks]);
+        await this.messageService.appendMessage(thread, [
+          new AIMessage(mergedMessage),
+        ]);
       },
     });
   }

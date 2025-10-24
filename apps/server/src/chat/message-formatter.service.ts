@@ -42,7 +42,7 @@ export class MessageFormatterService {
    */
   formatMessageChunk(
     chunk: AIMessageChunk,
-    metadata?: Partial<MessageMetadata>,
+    metadata: Partial<MessageMetadata>,
   ): SSEMessage<MessageChunkData> {
     const messageMetadata = new MessageMetadataBuilder().updateTimestamp();
 
@@ -59,7 +59,7 @@ export class MessageFormatterService {
       type: MESSAGE_TYPE.MESSAGE_CHUNK,
       data: {
         content: chunk.content.toString(),
-        role: 'assistant',
+        role: MESSAGE_ROLE.ASSISTANT,
       },
       metadata: messageMetadata.build(),
     };
@@ -68,9 +68,7 @@ export class MessageFormatterService {
   /**
    * 格式化消息开始事件
    */
-  formatMessageStart(
-    metadata?: Partial<MessageMetadata>,
-  ): SSEMessage<MessageStartData> {
+  formatMessageStart(metadata: Partial<MessageMetadata>): SSEMessage {
     const messageMetadata = new MessageMetadataBuilder().updateTimestamp();
 
     if (metadata) {
@@ -112,7 +110,7 @@ export class MessageFormatterService {
     return {
       type: MESSAGE_TYPE.MESSAGE_END,
       data: {
-        role: 'assistant',
+        role: MESSAGE_ROLE.ASSISTANT,
         finishReason,
         usage,
       },

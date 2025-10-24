@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { Inject } from '@nestjs/common';
@@ -9,7 +8,11 @@ import {
   type BaseMessage,
 } from '@langchain/core/messages';
 import { MessageFormatterService } from './message-formatter.service';
-import { SSEMessage, MessageMetadata } from './dto/sse-message.dto';
+import {
+  SSEMessage,
+  MessageMetadata,
+  type MessageChunkData,
+} from './dto/sse-message.dto';
 import { ErrorCode } from '@server/common/errors/error-codes';
 import type { IterableReadableStream } from '@langchain/core/utils/stream';
 
@@ -69,10 +72,10 @@ export class MessageStreamProcessor {
 
       // 如果有未完成的工具调用，发送结束事件
       if (this.currentToolCall) {
-        yield this.messageFormatter.formatToolCallEnd(this.currentToolCall, {
-          groupId: this.groupId,
-        });
-        this.currentToolCall = null;
+        // yield this.messageFormatter.formatToolCallEnd(this.currentToolCall, {
+        //   groupId: this.groupId,
+        // });
+        // this.currentToolCall = null;
       }
 
       // 发送消息结束事件
@@ -110,167 +113,100 @@ export class MessageStreamProcessor {
    */
   private async *processMessagesChunk(
     chunk: [BaseMessage, Partial<MessageMetadata>],
-  ): AsyncGenerator<SSEMessage, void, unknown> {
+  ): AsyncGenerator<SSEMessage<MessageChunkData>, void, unknown> {
     const [message, metadata] = chunk;
-    const baseMetadata: Partial<MessageMetadata> = {
+    const finalMetadata: Partial<MessageMetadata> = {
       ...metadata,
       groupId: this.groupId,
+      messageChunkIndex: this.messageChunkIndex++,
     };
 
     if (message instanceof AIMessageChunk) {
       // 检查是否有工具调用
+      // TODO 处理工具调用
       if (this.messageFormatter.hasToolCalls(message)) {
-        yield* this.processToolCalls(message, baseMetadata);
+        // yield* this.processToolCalls(message, finalMetadata);
+        return;
       }
       const textContent = this.messageFormatter.extractTextContent(message);
 
       // 处理文本内容
       if (textContent) {
-        yield this.messageFormatter.formatMessageChunk(message, {
-          ...baseMetadata,
-          messageChunkIndex: this.messageChunkIndex++,
-        });
+        yield this.messageFormatter.formatMessageChunk(message, finalMetadata);
       }
     }
   }
 
-  /**
-   * 处理工具调用
-   */
-  private async *processToolCalls(
-    chunk: AIMessageChunk,
-    baseMetadata: Partial<MessageMetadata>,
-  ): AsyncGenerator<SSEMessage, void, unknown> {
-    const toolCalls = this.messageFormatter.extractToolCalls(chunk);
+  // /**
+  //  * 处理工具调用
+  //  */
+  // private async *processToolCalls(
+  //   chunk: AIMessageChunk,
+  //   baseMetadata: Partial<MessageMetadata>,
+  // ): AsyncGenerator<SSEMessage, void, unknown> {
+  //   const toolCalls = this.messageFormatter.extractToolCalls(chunk);
 
-    for (const toolCall of toolCalls) {
-      // 如果这是新的工具调用，结束之前的工具调用
-      if (this.currentToolCall && this.currentToolCall.id !== toolCall.id) {
-        yield this.messageFormatter.formatToolCallEnd(
-          this.currentToolCall,
-          baseMetadata,
-        );
-        this.toolCallArgsBuffer = '';
-        this.toolCallIndex = 0;
-      }
+  //   for (const toolCall of toolCalls) {
+  //     // 如果这是新的工具调用，结束之前的工具调用
+  //     if (this.currentToolCall && this.currentToolCall.id !== toolCall.id) {
+  //       yield this.messageFormatter.formatToolCallEnd(
+  //         this.currentToolCall,
+  //         baseMetadata,
+  //       );
+  //       this.toolCallArgsBuffer = '';
+  //       this.toolCallIndex = 0;
+  //     }
 
-      // 开始新的工具调用
-      if (!this.currentToolCall || this.currentToolCall.id !== toolCall.id) {
-        this.currentToolCall = toolCall;
-        yield this.messageFormatter.formatToolCallStart(toolCall, baseMetadata);
-      }
+  //     // 开始新的工具调用
+  //     if (!this.currentToolCall || this.currentToolCall.id !== toolCall.id) {
+  //       this.currentToolCall = toolCall;
+  //       yield this.messageFormatter.formatToolCallStart(toolCall, baseMetadata);
+  //     }
 
-      // 处理工具调用参数
-      yield* this.processToolCallArgs(toolCall, baseMetadata);
-    }
-  }
+  //     // 处理工具调用参数
+  //     yield* this.processToolCallArgs(toolCall, baseMetadata);
+  //   }
+  // }
 
-  /**
-   * 处理工具调用参数
-   */
-  private async *processToolCallArgs(
-    toolCall: ToolCall,
-    baseMetadata: Partial<MessageMetadata>,
-  ): AsyncGenerator<SSEMessage, void, unknown> {
-    try {
-      const argsString = JSON.stringify(toolCall.args);
+  // /**
+  //  * 处理工具调用参数
+  //  */
+  // private async *processToolCallArgs(
+  //   toolCall: ToolCall,
+  //   baseMetadata: Partial<MessageMetadata>,
+  // ): AsyncGenerator<SSEMessage, void, unknown> {
+  //   try {
+  //     const argsString = JSON.stringify(toolCall.args);
 
-      // 如果参数很大，可以分块发送
-      const chunkSize = 100; // 可以根据需要调整
-      const toolCallId = toolCall.id || nanoid();
-      if (argsString.length > chunkSize) {
-        for (let i = 0; i < argsString.length; i += chunkSize) {
-          const chunk = argsString.slice(i, i + chunkSize);
-          yield this.messageFormatter.formatToolCallChunk(
-            toolCallId,
-            chunk,
-            this.toolCallIndex++,
-            baseMetadata,
-          );
-        }
-      } else {
-        yield this.messageFormatter.formatToolCallChunk(
-          toolCallId,
-          argsString,
-          this.toolCallIndex++,
-          baseMetadata,
-        );
-      }
-    } catch (error) {
-      this.logger.error('Error processing tool call args', { error, toolCall });
-      yield this.messageFormatter.formatError(
-        error as Error,
-        ErrorCode.TOOL_VALIDATION_ERROR,
-        { toolCallId: toolCall.id, toolName: toolCall.name },
-        baseMetadata,
-      );
-    }
-  }
-
-  /**
-   * 模拟工具执行结果（用于测试）
-   */
-  async *simulateToolExecution(
-    toolCall: ToolCall,
-    baseMetadata: Partial<MessageMetadata>,
-  ): AsyncGenerator<SSEMessage, void, unknown> {
-    // 这里可以添加实际的工具执行逻辑
-    // 目前只是模拟返回结果
-    const mockResult = {
-      success: true,
-      data: `Tool ${toolCall.name} executed with args: ${JSON.stringify(toolCall.args)}`,
-      timestamp: Date.now(),
-    };
-
-    yield this.messageFormatter.formatToolResult(
-      toolCall.id || nanoid(),
-      toolCall.name,
-      mockResult,
-      undefined,
-      baseMetadata,
-    );
-  }
-
-  /**
-   * 更新 Token 使用统计
-   */
-  updateTokenUsage(usage: {
-    promptTokens?: number;
-    completionTokens?: number;
-  }) {
-    this.totalTokens.promptTokens =
-      (this.totalTokens.promptTokens || 0) + (usage.promptTokens || 0);
-    this.totalTokens.completionTokens =
-      (this.totalTokens.completionTokens || 0) + (usage.completionTokens || 0);
-    // 计算总token数
-    const totalTokens =
-      (this.totalTokens.promptTokens || 0) +
-      (this.totalTokens.completionTokens || 0);
-    (this.totalTokens as any).totalTokens = totalTokens;
-  }
-
-  /**
-   * 获取当前统计信息
-   */
-  getStats() {
-    return {
-      groupId: this.groupId,
-      startTime: this.startTime,
-      currentLatency: Date.now() - this.startTime,
-      totalTokens: this.totalTokens,
-      messageChunkCount: this.messageChunkIndex,
-      toolCallCount: this.toolCallIndex,
-    };
-  }
-
-  /**
-   * 重置处理器状态
-   */
-  reset() {
-    this.currentToolCall = null;
-    this.toolCallArgsBuffer = '';
-    this.toolCallIndex = 0;
-    this.messageChunkIndex = 0;
-    this.totalTokens = {};
-  }
+  //     // 如果参数很大，可以分块发送
+  //     const chunkSize = 100; // 可以根据需要调整
+  //     const toolCallId = toolCall.id || nanoid();
+  //     if (argsString.length > chunkSize) {
+  //       for (let i = 0; i < argsString.length; i += chunkSize) {
+  //         const chunk = argsString.slice(i, i + chunkSize);
+  //         yield this.messageFormatter.formatToolCallChunk(
+  //           toolCallId,
+  //           chunk,
+  //           this.toolCallIndex++,
+  //           baseMetadata,
+  //         );
+  //       }
+  //     } else {
+  //       yield this.messageFormatter.formatToolCallChunk(
+  //         toolCallId,
+  //         argsString,
+  //         this.toolCallIndex++,
+  //         baseMetadata,
+  //       );
+  //     }
+  //   } catch (error) {
+  //     this.logger.error('Error processing tool call args', { error, toolCall });
+  //     yield this.messageFormatter.formatError(
+  //       error as Error,
+  //       ErrorCode.TOOL_VALIDATION_ERROR,
+  //       { toolCallId: toolCall.id, toolName: toolCall.name },
+  //       baseMetadata,
+  //     );
+  //   }
+  // }
 }

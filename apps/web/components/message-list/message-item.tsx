@@ -11,15 +11,13 @@ import { HeadingNode, QuoteNode } from '@lexical/rich-text';
 import { ListItemNode, ListNode } from '@lexical/list';
 import { CodeHighlightNode, CodeNode } from '@lexical/code';
 import { AutoLinkNode, LinkNode } from '@lexical/link';
-import { $convertFromMarkdownString, TRANSFORMERS } from '@lexical/markdown';
+import { $convertFromMarkdownString } from '@lexical/markdown';
 import EquationsPlugin from '@web/lib/lexical/EquationsPlugin';
-import {
-  EquationNode,
-  $createEquationNode,
-} from '@web/lib/lexical/nodes/EquationNode';
-import { $getRoot, $createTextNode } from 'lexical';
+import { EquationNode } from '@web/lib/lexical/nodes/EquationNode';
+import { $getRoot } from 'lexical';
 import 'katex/dist/katex.css';
 import { PLAYGROUND_TRANSFORMERS } from '@web/lib/lexical/plugin/MarkdownTransformers';
+import { MESSAGE_ROLE } from '@server/chat/chat.interface';
 
 export interface MessageItemProps {
   message: MessageChunkDto;
@@ -29,12 +27,12 @@ export interface MessageItemProps {
 const messageItemVariants = cva('flex gap-2', {
   variants: {
     role: {
-      user: 'justify-end',
-      assistant: 'text-left',
+      [MESSAGE_ROLE.HUMAN]: 'justify-end',
+      [MESSAGE_ROLE.ASSISTANT]: 'text-left',
     },
   },
   defaultVariants: {
-    role: 'user',
+    role: MESSAGE_ROLE.HUMAN,
   },
 });
 
@@ -77,11 +75,13 @@ const MessageItem = ({ message }: MessageItemProps) => {
   };
 
   return (
-    <div className={messageItemVariants({ role: message.role })}>
+    <div className={messageItemVariants({ role: message.data.role })}>
       <div
         className={cn(
           'w-auto max-w-[min(80ch,90vw)] rounded-md p-4',
-          message.role === 'user' ? 'bg-secondary' : 'justify-start text-left',
+          message.data.role === MESSAGE_ROLE.HUMAN
+            ? 'bg-secondary'
+            : 'justify-start text-left',
         )}
       >
         <LexicalComposer initialConfig={initialConfig}>

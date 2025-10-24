@@ -1,18 +1,20 @@
-import { MESSAGE_TYPE, MessageChunkDto, ThreadDto } from '@web/service/thread';
+import { ThreadDto } from '@web/service/thread';
 import { Store } from '.';
 import { nanoid } from 'nanoid';
+import type { SSEMessage } from '@server/chat/dto/sse-message.dto';
+import { MESSAGE_ROLE, MESSAGE_TYPE } from '@server/chat/chat.interface';
 export interface CurrentThreadStoreState {
   currentThread: ThreadDto | null;
-  messageList: MessageChunkDto[];
+  messageList: SSEMessage[];
   isResponding: boolean;
 }
 export interface CurrentThreadStoreActions {
   clearCurrent: () => void;
   setCurrentThread: (current: ThreadDto | null) => void;
   setIsResponding: (isResponding: boolean) => void;
-  appendMessage: (message: MessageChunkDto) => void;
+  appendMessage: (message: SSEMessage) => void;
   sendMessage: (message: string) => void;
-  setMessageList: (messageList: MessageChunkDto[]) => void;
+  setMessageList: (messageList: SSEMessage[]) => void;
 }
 
 export interface CurrentThreadStore
@@ -33,7 +35,10 @@ const createThreadSlice: Store<CurrentThreadStore> = (set, get, store) => ({
     const { messageList } = get();
     const lastMessage = messageList[messageList.length - 1];
 
-    if (message.id && lastMessage?.groupId === message.groupId) {
+    if (
+      message.metadata?.groupId &&
+      lastMessage?.metadata?.groupId === message.metadata?.groupId
+    ) {
       const newMessage = mergeMessage(lastMessage, message);
       set({
         messageList: [...messageList.slice(0, -1), newMessage],
@@ -50,15 +55,15 @@ const createThreadSlice: Store<CurrentThreadStore> = (set, get, store) => ({
       messageList: [
         ...get().messageList,
         {
-          id: nanoid(),
           type: MESSAGE_TYPE.MESSAGE_CHUNK,
-          groupId: get().currentThread?.uid ?? '',
           data: {
             content: message,
+            role: MESSAGE_ROLE.HUMAN,
           },
-          role: 'user',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          metadata: {
+            groupId: get().currentThread?.uid ?? '',
+            timestamp: Date.now(),
+          },
         },
       ],
     });
@@ -71,16 +76,22 @@ const createThreadSlice: Store<CurrentThreadStore> = (set, get, store) => ({
 export { createThreadSlice as createCurrentThreadSlice };
 
 function mergeMessage(
-  lastMessage: MessageChunkDto,
-  message: MessageChunkDto,
-): MessageChunkDto {
-  const { data, updatedAt } = message;
-
-  const mergedMessage = {
-    ...lastMessage,
-    updatedAt,
-  };
-  mergedMessage.data.content += data.content;
-
-  return mergedMessage;
+  lastMessage: SSEMessage,
+  message: SSEMessage,
+): SSEMessage {
+  const { type, data, metadata } = message;
+  if (
+    type === MESSAGE_TYPE.MESSAGE_CHUNK &&
+    lastMessage.type === MESSAGE_TYPE.MESSAGE_CHUNK
+  ) {
+    return {
+      ...lastMessage,
+      metadata,
+      data: {
+        ...lastMessage.data,
+        content: lastMessage.data.content + data.content,
+      },
+    };
+  }
+  return message;
 }

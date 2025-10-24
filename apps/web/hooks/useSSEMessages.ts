@@ -1,15 +1,12 @@
-import {
-  SSEMessage,
-  MESSAGE_TYPE,
-  MessageChunkData,
-} from '@web/service/thread';
+import { MESSAGE_TYPE } from '@server/chat/chat.interface';
+import { SSEMessage } from '@server/chat/dto/sse-message.dto';
 import { useCallback, useRef, useEffect } from 'react';
 import { requestUtils } from '@web/utils';
 import { toast } from 'sonner';
 import { chatService } from '@web/service';
 
 export interface UseSSEMessagesProps {
-  onMessage: (message: SSEMessage<MessageChunkData>) => void;
+  onMessage: (message: SSEMessage) => void;
   onLoadingChange: (loading: boolean) => void;
 }
 
@@ -18,12 +15,12 @@ export const useSSEMessages = ({
   onLoadingChange,
 }: UseSSEMessagesProps) => {
   const abortControllerRef = useRef<AbortController | null>(null);
-  // TODO: 切换thread 时，需要断开连接
 
+  // TODO: 切换thread 时，需要断开连接
   const handleMessage = useCallback(
     (data: SSEMessage) => {
       if (data.type === MESSAGE_TYPE.MESSAGE_CHUNK) {
-        onMessage(data as SSEMessage<MessageChunkData>);
+        onMessage(data);
       }
     },
     [onMessage],

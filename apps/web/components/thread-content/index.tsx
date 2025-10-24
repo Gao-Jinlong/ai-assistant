@@ -42,7 +42,8 @@ const ThreadContent = () => {
   useEffect(() => {
     const currentMessageCount = messageList.length;
     const lastMessage = messageList[messageList.length - 1];
-    const currentLastMessageContent = lastMessage?.data?.content || '';
+    const currentLastMessageContent =
+      lastMessage?.data?.content.toString() || '';
 
     // 检查是否有新消息或最后一条消息内容有变化
     const hasNewMessage = currentMessageCount > lastMessageCountRef.current;

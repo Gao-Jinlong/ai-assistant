@@ -12,7 +12,7 @@ export class MessageService {
       return {
         uid: generateUid('message'),
         content: item.content.toString(),
-        role: item.name ?? '',
+        role: item.type,
         threadUid: thread.uid,
       };
     });

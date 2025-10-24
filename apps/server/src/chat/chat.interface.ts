@@ -1,6 +1,6 @@
 export enum MESSAGE_ROLE {
   ASSISTANT = 'assistant',
-  USER = 'user',
+  HUMAN = 'human',
 }
 
 export enum MESSAGE_TYPE {
