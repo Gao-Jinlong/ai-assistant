@@ -1,8 +1,7 @@
+import { MESSAGE_ROLE, MESSAGE_TYPE } from '@server/chat/chat.interface';
+import type { SSEMessage } from '@server/chat/dto/sse-message.dto';
 import { ThreadDto } from '@web/service/thread';
 import { Store } from '.';
-import { nanoid } from 'nanoid';
-import type { SSEMessage } from '@server/chat/dto/sse-message.dto';
-import { MESSAGE_ROLE, MESSAGE_TYPE } from '@server/chat/chat.interface';
 export interface CurrentThreadStoreState {
   currentThread: ThreadDto | null;
   messageList: SSEMessage[];

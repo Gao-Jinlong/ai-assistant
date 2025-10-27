@@ -113,7 +113,7 @@ export class MessageStreamProcessor {
    */
   private async *processMessagesChunk(
     chunk: [BaseMessage, Partial<MessageMetadata>],
-  ): AsyncGenerator<SSEMessage<MessageChunkData>, void, unknown> {
+  ): AsyncGenerator<SSEMessage, void, unknown> {
     const [message, metadata] = chunk;
     const finalMetadata: Partial<MessageMetadata> = {
       ...metadata,

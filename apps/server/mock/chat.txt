@@ -1,8 +1,146 @@
-{"lc":1,"type":"constructor","id":["langchain_core","messages","AIMessageChunk"],"kwargs":{"content":"","tool_calls":[],"invalid_tool_calls":[],"tool_call_chunks":[],"additional_kwargs":{},"response_metadata":{}}}
-{"lc":1,"type":"constructor","id":["langchain_core","messages","AIMessageChunk"],"kwargs":{"content":"你好","tool_calls":[],"invalid_tool_calls":[],"tool_call_chunks":[],"additional_kwargs":{},"response_metadata":{}}}
-{"lc":1,"type":"constructor","id":["langchain_core","messages","AIMessageChunk"],"kwargs":{"content":"！很高兴","tool_calls":[],"invalid_tool_calls":[],"tool_call_chunks":[],"additional_kwargs":{},"response_metadata":{}}}
-{"lc":1,"type":"constructor","id":["langchain_core","messages","AIMessageChunk"],"kwargs":{"content":"见到","tool_calls":[],"invalid_tool_calls":[],"tool_call_chunks":[],"additional_kwargs":{},"response_metadata":{}}}
-{"lc":1,"type":"constructor","id":["langchain_core","messages","AIMessageChunk"],"kwargs":{"content":"你，","tool_calls":[],"invalid_tool_calls":[],"tool_call_chunks":[],"additional_kwargs":{},"response_metadata":{}}}
-{"lc":1,"type":"constructor","id":["langchain_core","messages","AIMessageChunk"],"kwargs":{"content":"有什么我可以帮忙的吗？","tool_calls":[],"invalid_tool_calls":[],"tool_call_chunks":[],"additional_kwargs":{},"response_metadata":{}}}
-{"lc":1,"type":"constructor","id":["langchain_core","messages","AIMessageChunk"],"kwargs":{"content":"😊","tool_calls":[],"invalid_tool_calls":[],"tool_call_chunks":[],"additional_kwargs":{},"response_metadata":{}}}
-{"lc":1,"type":"constructor","id":["langchain_core","messages","AIMessageChunk"],"kwargs":{"content":"","tool_calls":[],"invalid_tool_calls":[],"tool_call_chunks":[],"additional_kwargs":{},"response_metadata":{}}}
+{"type":"message_start","data":{"role":"assistant"},"metadata":{"timestamp":1761561432015,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"当然","role":"assistant"},"metadata":{"timestamp":1761561432021,"messageChunkIndex":1,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"可以！牛","role":"assistant"},"metadata":{"timestamp":1761561432032,"messageChunkIndex":2,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"顿-莱","role":"assistant"},"metadata":{"timestamp":1761561432072,"messageChunkIndex":3,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"布尼茨","role":"assistant"},"metadata":{"timestamp":1761561432118,"messageChunkIndex":4,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"公式（Newton-Le","role":"assistant"},"metadata":{"timestamp":1761561432229,"messageChunkIndex":5,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"ibniz Formula）是","role":"assistant"},"metadata":{"timestamp":1761561432307,"messageChunkIndex":6,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"微积分中的一个核心","role":"assistant"},"metadata":{"timestamp":1761561432370,"messageChunkIndex":7,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"定理，它","role":"assistant"},"metadata":{"timestamp":1761561432459,"messageChunkIndex":8,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"建立了**定积分**与","role":"assistant"},"metadata":{"timestamp":1761561432614,"messageChunkIndex":9,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"**原函数（不定","role":"assistant"},"metadata":{"timestamp":1761561432679,"messageChunkIndex":10,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"积分）**之间的联系","role":"assistant"},"metadata":{"timestamp":1761561432790,"messageChunkIndex":11,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"。这个公式也","role":"assistant"},"metadata":{"timestamp":1761561432906,"messageChunkIndex":12,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"被称为**微积分基本","role":"assistant"},"metadata":{"timestamp":1761561433003,"messageChunkIndex":13,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"定理的第二部分**","role":"assistant"},"metadata":{"timestamp":1761561433067,"messageChunkIndex":14,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"。\n\n---\n\n### 一、","role":"assistant"},"metadata":{"timestamp":1761561433175,"messageChunkIndex":15,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"公式表述\n\n设","role":"assistant"},"metadata":{"timestamp":1761561433238,"messageChunkIndex":16,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"函数 \\( f(x) \\","role":"assistant"},"metadata":{"timestamp":1761561433348,"messageChunkIndex":17,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":") 在区间 \\([a","role":"assistant"},"metadata":{"timestamp":1761561433413,"messageChunkIndex":18,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":", b]\\) 上连续","role":"assistant"},"metadata":{"timestamp":1761561433527,"messageChunkIndex":19,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"，且 \\( F(x)","role":"assistant"},"metadata":{"timestamp":1761561433588,"messageChunkIndex":20,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":" \\) 是 \\( f(x","role":"assistant"},"metadata":{"timestamp":1761561433711,"messageChunkIndex":21,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":") \\) 的一个原","role":"assistant"},"metadata":{"timestamp":1761561433770,"messageChunkIndex":22,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"函数（即 \\(","role":"assistant"},"metadata":{"timestamp":1761561433881,"messageChunkIndex":23,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":" F'(x) = f","role":"assistant"},"metadata":{"timestamp":1761561433942,"messageChunkIndex":24,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"(x) \\)），","role":"assistant"},"metadata":{"timestamp":1761561434071,"messageChunkIndex":25,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"那么：\n\n\\[\n","role":"assistant"},"metadata":{"timestamp":1761561434130,"messageChunkIndex":26,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"\\int_a^b f","role":"assistant"},"metadata":{"timestamp":1761561434239,"messageChunkIndex":27,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"(x) \\, dx","role":"assistant"},"metadata":{"timestamp":1761561434312,"messageChunkIndex":28,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":" = F(b) - F","role":"assistant"},"metadata":{"timestamp":1761561434422,"messageChunkIndex":29,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"(a)\n\\]\n\n通常","role":"assistant"},"metadata":{"timestamp":1761561434486,"messageChunkIndex":30,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"也写作：\n\n\\[\n\\","role":"assistant"},"metadata":{"timestamp":1761561434635,"messageChunkIndex":31,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"int_a^b f(x","role":"assistant"},"metadata":{"timestamp":1761561434705,"messageChunkIndex":32,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":") \\, dx = \\","role":"assistant"},"metadata":{"timestamp":1761561434808,"messageChunkIndex":33,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"big[ F(x) \\","role":"assistant"},"metadata":{"timestamp":1761561434924,"messageChunkIndex":34,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"big]_a^","role":"assistant"},"metadata":{"timestamp":1761561435035,"messageChunkIndex":35,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"b = F(b)","role":"assistant"},"metadata":{"timestamp":1761561435169,"messageChunkIndex":36,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":" - F(a)\n\\]\n\n","role":"assistant"},"metadata":{"timestamp":1761561435217,"messageChunkIndex":37,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"---\n\n### 二、直观","role":"assistant"},"metadata":{"timestamp":1761561435272,"messageChunkIndex":38,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"理解\n\n- **左边","role":"assistant"},"metadata":{"timestamp":1761561435381,"messageChunkIndex":39,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"**：\\(\\int_a","role":"assistant"},"metadata":{"timestamp":1761561435483,"messageChunkIndex":40,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"^b f(x)\\","role":"assistant"},"metadata":{"timestamp":1761561435595,"messageChunkIndex":41,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":",dx\\)","role":"assistant"},"metadata":{"timestamp":1761561435663,"messageChunkIndex":42,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":" 表示函数 \\(f","role":"assistant"},"metadata":{"timestamp":1761561436471,"messageChunkIndex":43,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"(x)\\) 在区间","role":"assistant"},"metadata":{"timestamp":1761561436592,"messageChunkIndex":44,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":" \\([a,b","role":"assistant"},"metadata":{"timestamp":1761561436666,"messageChunkIndex":45,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"]\\) 下的“面积","role":"assistant"},"metadata":{"timestamp":1761561436768,"messageChunkIndex":46,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"”（有正","role":"assistant"},"metadata":{"timestamp":1761561436834,"messageChunkIndex":47,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"负）。\n- **","role":"assistant"},"metadata":{"timestamp":1761561436918,"messageChunkIndex":48,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"右边**：\\(","role":"assistant"},"metadata":{"timestamp":1761561437024,"messageChunkIndex":49,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"F(b) - F(a","role":"assistant"},"metadata":{"timestamp":1761561437086,"messageChunkIndex":50,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":")\\) 表示原","role":"assistant"},"metadata":{"timestamp":1761561437195,"messageChunkIndex":51,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"函数 \\(F(x)\\","role":"assistant"},"metadata":{"timestamp":1761561437259,"messageChunkIndex":52,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":") 在端点处","role":"assistant"},"metadata":{"timestamp":1761561437372,"messageChunkIndex":53,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"的“变化量","role":"assistant"},"metadata":{"timestamp":1761561437483,"messageChunkIndex":54,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"”。\n\n这个公式告诉我们","role":"assistant"},"metadata":{"timestamp":1761561437588,"messageChunkIndex":55,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"：**求一个函数在","role":"assistant"},"metadata":{"timestamp":1761561437653,"messageChunkIndex":56,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"区间上的定积分，","role":"assistant"},"metadata":{"timestamp":1761561437771,"messageChunkIndex":57,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"不需要用极限或","role":"assistant"},"metadata":{"timestamp":1761561437834,"messageChunkIndex":58,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"黎曼和去","role":"assistant"},"metadata":{"timestamp":1761561437920,"messageChunkIndex":59,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"逼近面积，只要","role":"assistant"},"metadata":{"timestamp":1761561438061,"messageChunkIndex":60,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"找到它的一个原函数","role":"assistant"},"metadata":{"timestamp":1761561438127,"messageChunkIndex":61,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"，再代入上下限","role":"assistant"},"metadata":{"timestamp":1761561438288,"messageChunkIndex":62,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"相减即可！","role":"assistant"},"metadata":{"timestamp":1761561438411,"messageChunkIndex":63,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"**\n\n---\n\n### 三、","role":"assistant"},"metadata":{"timestamp":1761561438545,"messageChunkIndex":64,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"为什么叫“牛","role":"assistant"},"metadata":{"timestamp":1761561438564,"messageChunkIndex":65,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"顿-莱布尼茨","role":"assistant"},"metadata":{"timestamp":1761561438664,"messageChunkIndex":66,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"”公式？\n\n-","role":"assistant"},"metadata":{"timestamp":1761561438762,"messageChunkIndex":67,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":" 艾萨","role":"assistant"},"metadata":{"timestamp":1761561438876,"messageChunkIndex":68,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"克·牛顿（Is","role":"assistant"},"metadata":{"timestamp":1761561438956,"messageChunkIndex":69,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"aac Newton）和戈","role":"assistant"},"metadata":{"timestamp":1761561439069,"messageChunkIndex":70,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"特弗里德·威廉","role":"assistant"},"metadata":{"timestamp":1761561439132,"messageChunkIndex":71,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"·莱布尼茨（","role":"assistant"},"metadata":{"timestamp":1761561439225,"messageChunkIndex":72,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"Gottfried Wilhelm Leib","role":"assistant"},"metadata":{"timestamp":1761561439323,"messageChunkIndex":73,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"niz）在17","role":"assistant"},"metadata":{"timestamp":1761561439392,"messageChunkIndex":74,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"世纪各自独立发展","role":"assistant"},"metadata":{"timestamp":1761561439500,"messageChunkIndex":75,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"了微积分。\n","role":"assistant"},"metadata":{"timestamp":1761561439554,"messageChunkIndex":76,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"- 他们都发现了","role":"assistant"},"metadata":{"timestamp":1761561439646,"messageChunkIndex":77,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"微分与积分","role":"assistant"},"metadata":{"timestamp":1761561439788,"messageChunkIndex":78,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"之间的深刻联系，","role":"assistant"},"metadata":{"timestamp":1761561439860,"messageChunkIndex":79,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"因此这个公式以","role":"assistant"},"metadata":{"timestamp":1761561440004,"messageChunkIndex":80,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"两人的名字共同","role":"assistant"},"metadata":{"timestamp":1761561440062,"messageChunkIndex":81,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"命名。\n\n---\n\n### 四","role":"assistant"},"metadata":{"timestamp":1761561440178,"messageChunkIndex":82,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"、举个例子\n\n计算","role":"assistant"},"metadata":{"timestamp":1761561440234,"messageChunkIndex":83,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"：\\(\\int_1","role":"assistant"},"metadata":{"timestamp":1761561440403,"messageChunkIndex":84,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"^3 2x","role":"assistant"},"metadata":{"timestamp":1761561440448,"messageChunkIndex":85,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":" \\, dx\\)\n\n1","role":"assistant"},"metadata":{"timestamp":1761561440547,"messageChunkIndex":86,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":". 找原","role":"assistant"},"metadata":{"timestamp":1761561440649,"messageChunkIndex":87,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"函数：因为 \\","role":"assistant"},"metadata":{"timestamp":1761561441441,"messageChunkIndex":88,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"(\\frac{d}{dx","role":"assistant"},"metadata":{"timestamp":1761561441857,"messageChunkIndex":89,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"}(x^2) =","role":"assistant"},"metadata":{"timestamp":1761561441862,"messageChunkIndex":90,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":" 2x\\)，所以","role":"assistant"},"metadata":{"timestamp":1761561441929,"messageChunkIndex":91,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":" \\(F(x) = x","role":"assistant"},"metadata":{"timestamp":1761561442073,"messageChunkIndex":92,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"^2\\) 是 \\(f","role":"assistant"},"metadata":{"timestamp":1761561442183,"messageChunkIndex":93,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"(x) = 2x","role":"assistant"},"metadata":{"timestamp":1761561442239,"messageChunkIndex":94,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"\\) 的一个原","role":"assistant"},"metadata":{"timestamp":1761561443897,"messageChunkIndex":95,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"函数。\n2.","role":"assistant"},"metadata":{"timestamp":1761561445501,"messageChunkIndex":96,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":" 应用牛顿-莱","role":"assistant"},"metadata":{"timestamp":1761561445595,"messageChunkIndex":97,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"布尼茨公式：\n\n\\","role":"assistant"},"metadata":{"timestamp":1761561445715,"messageChunkIndex":98,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"[\n\\int_1^","role":"assistant"},"metadata":{"timestamp":1761561445794,"messageChunkIndex":99,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"3 2x \\,","role":"assistant"},"metadata":{"timestamp":1761561445900,"messageChunkIndex":100,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":" dx = F(3)","role":"assistant"},"metadata":{"timestamp":1761561445971,"messageChunkIndex":101,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":" - F(1) =","role":"assistant"},"metadata":{"timestamp":1761561446087,"messageChunkIndex":102,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":" 3^2 - ","role":"assistant"},"metadata":{"timestamp":1761561446161,"messageChunkIndex":103,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"1^2 = 9","role":"assistant"},"metadata":{"timestamp":1761561446246,"messageChunkIndex":104,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":" - 1 = 8","role":"assistant"},"metadata":{"timestamp":1761561446372,"messageChunkIndex":105,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"\n\\]\n\n---\n\n","role":"assistant"},"metadata":{"timestamp":1761561446430,"messageChunkIndex":106,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"### 五、重要前提","role":"assistant"},"metadata":{"timestamp":1761561446536,"messageChunkIndex":107,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"\n\n- \\(f(x)\\","role":"assistant"},"metadata":{"timestamp":1761561446973,"messageChunkIndex":108,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":") 必须","role":"assistant"},"metadata":{"timestamp":1761561447013,"messageChunkIndex":109,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"在 \\([a, b","role":"assistant"},"metadata":{"timestamp":1761561447086,"messageChunkIndex":110,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"]\\) 上**连续**","role":"assistant"},"metadata":{"timestamp":1761561447204,"messageChunkIndex":111,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"（或至少可","role":"assistant"},"metadata":{"timestamp":1761561447263,"messageChunkIndex":112,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"积）。\n- \\(","role":"assistant"},"metadata":{"timestamp":1761561447351,"messageChunkIndex":113,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"F(x)\\) 必","role":"assistant"},"metadata":{"timestamp":1761561447477,"messageChunkIndex":114,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"须是 \\(f(x)\\","role":"assistant"},"metadata":{"timestamp":1761561447563,"messageChunkIndex":115,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":") 的一个**","role":"assistant"},"metadata":{"timestamp":1761561447643,"messageChunkIndex":116,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"原函数**，即在整个","role":"assistant"},"metadata":{"timestamp":1761561447714,"messageChunkIndex":117,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"区间上可导","role":"assistant"},"metadata":{"timestamp":1761561447828,"messageChunkIndex":118,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"且导数为 \\(","role":"assistant"},"metadata":{"timestamp":1761561447941,"messageChunkIndex":119,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"f(x)\\)。\n\n---\n\n","role":"assistant"},"metadata":{"timestamp":1761561448042,"messageChunkIndex":120,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"### 六、意义","role":"assistant"},"metadata":{"timestamp":1761561448103,"messageChunkIndex":121,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"总结\n\n牛顿-莱","role":"assistant"},"metadata":{"timestamp":1761561448262,"messageChunkIndex":122,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"布尼茨公式揭示","role":"assistant"},"metadata":{"timestamp":1761561448316,"messageChunkIndex":123,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"了：\n- **微","role":"assistant"},"metadata":{"timestamp":1761561449228,"messageChunkIndex":124,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"分**（求","role":"assistant"},"metadata":{"timestamp":1761561450659,"messageChunkIndex":125,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"导）和 **","role":"assistant"},"metadata":{"timestamp":1761561452306,"messageChunkIndex":126,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"积分**（求面积","role":"assistant"},"metadata":{"timestamp":1761561452881,"messageChunkIndex":127,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"）是互为逆运算","role":"assistant"},"metadata":{"timestamp":1761561452957,"messageChunkIndex":128,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"。\n- 它是","role":"assistant"},"metadata":{"timestamp":1761561453113,"messageChunkIndex":129,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"连接“局部变化","role":"assistant"},"metadata":{"timestamp":1761561453266,"messageChunkIndex":130,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"率”（导","role":"assistant"},"metadata":{"timestamp":1761561453391,"messageChunkIndex":131,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"数）与“整体累积","role":"assistant"},"metadata":{"timestamp":1761561453483,"messageChunkIndex":132,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"量”（积分）的","role":"assistant"},"metadata":{"timestamp":1761561453607,"messageChunkIndex":133,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"桥梁。\n- ","role":"assistant"},"metadata":{"timestamp":1761561453680,"messageChunkIndex":134,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"使得定积分的计算","role":"assistant"},"metadata":{"timestamp":1761561453822,"messageChunkIndex":135,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"变得非常简便，是工程","role":"assistant"},"metadata":{"timestamp":1761561453946,"messageChunkIndex":136,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"、物理、经济学","role":"assistant"},"metadata":{"timestamp":1761561454024,"messageChunkIndex":137,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"等领域广泛应用的基础。\n\n---\n\n如果你","role":"assistant"},"metadata":{"timestamp":1761561454232,"messageChunkIndex":138,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"有具体题目或想进一步","role":"assistant"},"metadata":{"timestamp":1761561454298,"messageChunkIndex":139,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"了解它与微","role":"assistant"},"metadata":{"timestamp":1761561454421,"messageChunkIndex":140,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"积分基本定理第一","role":"assistant"},"metadata":{"timestamp":1761561454501,"messageChunkIndex":141,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"部分的关系，也可以继续","role":"assistant"},"metadata":{"timestamp":1761561454619,"messageChunkIndex":142,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_chunk","data":{"content":"问我！","role":"assistant"},"metadata":{"timestamp":1761561454650,"messageChunkIndex":143,"groupId":"oXNChOp0GjLa68qYSDLEg"}}
+{"type":"message_end","data":{"role":"assistant","finishReason":"stop","usage":{}},"metadata":{"timestamp":1761561454682,"usage":{},"groupId":"oXNChOp0GjLa68qYSDLEg","latency":23316}}
+{"type":"done","data":{},"metadata":{"timestamp":1761561454683,"groupId":"oXNChOp0GjLa68qYSDLEg","usage":{},"latency":23316}}

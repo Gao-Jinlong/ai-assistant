@@ -84,6 +84,77 @@ export const EQUATION: TextMatchTransformer = {
   trigger: '$',
   type: 'text-match',
 };
+
+// LaTeX 内联公式 transformer - 处理 \(...\) 格式
+export const LATEX_INLINE_EQUATION: TextMatchTransformer = {
+  dependencies: [EquationNode],
+  export: (node) => {
+    if (!$isEquationNode(node)) {
+      return null;
+    }
+    // 只导出内联公式为 LaTeX 格式
+    return node.__inline ? `\\(${node.getEquation()}\\)` : null;
+  },
+  importRegExp: /\\\(([^\\]*(?:\\.[^\\]*)*?)\\\)/,
+  regExp: /\\\(([^\\]*(?:\\.[^\\]*)*?)\\\)/,
+  replace: (textNode, match) => {
+    const [, equation] = match;
+
+    // 创建内联公式节点
+    const equationNode = $createEquationNode(equation.trim(), true);
+    textNode.replace(equationNode);
+  },
+  trigger: '\\(',
+  type: 'text-match',
+};
+
+// LaTeX 块级公式 transformer - 处理 \[...\] 格式
+export const LATEX_BLOCK_EQUATION: MultilineElementTransformer = {
+  dependencies: [EquationNode],
+  export: (node) => {
+    if (!$isEquationNode(node)) {
+      return null;
+    }
+    // 只导出非内联的公式为 LaTeX 块级格式
+    return node.__inline ? null : `\\[${node.getEquation()}\\]`;
+  },
+  regExpStart: /^\s*\\\[/,
+  regExpEnd: /^\s*\\\]$/,
+  replace: (
+    rootNode,
+    children,
+    startMatch,
+    endMatch,
+    linesInBetween,
+    isImport,
+  ) => {
+    // 提取公式内容
+    let equation = '';
+
+    if (linesInBetween && linesInBetween.length > 0) {
+      // 合并中间行的内容，保持换行符
+      equation = linesInBetween.join('\n').trim();
+    }
+
+    // 创建块级公式节点
+    const equationNode = $createEquationNode(equation, false); // false 表示块级
+
+    // 替换匹配的内容
+    if (children && children.length > 0) {
+      // 如果有子节点，替换第一个子节点
+      const firstChild = children[0];
+      if (firstChild) {
+        firstChild.replace(equationNode);
+      }
+    } else {
+      // 如果没有子节点，直接插入
+      rootNode.append(equationNode);
+    }
+
+    return true;
+  },
+  type: 'multiline-element',
+};
 // 块级公式 transformer - 处理多行块级公式
 export const EQUATION_BLOCK: MultilineElementTransformer = {
   dependencies: [EquationNode],
@@ -135,7 +206,9 @@ export const EQUATION_BLOCK: MultilineElementTransformer = {
 export const PLAYGROUND_TRANSFORMERS: Array<Transformer> = [
   HR,
   EQUATION_BLOCK,
+  LATEX_BLOCK_EQUATION,
   EQUATION,
+  LATEX_INLINE_EQUATION,
   CHECK_LIST,
   ...ELEMENT_TRANSFORMERS,
   ...MULTILINE_ELEMENT_TRANSFORMERS,

@@ -18,6 +18,7 @@ import { $getRoot } from 'lexical';
 import 'katex/dist/katex.css';
 import { PLAYGROUND_TRANSFORMERS } from '@web/lib/lexical/plugin/MarkdownTransformers';
 import { MESSAGE_ROLE } from '@server/chat/chat.interface';
+import { HorizontalRuleNode } from '@lexical/react/LexicalHorizontalRuleNode';
 
 export interface MessageItemProps {
   message: MessageChunkDto;
@@ -62,6 +63,7 @@ const MessageItem = ({ message }: MessageItemProps) => {
     },
     // 注册支持 Markdown 渲染的节点
     nodes: [
+      HorizontalRuleNode,
       HeadingNode,
       QuoteNode,
       ListNode,

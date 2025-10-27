@@ -43,7 +43,7 @@ export class MessageFormatterService {
   formatMessageChunk(
     chunk: AIMessageChunk,
     metadata: Partial<MessageMetadata>,
-  ): SSEMessage<MessageChunkData> {
+  ): SSEMessage {
     const messageMetadata = new MessageMetadataBuilder().updateTimestamp();
 
     if (metadata) {
@@ -96,7 +96,7 @@ export class MessageFormatterService {
       totalTokens?: number;
     },
     metadata?: Partial<MessageMetadata>,
-  ): SSEMessage<MessageEndData> {
+  ): SSEMessage {
     const messageMetadata = new MessageMetadataBuilder()
       .setUsage(usage)
       .updateTimestamp();
@@ -124,7 +124,7 @@ export class MessageFormatterService {
   formatToolCallStart(
     toolCall: ToolCall,
     metadata?: Partial<MessageMetadata>,
-  ): SSEMessage<ToolCallStartData> {
+  ): SSEMessage {
     const messageMetadata = new MessageMetadataBuilder()
       .setMessageId(metadata?.messageChunkIndex || 0)
       .updateTimestamp();
@@ -152,7 +152,7 @@ export class MessageFormatterService {
     argsChunk: string,
     index: number,
     metadata?: Partial<MessageMetadata>,
-  ): SSEMessage<ToolCallChunkData> {
+  ): SSEMessage {
     const messageMetadata = new MessageMetadataBuilder()
       .setMessageId(metadata?.messageChunkIndex || 0)
       .updateTimestamp();
@@ -179,7 +179,7 @@ export class MessageFormatterService {
   formatToolCallEnd(
     toolCall: ToolCall,
     metadata?: Partial<MessageMetadata>,
-  ): SSEMessage<ToolCallEndData> {
+  ): SSEMessage {
     const messageMetadata = new MessageMetadataBuilder()
       .setMessageId(metadata?.messageChunkIndex || 0)
       .updateTimestamp();
@@ -209,7 +209,7 @@ export class MessageFormatterService {
     result: unknown,
     error?: string,
     metadata?: Partial<MessageMetadata>,
-  ): SSEMessage<ToolResultData> {
+  ): SSEMessage {
     const messageMetadata = new MessageMetadataBuilder()
       .setMessageId(metadata?.messageChunkIndex || 0)
       .updateTimestamp();
@@ -239,7 +239,7 @@ export class MessageFormatterService {
     code: ErrorCode = ErrorCode.UNKNOWN_ERROR,
     details?: Record<string, unknown>,
     metadata?: Partial<MessageMetadata>,
-  ): SSEMessage<never> {
+  ): SSEMessage {
     const messageMetadata = new MessageMetadataBuilder().updateTimestamp();
 
     if (metadata) {
@@ -268,7 +268,7 @@ export class MessageFormatterService {
   /**
    * 格式化流结束消息
    */
-  formatDone(metadata?: Partial<MessageMetadata>): SSEMessage<never> {
+  formatDone(metadata?: Partial<MessageMetadata>): SSEMessage {
     const messageMetadata = new MessageMetadataBuilder().updateTimestamp();
 
     if (metadata) {
@@ -288,7 +288,7 @@ export class MessageFormatterService {
   /**
    * 将消息序列化为 SSE 格式
    */
-  serializeToSSE<T>(message: SSEMessage<T>): string {
+  serializeToSSE(message: SSEMessage): string {
     try {
       return `data: ${JSON.stringify(message)}\n\n`;
     } catch (error) {

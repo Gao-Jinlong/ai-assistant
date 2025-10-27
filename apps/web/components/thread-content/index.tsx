@@ -1,3 +1,5 @@
+'use client';
+
 import useBoundStore from '@web/store';
 import MessageList from '../message-list';
 import { useQuery } from '@tanstack/react-query';

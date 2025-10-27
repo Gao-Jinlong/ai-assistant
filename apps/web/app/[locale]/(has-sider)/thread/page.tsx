@@ -1,5 +1,4 @@
 'use client';
-
 import ThreadContent from '@web/components/thread-content';
 import ThreadDefault from '@web/components/thread-default';
 import ThreadInput from '@web/components/thread-input';

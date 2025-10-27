@@ -10,12 +10,15 @@ import { AgentService } from '@server/agent/agent.service';
 import { AIMessage, HumanMessage } from '@langchain/core/messages';
 import { ConfigService } from '@nestjs/config';
 import { Thread } from '@prisma/client';
-import { from, share, type Observable } from 'rxjs';
+import { from, share, interval, Observable } from 'rxjs';
+import { delay, concatMap } from 'rxjs/operators';
 import { MESSAGE_TYPE } from './chat.interface';
 import { MessageFormatterService } from './message-formatter.service';
 import { MessageStreamProcessor } from './message-stream-processor';
 import { SSEMessage } from './dto/sse-message.dto';
 import { ErrorCode } from '@server/common/errors/error-codes';
+import path from 'node:path';
+import fs from 'node:fs';
 
 @Injectable()
 export class ChatService {
@@ -48,16 +51,25 @@ export class ChatService {
     await this.messageService.appendMessage(thread, [userMessage]);
 
     try {
-      const stream = await this.agentService.run({
-        thread,
-        memory,
-        message: userMessage,
-      });
+      // 检查是否启用 mock 模式
+      const isMockMode = this.configService.get('mock.enable', false);
 
-      const processedStream = messageStreamProcessor.processStream(stream);
+      let source$: Observable<SSEMessage>;
+      if (isMockMode) {
+        this.logger.info('Using mock mode for chat');
+        source$ = this.readMessagesFromMockFile();
+      } else {
+        const stream = await this.agentService.run({
+          thread,
+          memory,
+          message: userMessage,
+        });
+        const processedStream = messageStreamProcessor.processStream(stream);
+        source$ = from(processedStream).pipe(share());
+      }
 
       // 处理统一格式的消息流
-      await this.handleProcessedStream(processedStream, res, thread);
+      await this.handleProcessedStream({ source$, res, thread, isMockMode });
     } catch (error) {
       this.logger.error('Error in chat', { error, threadUid });
 
@@ -74,13 +86,20 @@ export class ChatService {
   /**
    * 处理统一格式的消息流
    */
-  private async handleProcessedStream(
-    processedStream: AsyncGenerator<SSEMessage, void, unknown>,
-    res: Response,
-    thread: Thread,
-  ) {
-    const source$ = from(processedStream).pipe(share());
-
+  private async handleProcessedStream({
+    source$,
+    res,
+    thread,
+    isMockMode,
+  }: {
+    source$: Observable<SSEMessage>;
+    res: Response;
+    thread: Thread;
+    isMockMode: boolean;
+  }) {
+    if (isMockMode) {
+      this.saveMessageToMockFile(source$);
+    }
     this.saveMessageToDatabase(source$, thread);
     this.transmitMessageToClient(source$, res);
   }
@@ -112,5 +131,83 @@ export class ChatService {
         ]);
       },
     });
+  }
+
+  private saveMessageToMockFile(
+    source$: Observable<SSEMessage>,
+    isMockMode = false,
+  ) {
+    // 如果是 mock 模式，不保存消息到文件（避免重复保存）
+    if (isMockMode) {
+      return;
+    }
+
+    const mockFilePath = this.configService.get('mock.path');
+    if (!fs.existsSync(mockFilePath)) {
+      fs.mkdirSync(mockFilePath, { recursive: true });
+    }
+    const mockFile = path.join(mockFilePath, 'chat.txt');
+
+    // 清空文件内容
+    fs.writeFileSync(mockFile, '');
+
+    source$.subscribe({
+      next: (sseMessage) => {
+        fs.appendFileSync(mockFile, JSON.stringify(sseMessage) + '\n');
+      },
+      error: (error) => {
+        this.logger.error('Error saving message to mock file', { error });
+      },
+    });
+  }
+
+  /**
+   * 从 mock 文件读取消息并创建 Observable 流
+   */
+  private readMessagesFromMockFile(): Observable<SSEMessage> {
+    const mockFilePath = this.configService.get('mock.path');
+    const mockFile = path.join(mockFilePath, 'chat.txt');
+
+    if (!fs.existsSync(mockFile)) {
+      this.logger.warn('Mock file does not exist', { mockFile });
+      return from([]);
+    }
+
+    try {
+      const fileContent = fs.readFileSync(mockFile, 'utf-8');
+      const lines = fileContent
+        .trim()
+        .split('\n')
+        .filter((line) => line.trim());
+
+      if (lines.length === 0) {
+        this.logger.warn('Mock file is empty', { mockFile });
+        return from([]);
+      }
+
+      const messages: SSEMessage[] = lines
+        .map((line) => {
+          try {
+            return JSON.parse(line) as SSEMessage;
+          } catch (error) {
+            this.logger.error('Failed to parse mock message', { line, error });
+            return null;
+          }
+        })
+        .filter((msg): msg is SSEMessage => msg !== null);
+
+      // 使用 interval 来模拟流式发送，每个消息间隔 100ms
+      return interval(100).pipe(
+        concatMap((index) => {
+          if (index < messages.length) {
+            return from([messages[index]]).pipe(delay(0));
+          }
+          return from([]);
+        }),
+      );
+    } catch (error) {
+      this.logger.error('Error reading mock file', { error, mockFile });
+      return from([]);
+    }
   }
 }
