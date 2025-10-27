@@ -3,7 +3,11 @@
     "allow": [
       "Bash(pnpm lint)",
       "Bash(pnpm build:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(node:*)",
+      "Bash(fnm list:*)",
+      "Bash(echo:*)",
+      "Bash(fnm:*)"
     ],
     "deny": [],
     "ask": []

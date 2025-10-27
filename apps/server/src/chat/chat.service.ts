@@ -11,7 +11,7 @@ import { AIMessage, HumanMessage } from '@langchain/core/messages';
 import { ConfigService } from '@nestjs/config';
 import { Thread } from '@prisma/client';
 import { from, share, interval, Observable } from 'rxjs';
-import { delay, concatMap } from 'rxjs/operators';
+import { delay, concatMap, take } from 'rxjs/operators';
 import { MESSAGE_TYPE } from './chat.interface';
 import { MessageFormatterService } from './message-formatter.service';
 import { MessageStreamProcessor } from './message-stream-processor';
@@ -97,8 +97,8 @@ export class ChatService {
     thread: Thread;
     isMockMode: boolean;
   }) {
-    if (isMockMode) {
-      this.saveMessageToMockFile(source$);
+    if (!isMockMode) {
+      this.saveMessageToMockFile(source$, isMockMode);
     }
     this.saveMessageToDatabase(source$, thread);
     this.transmitMessageToClient(source$, res);
@@ -197,13 +197,17 @@ export class ChatService {
         .filter((msg): msg is SSEMessage => msg !== null);
 
       // 使用 interval 来模拟流式发送，每个消息间隔 100ms
+      // 使用 take 操作符确保流在发送完所有消息后完成
       return interval(100).pipe(
         concatMap((index) => {
           if (index < messages.length) {
             return from([messages[index]]).pipe(delay(0));
           }
-          return from([]);
+          // 当所有消息发送完毕后，返回 EMPTY 来完成流
+          return from([]).pipe(delay(0));
         }),
+        // 限制发送的消息数量，确保流能正确完成
+        take(messages.length),
       );
     } catch (error) {
       this.logger.error('Error reading mock file', { error, mockFile });
