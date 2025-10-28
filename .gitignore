@@ -11,3 +11,6 @@ apps/server/data/storage
 
 # 日志
 apps/server/logs
+
+# testing
+apps/common/coverage

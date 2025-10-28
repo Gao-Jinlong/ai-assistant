@@ -50,7 +50,7 @@ export class MessageStreamProcessor {
     try {
       // 发送消息开始事件
       yield this.messageFormatter.formatMessageStart({
-        groupId: this.groupId,
+        threadId: this.groupId,
         timestamp: this.startTime,
       });
 
@@ -84,14 +84,14 @@ export class MessageStreamProcessor {
         'stop', // 这里可以根据实际情况判断结束原因
         this.totalTokens,
         {
-          groupId: this.groupId,
+          threadId: this.groupId,
           latency,
         },
       );
 
       // 发送流结束事件
       yield this.messageFormatter.formatDone({
-        groupId: this.groupId,
+        threadId: this.groupId,
         usage: this.totalTokens,
         latency,
       });
@@ -102,7 +102,7 @@ export class MessageStreamProcessor {
         ErrorCode.STREAM_ERROR,
         { groupId: this.groupId },
         {
-          groupId: this.groupId,
+          threadId: this.groupId,
         },
       );
     }
@@ -117,7 +117,7 @@ export class MessageStreamProcessor {
     const [message, metadata] = chunk;
     const finalMetadata: Partial<MessageMetadata> = {
       ...metadata,
-      groupId: this.groupId,
+      threadId: this.groupId,
       messageChunkIndex: this.messageChunkIndex++,
     };
 

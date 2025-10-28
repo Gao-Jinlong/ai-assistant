@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ai-assistant/common": "workspace:*",
     "@ai-sdk/react": "^1.1.18",
     "@formatjs/intl-localematcher": "^0.6.1",
     "@hookform/resolvers": "^4.1.2",

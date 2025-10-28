@@ -1,0 +1,28 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "declaration": true,
+    "declarationMap": true,
+    "composite": true,
+    "tsBuildInfoFile": "./dist/.tsbuildinfo",
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["./*"]
+    },
+    "types": ["vitest/globals"]
+  },
+  "include": [
+    "src/**/*",
+    "src/types/**/*",
+    "src/utils/**/*",
+    "src/constants/**/*",
+    "**/*.test.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "coverage"
+  ]
+}

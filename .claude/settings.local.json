@@ -7,7 +7,14 @@
       "Bash(node:*)",
       "Bash(fnm list:*)",
       "Bash(echo:*)",
-      "Bash(fnm:*)"
+      "Bash(fnm:*)",
+      "Bash(mkdir:*)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm build:common:*)",
+      "Bash(pnpm test:run:*)",
+      "Bash(npx vitest run:*)",
+      "Bash(pnpm test:coverage)",
+      "Bash(pnpm test:*)"
     ],
     "deny": [],
     "ask": []

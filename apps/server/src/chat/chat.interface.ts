@@ -6,8 +6,6 @@ export enum MESSAGE_ROLE {
 export enum MESSAGE_TYPE {
   // 内容相关
   MESSAGE_CHUNK = 'message_chunk', // 文本消息块
-  MESSAGE_START = 'message_start', // 消息开始(可包含元数据)
-  MESSAGE_END = 'message_end', // 消息结束(可包含统计信息)
 
   // 工具调用相关
   TOOL_CALL_START = 'tool_call_start', // 工具调用开始

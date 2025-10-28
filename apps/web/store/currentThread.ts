@@ -1,7 +1,10 @@
-import { MESSAGE_ROLE, MESSAGE_TYPE } from '@server/chat/chat.interface';
+import { MESSAGE_ROLE } from '@common/constants';
+import { MESSAGE_TYPE } from '@server/chat/chat.interface';
 import type { StreamMessage } from '@server/chat/dto/sse-message.dto';
 import { ThreadDto } from '@web/service/thread';
-import { Store } from '.';
+import useBoundStore, { Store } from '.';
+import { uuid as uuidUtils } from '@common/utils';
+
 export interface CurrentThreadStoreState {
   currentThread: ThreadDto | null;
   messageIds: Set<string>;
@@ -21,7 +24,7 @@ export interface CurrentThreadStore
   extends CurrentThreadStoreState,
     CurrentThreadStoreActions {}
 
-const createThreadSlice: Store<CurrentThreadStore> = (set, get, store) => ({
+const currentThreadSlice: Store<CurrentThreadStore> = (set, get, store) => ({
   isResponding: false,
   currentThread: null,
   messageIds: new Set(),
@@ -50,33 +53,39 @@ const createThreadSlice: Store<CurrentThreadStore> = (set, get, store) => ({
       };
     });
   },
-  // sendMessage: (message) => {
-  //   set({
-  //     messages: [
-  //       ...get().messages,
-  //       {
-  //         type: MESSAGE_TYPE.MESSAGE_CHUNK,
-  //         data: {
-  //           content: message,
-  //           role: MESSAGE_ROLE.HUMAN,
-  //         },
-  //         metadata: {
-  //           groupId: get().currentThread?.uid ?? '',
-  //           timestamp: Date.now(),
-  //         },
-  //       },
-  //     ],
-  //   });
-  // },
+
   setCurrentThread: (current) => set({ currentThread: current }),
   setIsResponding: (isResponding) => set({ isResponding }),
   setMessageList: (messageList) => set({ messages: messageList }),
 });
 
-export { createThreadSlice as createCurrentThreadSlice };
+export { currentThreadSlice };
 
-// TODO 重构前端对话逻辑
-export function sendMessage(message: string) {}
+export function sendMessage(content: string) {
+  if (content != null) {
+    const message: StreamMessage = {
+      id: uuidUtils.generateMessageId(),
+      type: MESSAGE_TYPE.MESSAGE_CHUNK,
+      data: {
+        content,
+        role: MESSAGE_ROLE.HUMAN,
+      },
+      metadata: {
+        threadId:
+          useBoundStore.getState().currentThread?.uid ??
+          uuidUtils.generateThreadId(),
+        timestamp: Date.now(),
+      },
+    };
+    appendMessage(message);
+
+    // TODO 重构前端对话逻辑
+  }
+}
+
+function appendMessage(message: StreamMessage) {
+  useBoundStore.getState().appendMessage(message);
+}
 function mergeMessage(
   lastMessage: StreamMessage,
   message: StreamMessage,

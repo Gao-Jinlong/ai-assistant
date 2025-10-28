@@ -22,7 +22,7 @@ export class MessageMetadataBuilder {
    * 设置组ID
    */
   setGroupId(groupId: string): this {
-    this.metadata.groupId = groupId;
+    this.metadata.threadId = groupId;
     return this;
   }
 

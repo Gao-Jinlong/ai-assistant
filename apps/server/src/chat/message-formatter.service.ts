@@ -42,7 +42,7 @@ export class MessageFormatterService {
     if (metadata) {
       if (metadata.messageChunkIndex)
         messageMetadata.setMessageId(metadata.messageChunkIndex);
-      if (metadata.groupId) messageMetadata.setGroupId(metadata.groupId);
+      if (metadata.threadId) messageMetadata.setGroupId(metadata.threadId);
       if (metadata.model) messageMetadata.setModel(metadata.model);
       if (metadata.usage) messageMetadata.setUsage(metadata.usage);
       if (metadata.latency) messageMetadata.setLatency(metadata.latency);
@@ -65,7 +65,7 @@ export class MessageFormatterService {
     const messageMetadata = new MessageMetadataBuilder().updateTimestamp();
 
     if (metadata) {
-      if (metadata.groupId) messageMetadata.setGroupId(metadata.groupId);
+      if (metadata.threadId) messageMetadata.setGroupId(metadata.threadId);
       if (metadata.usage) messageMetadata.setUsage(metadata.usage);
     }
 
@@ -95,7 +95,7 @@ export class MessageFormatterService {
       .updateTimestamp();
 
     if (metadata) {
-      if (metadata.groupId) messageMetadata.setGroupId(metadata.groupId);
+      if (metadata.threadId) messageMetadata.setGroupId(metadata.threadId);
       if (metadata.model) messageMetadata.setModel(metadata.model);
       if (metadata.latency) messageMetadata.setLatency(metadata.latency);
     }
@@ -123,7 +123,7 @@ export class MessageFormatterService {
       .updateTimestamp();
 
     if (metadata) {
-      if (metadata.groupId) messageMetadata.setGroupId(metadata.groupId);
+      if (metadata.threadId) messageMetadata.setGroupId(metadata.threadId);
       if (metadata.model) messageMetadata.setModel(metadata.model);
     }
 
@@ -151,7 +151,7 @@ export class MessageFormatterService {
       .updateTimestamp();
 
     if (metadata) {
-      if (metadata.groupId) messageMetadata.setGroupId(metadata.groupId);
+      if (metadata.threadId) messageMetadata.setGroupId(metadata.threadId);
       if (metadata.model) messageMetadata.setModel(metadata.model);
     }
 
@@ -178,7 +178,7 @@ export class MessageFormatterService {
       .updateTimestamp();
 
     if (metadata) {
-      if (metadata.groupId) messageMetadata.setGroupId(metadata.groupId);
+      if (metadata.threadId) messageMetadata.setGroupId(metadata.threadId);
       if (metadata.model) messageMetadata.setModel(metadata.model);
     }
 
@@ -208,7 +208,7 @@ export class MessageFormatterService {
       .updateTimestamp();
 
     if (metadata) {
-      if (metadata.groupId) messageMetadata.setGroupId(metadata.groupId);
+      if (metadata.threadId) messageMetadata.setGroupId(metadata.threadId);
       if (metadata.model) messageMetadata.setModel(metadata.model);
     }
 
@@ -236,7 +236,7 @@ export class MessageFormatterService {
     const messageMetadata = new MessageMetadataBuilder().updateTimestamp();
 
     if (metadata) {
-      if (metadata.groupId) messageMetadata.setGroupId(metadata.groupId);
+      if (metadata.threadId) messageMetadata.setGroupId(metadata.threadId);
       if (metadata.model) messageMetadata.setModel(metadata.model);
     }
 
@@ -265,7 +265,7 @@ export class MessageFormatterService {
     const messageMetadata = new MessageMetadataBuilder().updateTimestamp();
 
     if (metadata) {
-      if (metadata.groupId) messageMetadata.setGroupId(metadata.groupId);
+      if (metadata.threadId) messageMetadata.setGroupId(metadata.threadId);
       if (metadata.model) messageMetadata.setModel(metadata.model);
       if (metadata.usage) messageMetadata.setUsage(metadata.usage);
       if (metadata.latency) messageMetadata.setLatency(metadata.latency);

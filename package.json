@@ -7,8 +7,15 @@
   "scripts": {
     "dev": "pnpm run --parallel dev",
     "lint": "pnpm run --parallel lint",
+    "test": "pnpm run --parallel test",
+    "test:common": "pnpm --filter @ai-assistant/common test:run",
+    "test:server": "pnpm --filter server test",
+    "test:web": "pnpm --filter web test",
+    "test:coverage": "pnpm run --parallel test:coverage",
+    "build:common": "pnpm --filter @ai-assistant/common build",
     "build:server": "pnpm --filter server build",
     "build:web": "pnpm --filter web build",
+    "build": "pnpm build:common && pnpm build:server && pnpm build:web",
     "start:server": "pnpm --filter server start:prod",
     "start:web": "pnpm --filter web start",
     "start:db": "node scripts/start-db.js",
@@ -20,6 +27,7 @@
   "devDependencies": {
     "eslint": "^9.38.0",
     "jiti": "^2.6.1",
+    "tsup": "^8.3.5",
     "typescript": "^5.9.3"
   }
 }

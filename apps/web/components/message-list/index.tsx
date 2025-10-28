@@ -9,7 +9,7 @@ const MessageList = ({ messages }: MessageListProps) => {
     <div className="flex h-full w-full max-w-4xl flex-col gap-4 p-8">
       {messages.map((message, index) => (
         <MessageItem
-          key={`${index}-${message.metadata?.groupId}`}
+          key={`${index}-${message.metadata?.threadId}`}
           message={message}
         />
       ))}

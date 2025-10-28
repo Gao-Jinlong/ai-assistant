@@ -14,8 +14,6 @@ export type StreamMessage =
   | BaseStreamMessage<MESSAGE_TYPE.PING, null>
   | BaseStreamMessage<MESSAGE_TYPE.ERROR, null>
   | BaseStreamMessage<MESSAGE_TYPE.MESSAGE_CHUNK, MessageChunkData>
-  | BaseStreamMessage<MESSAGE_TYPE.MESSAGE_START, MessageStartData>
-  | BaseStreamMessage<MESSAGE_TYPE.MESSAGE_END, MessageEndData>
   | BaseStreamMessage<MESSAGE_TYPE.DONE, null>
   | BaseStreamMessage<MESSAGE_TYPE.TOOL_CALL_START, ToolCallStartData>
   | BaseStreamMessage<MESSAGE_TYPE.TOOL_CALL_CHUNK, ToolCallChunkData>
@@ -33,7 +31,7 @@ export interface MessageMetadata {
   /**
    * 消息组ID(同一轮对话)
    */
-  groupId?: string;
+  threadId?: string;
   /**
    * 时间戳
    */
@@ -50,7 +48,6 @@ export interface MessageMetadata {
    * 延迟(ms)
    */
   latency?: number;
-  id: string;
 }
 
 /**
