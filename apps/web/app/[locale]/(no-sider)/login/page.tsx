@@ -66,7 +66,7 @@ export default function Login() {
           });
           setLoginInfo(result.data);
           setTimeout(() => {
-            router.push(`/${locale}/dashboard`);
+            router.push(`/${locale}/thread`);
           }, 1000);
         }
       } catch (error) {

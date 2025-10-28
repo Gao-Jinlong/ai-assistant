@@ -8,7 +8,7 @@ import { useRef, useEffect, useCallback, useState } from 'react';
 
 const ThreadContent = () => {
   const thread = useBoundStore((state) => state.currentThread)!;
-  const messageList = useBoundStore((state) => state.messageList);
+  const messageList = useBoundStore((state) => state.messages);
   const _setMessageList = useBoundStore((state) => state.setMessageList);
 
   const messageListContainer = useRef<HTMLDivElement>(null);

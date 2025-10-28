@@ -10,14 +10,7 @@ import {
 } from '@langchain/core/messages';
 import { MESSAGE_ROLE, MESSAGE_TYPE } from './chat.interface';
 import {
-  SSEMessage,
-  MessageChunkData,
-  MessageStartData,
-  MessageEndData,
-  ToolCallStartData,
-  ToolCallChunkData,
-  ToolCallEndData,
-  ToolResultData,
+  StreamMessage,
   MessageMetadata,
   StructuredError,
 } from './dto/sse-message.dto';
@@ -43,7 +36,7 @@ export class MessageFormatterService {
   formatMessageChunk(
     chunk: AIMessageChunk,
     metadata: Partial<MessageMetadata>,
-  ): SSEMessage {
+  ): StreamMessage {
     const messageMetadata = new MessageMetadataBuilder().updateTimestamp();
 
     if (metadata) {
@@ -68,7 +61,7 @@ export class MessageFormatterService {
   /**
    * 格式化消息开始事件
    */
-  formatMessageStart(metadata: Partial<MessageMetadata>): SSEMessage {
+  formatMessageStart(metadata: Partial<MessageMetadata>): StreamMessage {
     const messageMetadata = new MessageMetadataBuilder().updateTimestamp();
 
     if (metadata) {
@@ -77,7 +70,7 @@ export class MessageFormatterService {
     }
 
     return {
-      type: MESSAGE_TYPE.MESSAGE_START,
+      type: MESSAGE_TYPE.MESSAGE_CHUNK,
       data: {
         role: MESSAGE_ROLE.ASSISTANT,
       },
@@ -96,7 +89,7 @@ export class MessageFormatterService {
       totalTokens?: number;
     },
     metadata?: Partial<MessageMetadata>,
-  ): SSEMessage {
+  ): StreamMessage {
     const messageMetadata = new MessageMetadataBuilder()
       .setUsage(usage)
       .updateTimestamp();
@@ -124,7 +117,7 @@ export class MessageFormatterService {
   formatToolCallStart(
     toolCall: ToolCall,
     metadata?: Partial<MessageMetadata>,
-  ): SSEMessage {
+  ): StreamMessage {
     const messageMetadata = new MessageMetadataBuilder()
       .setMessageId(metadata?.messageChunkIndex || 0)
       .updateTimestamp();
@@ -152,7 +145,7 @@ export class MessageFormatterService {
     argsChunk: string,
     index: number,
     metadata?: Partial<MessageMetadata>,
-  ): SSEMessage {
+  ): StreamMessage {
     const messageMetadata = new MessageMetadataBuilder()
       .setMessageId(metadata?.messageChunkIndex || 0)
       .updateTimestamp();
@@ -179,7 +172,7 @@ export class MessageFormatterService {
   formatToolCallEnd(
     toolCall: ToolCall,
     metadata?: Partial<MessageMetadata>,
-  ): SSEMessage {
+  ): StreamMessage {
     const messageMetadata = new MessageMetadataBuilder()
       .setMessageId(metadata?.messageChunkIndex || 0)
       .updateTimestamp();
@@ -209,7 +202,7 @@ export class MessageFormatterService {
     result: unknown,
     error?: string,
     metadata?: Partial<MessageMetadata>,
-  ): SSEMessage {
+  ): StreamMessage {
     const messageMetadata = new MessageMetadataBuilder()
       .setMessageId(metadata?.messageChunkIndex || 0)
       .updateTimestamp();
@@ -239,7 +232,7 @@ export class MessageFormatterService {
     code: ErrorCode = ErrorCode.UNKNOWN_ERROR,
     details?: Record<string, unknown>,
     metadata?: Partial<MessageMetadata>,
-  ): SSEMessage {
+  ): StreamMessage {
     const messageMetadata = new MessageMetadataBuilder().updateTimestamp();
 
     if (metadata) {
@@ -268,7 +261,7 @@ export class MessageFormatterService {
   /**
    * 格式化流结束消息
    */
-  formatDone(metadata?: Partial<MessageMetadata>): SSEMessage {
+  formatDone(metadata?: Partial<MessageMetadata>): StreamMessage {
     const messageMetadata = new MessageMetadataBuilder().updateTimestamp();
 
     if (metadata) {
@@ -288,7 +281,7 @@ export class MessageFormatterService {
   /**
    * 将消息序列化为 SSE 格式
    */
-  serializeToSSE(message: SSEMessage): string {
+  serializeToSSE(message: StreamMessage): string {
     try {
       return `data: ${JSON.stringify(message)}\n\n`;
     } catch (error) {

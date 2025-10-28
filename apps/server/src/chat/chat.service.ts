@@ -15,7 +15,7 @@ import { delay, concatMap, take } from 'rxjs/operators';
 import { MESSAGE_TYPE } from './chat.interface';
 import { MessageFormatterService } from './message-formatter.service';
 import { MessageStreamProcessor } from './message-stream-processor';
-import { SSEMessage } from './dto/sse-message.dto';
+import { StreamMessage } from './dto/sse-message.dto';
 import { ErrorCode } from '@server/common/errors/error-codes';
 import path from 'node:path';
 import fs from 'node:fs';
@@ -54,7 +54,7 @@ export class ChatService {
       // 检查是否启用 mock 模式
       const isMockMode = this.configService.get('mock.enable', false);
 
-      let source$: Observable<SSEMessage>;
+      let source$: Observable<StreamMessage>;
       if (isMockMode) {
         this.logger.info('Using mock mode for chat');
         source$ = this.readMessagesFromMockFile();
@@ -92,7 +92,7 @@ export class ChatService {
     thread,
     isMockMode,
   }: {
-    source$: Observable<SSEMessage>;
+    source$: Observable<StreamMessage>;
     res: Response;
     thread: Thread;
     isMockMode: boolean;
@@ -105,7 +105,7 @@ export class ChatService {
   }
 
   private async transmitMessageToClient(
-    source$: Observable<SSEMessage>,
+    source$: Observable<StreamMessage>,
     res: Response,
   ) {
     source$.subscribe({
@@ -115,7 +115,7 @@ export class ChatService {
     });
   }
   private saveMessageToDatabase(
-    source$: Observable<SSEMessage>,
+    source$: Observable<StreamMessage>,
     thread: Thread,
   ) {
     let mergedMessage = '';
@@ -134,7 +134,7 @@ export class ChatService {
   }
 
   private saveMessageToMockFile(
-    source$: Observable<SSEMessage>,
+    source$: Observable<StreamMessage>,
     isMockMode = false,
   ) {
     // 如果是 mock 模式，不保存消息到文件（避免重复保存）
@@ -164,7 +164,7 @@ export class ChatService {
   /**
    * 从 mock 文件读取消息并创建 Observable 流
    */
-  private readMessagesFromMockFile(): Observable<SSEMessage> {
+  private readMessagesFromMockFile(): Observable<StreamMessage> {
     const mockFilePath = this.configService.get('mock.path');
     const mockFile = path.join(mockFilePath, 'chat.txt');
 
@@ -185,16 +185,16 @@ export class ChatService {
         return from([]);
       }
 
-      const messages: SSEMessage[] = lines
+      const messages: StreamMessage[] = lines
         .map((line) => {
           try {
-            return JSON.parse(line) as SSEMessage;
+            return JSON.parse(line) as StreamMessage;
           } catch (error) {
             this.logger.error('Failed to parse mock message', { line, error });
             return null;
           }
         })
-        .filter((msg): msg is SSEMessage => msg !== null);
+        .filter((msg): msg is StreamMessage => msg !== null);
 
       // 使用 interval 来模拟流式发送，每个消息间隔 100ms
       // 使用 take 操作符确保流在发送完所有消息后完成

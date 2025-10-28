@@ -1,8 +1,8 @@
 import MessageItem from './message-item';
-import type { SSEMessage } from '@server/chat/dto/sse-message.dto';
+import type { StreamMessage } from '@server/chat/dto/sse-message.dto';
 
 export interface MessageListProps {
-  messages: SSEMessage[];
+  messages: StreamMessage[];
 }
 const MessageList = ({ messages }: MessageListProps) => {
   return (

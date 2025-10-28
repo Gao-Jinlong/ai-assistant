@@ -26,8 +26,8 @@ export class ModelManagerService {
     switch (type) {
       case MODEL_TYPE.LLM:
         return new ChatOpenAI({
-          // model: 'deepseek-v3.2-exp',
-          model: 'qwen3-max-2025-09-23',
+          model: 'deepseek-v3.2-exp',
+          // model: 'qwen3-max-2025-09-23',
           apiKey: this.configService.get('TONGYI_API_KEY')!,
           configuration: {
             baseURL: this.configService.get('TONGYI_BASE_URL')!,

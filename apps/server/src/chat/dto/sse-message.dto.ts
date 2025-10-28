@@ -1,69 +1,26 @@
 import { MESSAGE_TYPE, type MESSAGE_ROLE } from '../chat.interface';
 
+export interface BaseStreamMessage<T extends MESSAGE_TYPE, D> {
+  type: T;
+  data: D;
+  id: string;
+  metadata: MessageMetadata;
+  error?: StructuredError;
+}
 /**
- * 统一 SSE 消息格式
+ * 统一流式消息格式
  */
-export type SSEMessage =
-  | {
-      type: MESSAGE_TYPE.PING;
-      data: null;
-      metadata?: MessageMetadata;
-      error?: StructuredError;
-    }
-  | {
-      type: MESSAGE_TYPE.ERROR;
-      data: null;
-      metadata?: MessageMetadata;
-      error?: StructuredError;
-    }
-  | {
-      type: MESSAGE_TYPE.MESSAGE_START;
-      data: MessageStartData;
-      metadata?: MessageMetadata;
-      error?: StructuredError;
-    }
-  | {
-      type: MESSAGE_TYPE.MESSAGE_END;
-      data: MessageEndData;
-      metadata?: MessageMetadata;
-      error?: StructuredError;
-    }
-  | {
-      type: MESSAGE_TYPE.MESSAGE_CHUNK;
-      data: MessageChunkData;
-      metadata?: MessageMetadata;
-      error?: StructuredError;
-    }
-  | {
-      type: MESSAGE_TYPE.DONE;
-      data: null;
-      metadata?: MessageMetadata;
-      error?: StructuredError;
-    }
-  | {
-      type: MESSAGE_TYPE.TOOL_CALL_START;
-      data: ToolCallStartData;
-      metadata?: MessageMetadata;
-      error?: StructuredError;
-    }
-  | {
-      type: MESSAGE_TYPE.TOOL_CALL_CHUNK;
-      data: ToolCallChunkData;
-      metadata?: MessageMetadata;
-      error?: StructuredError;
-    }
-  | {
-      type: MESSAGE_TYPE.TOOL_CALL_END;
-      data: ToolCallEndData;
-      metadata?: MessageMetadata;
-      error?: StructuredError;
-    }
-  | {
-      type: MESSAGE_TYPE.TOOL_RESULT;
-      data: ToolResultData;
-      metadata?: MessageMetadata;
-      error?: StructuredError;
-    };
+export type StreamMessage =
+  | BaseStreamMessage<MESSAGE_TYPE.PING, null>
+  | BaseStreamMessage<MESSAGE_TYPE.ERROR, null>
+  | BaseStreamMessage<MESSAGE_TYPE.MESSAGE_CHUNK, MessageChunkData>
+  | BaseStreamMessage<MESSAGE_TYPE.MESSAGE_START, MessageStartData>
+  | BaseStreamMessage<MESSAGE_TYPE.MESSAGE_END, MessageEndData>
+  | BaseStreamMessage<MESSAGE_TYPE.DONE, null>
+  | BaseStreamMessage<MESSAGE_TYPE.TOOL_CALL_START, ToolCallStartData>
+  | BaseStreamMessage<MESSAGE_TYPE.TOOL_CALL_CHUNK, ToolCallChunkData>
+  | BaseStreamMessage<MESSAGE_TYPE.TOOL_CALL_END, ToolCallEndData>
+  | BaseStreamMessage<MESSAGE_TYPE.TOOL_RESULT, ToolResultData>;
 
 /**
  * 消息元数据
@@ -93,6 +50,7 @@ export interface MessageMetadata {
    * 延迟(ms)
    */
   latency?: number;
+  id: string;
 }
 
 /**
@@ -126,14 +84,14 @@ export interface MessageChunkData {
  * 消息开始数据
  */
 export interface MessageStartData {
-  role: MESSAGE_ROLE.ASSISTANT;
+  role: MESSAGE_ROLE; // 通常为 assistant
 }
 
 /**
  * 消息结束数据
  */
 export interface MessageEndData {
-  role: MESSAGE_ROLE.ASSISTANT;
+  role: MESSAGE_ROLE;
   finishReason: 'stop' | 'length' | 'tool_calls';
   usage: TokenUsage; // 完整的token统计
 }

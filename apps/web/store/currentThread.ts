@@ -1,19 +1,20 @@
 import { MESSAGE_ROLE, MESSAGE_TYPE } from '@server/chat/chat.interface';
-import type { SSEMessage } from '@server/chat/dto/sse-message.dto';
+import type { StreamMessage } from '@server/chat/dto/sse-message.dto';
 import { ThreadDto } from '@web/service/thread';
 import { Store } from '.';
 export interface CurrentThreadStoreState {
   currentThread: ThreadDto | null;
-  messageList: SSEMessage[];
+  messageIds: Set<string>;
+  messages: Map<string, StreamMessage>;
   isResponding: boolean;
 }
 export interface CurrentThreadStoreActions {
   clearCurrent: () => void;
   setCurrentThread: (current: ThreadDto | null) => void;
   setIsResponding: (isResponding: boolean) => void;
-  appendMessage: (message: SSEMessage) => void;
-  sendMessage: (message: string) => void;
-  setMessageList: (messageList: SSEMessage[]) => void;
+  appendMessage: (message: StreamMessage) => void;
+  updateMessage: (message: StreamMessage) => void;
+  setMessageList: (messageList: Map<string, StreamMessage>) => void;
 }
 
 export interface CurrentThreadStore
@@ -23,7 +24,8 @@ export interface CurrentThreadStore
 const createThreadSlice: Store<CurrentThreadStore> = (set, get, store) => ({
   isResponding: false,
   currentThread: null,
-  messageList: [],
+  messageIds: new Set(),
+  messages: new Map(),
   clearCurrent: () => {
     set({
       currentThread: null,
@@ -31,53 +33,54 @@ const createThreadSlice: Store<CurrentThreadStore> = (set, get, store) => ({
     });
   },
   appendMessage: (message) => {
-    const { messageList } = get();
-    const lastMessage = messageList[messageList.length - 1];
-
-    if (
-      message.metadata?.groupId &&
-      lastMessage?.metadata?.groupId === message.metadata?.groupId
-    ) {
-      const newMessage = mergeMessage(lastMessage, message);
-      set({
-        messageList: [...messageList.slice(0, -1), newMessage],
-      });
-      return;
-    } else {
-      set({
-        messageList: [...messageList, message],
-      });
-    }
-  },
-  sendMessage: (message) => {
-    set({
-      messageList: [
-        ...get().messageList,
-        {
-          type: MESSAGE_TYPE.MESSAGE_CHUNK,
-          data: {
-            content: message,
-            role: MESSAGE_ROLE.HUMAN,
-          },
-          metadata: {
-            groupId: get().currentThread?.uid ?? '',
-            timestamp: Date.now(),
-          },
-        },
-      ],
+    set((state) => {
+      const newMessageIds = state.messageIds.has(message.id)
+        ? state.messageIds
+        : new Set(state.messageIds).add(message.id);
+      return {
+        messageIds: newMessageIds,
+        messages: new Map(state.messages).set(message.id, message),
+      };
     });
   },
+  updateMessage: (message: StreamMessage) => {
+    set((state) => {
+      return {
+        messages: new Map(state.messages).set(message.id, message),
+      };
+    });
+  },
+  // sendMessage: (message) => {
+  //   set({
+  //     messages: [
+  //       ...get().messages,
+  //       {
+  //         type: MESSAGE_TYPE.MESSAGE_CHUNK,
+  //         data: {
+  //           content: message,
+  //           role: MESSAGE_ROLE.HUMAN,
+  //         },
+  //         metadata: {
+  //           groupId: get().currentThread?.uid ?? '',
+  //           timestamp: Date.now(),
+  //         },
+  //       },
+  //     ],
+  //   });
+  // },
   setCurrentThread: (current) => set({ currentThread: current }),
   setIsResponding: (isResponding) => set({ isResponding }),
-  setMessageList: (messageList) => set({ messageList }),
+  setMessageList: (messageList) => set({ messages: messageList }),
 });
 
 export { createThreadSlice as createCurrentThreadSlice };
 
+// TODO 重构前端对话逻辑
+export function sendMessage(message: string) {}
 function mergeMessage(
-  lastMessage: SSEMessage,
-  message: SSEMessage,
-): SSEMessage {
+  lastMessage: StreamMessage,
+  message: StreamMessage,
+): StreamMessage {
   const { type, data, metadata } = message;
   if (
     type === MESSAGE_TYPE.MESSAGE_CHUNK &&

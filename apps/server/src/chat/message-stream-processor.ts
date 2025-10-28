@@ -9,7 +9,7 @@ import {
 } from '@langchain/core/messages';
 import { MessageFormatterService } from './message-formatter.service';
 import {
-  SSEMessage,
+  StreamMessage,
   MessageMetadata,
   type MessageChunkData,
 } from './dto/sse-message.dto';
@@ -46,7 +46,7 @@ export class MessageStreamProcessor {
       | ['messages', [BaseMessage, Partial<MessageMetadata>]]
       | ['custom', Partial<MessageMetadata>]
     >,
-  ): AsyncGenerator<SSEMessage, void, unknown> {
+  ): AsyncGenerator<StreamMessage, void, unknown> {
     try {
       // 发送消息开始事件
       yield this.messageFormatter.formatMessageStart({
@@ -113,7 +113,7 @@ export class MessageStreamProcessor {
    */
   private async *processMessagesChunk(
     chunk: [BaseMessage, Partial<MessageMetadata>],
-  ): AsyncGenerator<SSEMessage, void, unknown> {
+  ): AsyncGenerator<StreamMessage, void, unknown> {
     const [message, metadata] = chunk;
     const finalMetadata: Partial<MessageMetadata> = {
       ...metadata,

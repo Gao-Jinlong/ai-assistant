@@ -11,16 +11,16 @@ export interface RouterItem {
 }
 export const navigation: RouterItem[] = [
   {
-    key: 'dashboard',
-    label: 'sidebar.dashboard',
-    href: '/dashboard',
-    disabled: false,
-  },
-  {
     key: 'thread',
     label: 'sidebar.thread',
     href: '/thread',
     badge: 5,
+    disabled: false,
+  },
+  {
+    key: 'dashboard',
+    label: 'sidebar.dashboard',
+    href: '/dashboard',
     disabled: false,
   },
 ];
