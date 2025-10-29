@@ -19,7 +19,7 @@ export interface CurrentThreadStoreActions {
   appendMessage: (message: StreamMessage) => void;
   updateMessage: (message: StreamMessage) => void;
   updateMessages: (messages: StreamMessage[]) => void;
-  setMessageList: (messageList: Map<string, StreamMessage>) => void;
+  setMessageList: (messageList: StreamMessage[]) => void;
 }
 
 export interface CurrentThreadStore
@@ -35,6 +35,8 @@ const currentThreadSlice: Store<CurrentThreadStore> = (set, get, store) => ({
     set({
       currentThread: null,
       responding: false,
+      messageIds: new Set(),
+      messages: new Map(),
     });
   },
   appendMessage: (message) => {
@@ -67,7 +69,11 @@ const currentThreadSlice: Store<CurrentThreadStore> = (set, get, store) => ({
   },
   setCurrentThread: (current) => set({ currentThread: current }),
   setResponding: (isResponding) => set({ responding: isResponding }),
-  setMessageList: (messageList) => set({ messages: messageList }),
+  setMessageList: (messageList) =>
+    set({
+      messages: new Map(messageList.map((message) => [message.id, message])),
+      messageIds: new Set(messageList.map((message) => message.id)),
+    }),
 });
 
 export { currentThreadSlice as createCurrentThreadSlice };
@@ -92,7 +98,6 @@ export async function sendMessage(
         role: MESSAGE_ROLE.HUMAN,
       },
       metadata: {
-        threadId: threadId,
         timestamp: Date.now(),
       },
     };

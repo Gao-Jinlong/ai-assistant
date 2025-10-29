@@ -5,8 +5,9 @@ import { useCallback, useMemo } from 'react';
 import { CreateButton } from './create-button';
 import { useQuery } from '@tanstack/react-query';
 import ThreadListItem from './ThreadListItem';
-import { deleteThread, ThreadVO } from '@web/service/thread';
+import { deleteThread, getThreadMessages, ThreadVO } from '@web/service/thread';
 import queries from '@web/queries';
+import { toast } from 'sonner';
 
 const ThreadList = ({ isSimple }: { isSimple: boolean }) => {
   const router = useBoundStore((state) => state.router);
@@ -17,7 +18,7 @@ const ThreadList = ({ isSimple }: { isSimple: boolean }) => {
   const clearCurrent = useBoundStore((state) => state.clearCurrent);
   const threads = useBoundStore((state) => state.threads);
   const isThread = useMemo(() => router.key === 'thread', [router]);
-  const threadQuery = useQuery({
+  const threadsQuery = useQuery({
     ...queries.thread.getThreads,
     onSuccess: (resp) => {
       setThreads(resp.data);
@@ -26,16 +27,32 @@ const ThreadList = ({ isSimple }: { isSimple: boolean }) => {
 
   const onClick = useCallback(
     async (thread: ThreadVO) => {
-      setCurrentThread(thread);
+      try {
+        // 先清空当前消息，避免显示上一个线程的消息
+        clearCurrent();
+        // 设置新的当前线程
+        setCurrentThread(thread);
+
+        // 加载历史消息
+        const response = await getThreadMessages(thread.id);
+        if (response.code === 200 && response.data) {
+          useBoundStore.getState().setMessageList(response.data);
+        } else {
+          toast.error('加载历史消息失败');
+        }
+      } catch (error) {
+        console.error('Failed to load thread messages:', error);
+        toast.error('加载历史消息失败');
+      }
     },
-    [setCurrentThread],
+    [setCurrentThread, clearCurrent],
   );
   const onDelete = useCallback(
     async (thread: ThreadVO) => {
       await deleteThread(thread.id);
-      threadQuery.refetch();
+      threadsQuery.refetch();
     },
-    [threadQuery],
+    [threadsQuery],
   );
 
   const handleCreate = useCallback(() => {

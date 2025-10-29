@@ -1,6 +1,7 @@
 import type { MESSAGE_TYPE } from '@server/chat/chat.interface';
 import { ResponseWrapper } from '.';
 import { del, get, post } from './fetch';
+import { StreamMessage } from '@server/chat/dto/sse-message.dto';
 
 export type MessageRole = 'user' | 'assistant';
 
@@ -144,7 +145,9 @@ export interface MessageChunkDto {
 export const getThreads = () => {
   return get<ResponseWrapper<ThreadVO[]>>('thread');
 };
-
+export const getThread = (id: ThreadVO['id']) => {
+  return get<ResponseWrapper<ThreadVO>>(`thread/${id}`);
+};
 export const createThread = () => {
   return post<ResponseWrapper<ThreadVO>>('thread');
 };
@@ -154,5 +157,5 @@ export const deleteThread = (id: string) => {
 };
 
 export const getThreadMessages = (id: ThreadVO['id']) => {
-  return get<ResponseWrapper<MessageChunkDto[]>>(`thread/${id}/messages`);
+  return get<ResponseWrapper<StreamMessage[]>>(`thread/${id}/messages`);
 };

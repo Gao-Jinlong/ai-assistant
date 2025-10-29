@@ -1,5 +1,4 @@
 'use client';
-
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@web/i18n/navigation';
