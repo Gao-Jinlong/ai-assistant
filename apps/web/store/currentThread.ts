@@ -1,22 +1,24 @@
 import { MESSAGE_ROLE } from '@common/constants';
 import { MESSAGE_TYPE } from '@server/chat/chat.interface';
 import type { StreamMessage } from '@server/chat/dto/sse-message.dto';
-import { ThreadDto } from '@web/service/thread';
+import { ThreadVO } from '@web/service/thread';
 import useBoundStore, { Store } from '.';
 import { uuid as uuidUtils } from '@common/utils';
+import { chatService } from '@web/service';
 
 export interface CurrentThreadStoreState {
-  currentThread: ThreadDto | null;
+  currentThread: ThreadVO | null;
   messageIds: Set<string>;
   messages: Map<string, StreamMessage>;
-  isResponding: boolean;
+  responding: boolean;
 }
 export interface CurrentThreadStoreActions {
   clearCurrent: () => void;
-  setCurrentThread: (current: ThreadDto | null) => void;
-  setIsResponding: (isResponding: boolean) => void;
+  setCurrentThread: (current: ThreadVO | null) => void;
+  setResponding: (responding: boolean) => void;
   appendMessage: (message: StreamMessage) => void;
   updateMessage: (message: StreamMessage) => void;
+  updateMessages: (messages: StreamMessage[]) => void;
   setMessageList: (messageList: Map<string, StreamMessage>) => void;
 }
 
@@ -25,14 +27,14 @@ export interface CurrentThreadStore
     CurrentThreadStoreActions {}
 
 const currentThreadSlice: Store<CurrentThreadStore> = (set, get, store) => ({
-  isResponding: false,
+  responding: false,
   currentThread: null,
   messageIds: new Set(),
   messages: new Map(),
   clearCurrent: () => {
     set({
       currentThread: null,
-      isResponding: false,
+      responding: false,
     });
   },
   appendMessage: (message) => {
@@ -46,23 +48,42 @@ const currentThreadSlice: Store<CurrentThreadStore> = (set, get, store) => ({
       };
     });
   },
-  updateMessage: (message: StreamMessage) => {
+  updateMessage: (message) => {
     set((state) => {
       return {
         messages: new Map(state.messages).set(message.id, message),
       };
     });
   },
-
+  updateMessages: (messages) => {
+    set((state) => {
+      messages.forEach((message) => {
+        state.messages.set(message.id, message);
+      });
+      return {
+        messages: new Map(state.messages),
+      };
+    });
+  },
   setCurrentThread: (current) => set({ currentThread: current }),
-  setIsResponding: (isResponding) => set({ isResponding }),
+  setResponding: (isResponding) => set({ responding: isResponding }),
   setMessageList: (messageList) => set({ messages: messageList }),
 });
 
-export { currentThreadSlice };
+export { currentThreadSlice as createCurrentThreadSlice };
 
-export function sendMessage(content: string) {
-  if (content != null) {
+export async function sendMessage(
+  content: string,
+  options?: { signal?: AbortSignal },
+) {
+  const threadId =
+    useBoundStore.getState().currentThread?.uid ?? uuidUtils.generateThreadId();
+  if (content == null) {
+    return;
+  }
+  try {
+    setResponding(true);
+
     const message: StreamMessage = {
       id: uuidUtils.generateMessageId(),
       type: MESSAGE_TYPE.MESSAGE_CHUNK,
@@ -71,36 +92,98 @@ export function sendMessage(content: string) {
         role: MESSAGE_ROLE.HUMAN,
       },
       metadata: {
-        threadId:
-          useBoundStore.getState().currentThread?.uid ??
-          uuidUtils.generateThreadId(),
+        threadId: threadId,
         timestamp: Date.now(),
       },
     };
     appendMessage(message);
 
-    // TODO 重构前端对话逻辑
+    const stream = chatService.chatStream(
+      content,
+      {
+        threadId,
+      },
+      options,
+    );
+
+    let updateTimer: ReturnType<typeof setTimeout> | null = null;
+    const pendingMessages: Map<string, StreamMessage> = new Map();
+    const scheduleUpdate = () => {
+      if (updateTimer) clearTimeout(updateTimer);
+      updateTimer = setTimeout(() => {
+        // Batch update message status
+        if (pendingMessages.size > 0) {
+          updateMessages(pendingMessages.values().toArray());
+          pendingMessages.clear();
+        }
+        updateTimer = null;
+      }, 16); // ~60fps
+    };
+
+    for await (const chunk of stream) {
+      if (chunk.type === MESSAGE_TYPE.MESSAGE_CHUNK) {
+        const message = handleMessageChunk(chunk);
+        if (message) {
+          pendingMessages.set(message.id, message);
+          scheduleUpdate();
+        }
+      }
+    }
+
+    return message;
+  } finally {
+    setResponding(false);
   }
 }
+function handleMessageChunk(
+  chunk: StreamMessage & { type: MESSAGE_TYPE.MESSAGE_CHUNK },
+) {
+  let message: StreamMessage | undefined;
+  if (!existsMessage(chunk.id)) {
+    message = appendMessage(chunk);
+  }
+  message ??= getMessage(chunk.id);
+  if (message) {
+    message = mergeMessage(message, chunk);
+  }
+  return message;
+}
 
+function setResponding(responding: boolean) {
+  useBoundStore.getState().setResponding(responding);
+  return responding;
+}
 function appendMessage(message: StreamMessage) {
   useBoundStore.getState().appendMessage(message);
+  return message;
+}
+function existsMessage(messageId: string) {
+  return useBoundStore.getState().messageIds.has(messageId);
+}
+function getMessage(messageId: string) {
+  return useBoundStore.getState().messages.get(messageId);
+}
+function updateMessage(message: StreamMessage) {
+  useBoundStore.getState().updateMessage(message);
+  return message;
+}
+function updateMessages(messages: StreamMessage[]) {
+  useBoundStore.getState().updateMessages(messages);
+  return messages;
 }
 function mergeMessage(
-  lastMessage: StreamMessage,
   message: StreamMessage,
+  chunk: StreamMessage,
 ): StreamMessage {
-  const { type, data, metadata } = message;
   if (
-    type === MESSAGE_TYPE.MESSAGE_CHUNK &&
-    lastMessage.type === MESSAGE_TYPE.MESSAGE_CHUNK
+    message.type === MESSAGE_TYPE.MESSAGE_CHUNK &&
+    chunk.type === MESSAGE_TYPE.MESSAGE_CHUNK
   ) {
     return {
-      ...lastMessage,
-      metadata,
+      ...message,
       data: {
-        ...lastMessage.data,
-        content: lastMessage.data.content + data.content,
+        ...message.data,
+        content: message.data.content + chunk.data.content,
       },
     };
   }

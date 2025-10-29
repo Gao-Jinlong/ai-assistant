@@ -11,30 +11,6 @@ export class MessageMetadataBuilder {
   }
 
   /**
-   * 设置消息ID
-   */
-  setMessageId(messageId: number): this {
-    this.metadata.messageChunkIndex = messageId;
-    return this;
-  }
-
-  /**
-   * 设置组ID
-   */
-  setGroupId(groupId: string): this {
-    this.metadata.threadId = groupId;
-    return this;
-  }
-
-  /**
-   * 设置模型信息
-   */
-  setModel(model: string): this {
-    this.metadata.model = model;
-    return this;
-  }
-
-  /**
    * 设置Token使用情况
    */
   setUsage(usage: TokenUsage): this {

@@ -13,6 +13,7 @@ import {
   StreamMessage,
   MessageMetadata,
   StructuredError,
+  type MessageChunkData,
 } from './dto/sse-message.dto';
 import { MessageMetadataBuilder } from './dto/message-metadata.dto';
 import {
@@ -34,21 +35,19 @@ export class MessageFormatterService {
    * 格式化文本消息块
    */
   formatMessageChunk(
+    id: string,
     chunk: AIMessageChunk,
     metadata: Partial<MessageMetadata>,
   ): StreamMessage {
     const messageMetadata = new MessageMetadataBuilder().updateTimestamp();
 
     if (metadata) {
-      if (metadata.messageChunkIndex)
-        messageMetadata.setMessageId(metadata.messageChunkIndex);
-      if (metadata.threadId) messageMetadata.setGroupId(metadata.threadId);
-      if (metadata.model) messageMetadata.setModel(metadata.model);
       if (metadata.usage) messageMetadata.setUsage(metadata.usage);
       if (metadata.latency) messageMetadata.setLatency(metadata.latency);
     }
 
     return {
+      id,
       type: MESSAGE_TYPE.MESSAGE_CHUNK,
       data: {
         content: chunk.content.toString(),
@@ -65,11 +64,11 @@ export class MessageFormatterService {
     const messageMetadata = new MessageMetadataBuilder().updateTimestamp();
 
     if (metadata) {
-      if (metadata.threadId) messageMetadata.setGroupId(metadata.threadId);
       if (metadata.usage) messageMetadata.setUsage(metadata.usage);
     }
 
     return {
+      id: nanoid(),
       type: MESSAGE_TYPE.MESSAGE_CHUNK,
       data: {
         role: MESSAGE_ROLE.ASSISTANT,
@@ -82,7 +81,8 @@ export class MessageFormatterService {
    * 格式化消息结束事件
    */
   formatMessageEnd(
-    finishReason: 'stop' | 'length' | 'tool_calls',
+    id: string,
+    finishReason: MessageChunkData['finishReason'],
     usage: {
       promptTokens?: number;
       completionTokens?: number;
@@ -95,17 +95,16 @@ export class MessageFormatterService {
       .updateTimestamp();
 
     if (metadata) {
-      if (metadata.threadId) messageMetadata.setGroupId(metadata.threadId);
-      if (metadata.model) messageMetadata.setModel(metadata.model);
       if (metadata.latency) messageMetadata.setLatency(metadata.latency);
     }
 
     return {
-      type: MESSAGE_TYPE.MESSAGE_END,
+      id,
+      type: MESSAGE_TYPE.MESSAGE_CHUNK,
       data: {
+        content: '',
         role: MESSAGE_ROLE.ASSISTANT,
         finishReason,
-        usage,
       },
       metadata: messageMetadata.build(),
     };
@@ -114,20 +113,11 @@ export class MessageFormatterService {
   /**
    * 格式化工具调用开始事件
    */
-  formatToolCallStart(
-    toolCall: ToolCall,
-    metadata?: Partial<MessageMetadata>,
-  ): StreamMessage {
-    const messageMetadata = new MessageMetadataBuilder()
-      .setMessageId(metadata?.messageChunkIndex || 0)
-      .updateTimestamp();
-
-    if (metadata) {
-      if (metadata.threadId) messageMetadata.setGroupId(metadata.threadId);
-      if (metadata.model) messageMetadata.setModel(metadata.model);
-    }
+  formatToolCallStart(id: string, toolCall: ToolCall): StreamMessage {
+    const messageMetadata = new MessageMetadataBuilder().updateTimestamp();
 
     return {
+      id,
       type: MESSAGE_TYPE.TOOL_CALL_START,
       data: {
         toolCallId: toolCall.id || nanoid(),
@@ -141,21 +131,16 @@ export class MessageFormatterService {
    * 格式化工具调用参数块
    */
   formatToolCallChunk(
+    id: string,
     toolCallId: string,
     argsChunk: string,
     index: number,
     metadata?: Partial<MessageMetadata>,
   ): StreamMessage {
-    const messageMetadata = new MessageMetadataBuilder()
-      .setMessageId(metadata?.messageChunkIndex || 0)
-      .updateTimestamp();
-
-    if (metadata) {
-      if (metadata.threadId) messageMetadata.setGroupId(metadata.threadId);
-      if (metadata.model) messageMetadata.setModel(metadata.model);
-    }
+    const messageMetadata = new MessageMetadataBuilder().updateTimestamp();
 
     return {
+      id,
       type: MESSAGE_TYPE.TOOL_CALL_CHUNK,
       data: {
         toolCallId,
@@ -170,19 +155,14 @@ export class MessageFormatterService {
    * 格式化工具调用结束事件
    */
   formatToolCallEnd(
+    id: string,
     toolCall: ToolCall,
     metadata?: Partial<MessageMetadata>,
   ): StreamMessage {
-    const messageMetadata = new MessageMetadataBuilder()
-      .setMessageId(metadata?.messageChunkIndex || 0)
-      .updateTimestamp();
-
-    if (metadata) {
-      if (metadata.threadId) messageMetadata.setGroupId(metadata.threadId);
-      if (metadata.model) messageMetadata.setModel(metadata.model);
-    }
+    const messageMetadata = new MessageMetadataBuilder().updateTimestamp();
 
     return {
+      id,
       type: MESSAGE_TYPE.TOOL_CALL_END,
       data: {
         toolCallId: toolCall.id || nanoid(),
@@ -197,22 +177,17 @@ export class MessageFormatterService {
    * 格式化工具执行结果
    */
   formatToolResult(
+    id: string,
     toolCallId: string,
     toolName: string,
     result: unknown,
     error?: string,
     metadata?: Partial<MessageMetadata>,
   ): StreamMessage {
-    const messageMetadata = new MessageMetadataBuilder()
-      .setMessageId(metadata?.messageChunkIndex || 0)
-      .updateTimestamp();
-
-    if (metadata) {
-      if (metadata.threadId) messageMetadata.setGroupId(metadata.threadId);
-      if (metadata.model) messageMetadata.setModel(metadata.model);
-    }
+    const messageMetadata = new MessageMetadataBuilder().updateTimestamp();
 
     return {
+      id,
       type: MESSAGE_TYPE.TOOL_RESULT,
       data: {
         toolCallId,
@@ -228,6 +203,7 @@ export class MessageFormatterService {
    * 格式化错误消息
    */
   formatError(
+    id: string,
     error: Error | string,
     code: ErrorCode = ErrorCode.UNKNOWN_ERROR,
     details?: Record<string, unknown>,
@@ -236,8 +212,7 @@ export class MessageFormatterService {
     const messageMetadata = new MessageMetadataBuilder().updateTimestamp();
 
     if (metadata) {
-      if (metadata.threadId) messageMetadata.setGroupId(metadata.threadId);
-      if (metadata.model) messageMetadata.setModel(metadata.model);
+      if (metadata.latency) messageMetadata.setLatency(metadata.latency);
     }
 
     const structuredError: StructuredError =
@@ -251,6 +226,7 @@ export class MessageFormatterService {
           );
 
     return {
+      id,
       type: MESSAGE_TYPE.ERROR,
       data: {} as never,
       metadata: messageMetadata.build(),
@@ -261,17 +237,16 @@ export class MessageFormatterService {
   /**
    * 格式化流结束消息
    */
-  formatDone(metadata?: Partial<MessageMetadata>): StreamMessage {
+  formatDone(id: string, metadata?: Partial<MessageMetadata>): StreamMessage {
     const messageMetadata = new MessageMetadataBuilder().updateTimestamp();
 
     if (metadata) {
-      if (metadata.threadId) messageMetadata.setGroupId(metadata.threadId);
-      if (metadata.model) messageMetadata.setModel(metadata.model);
       if (metadata.usage) messageMetadata.setUsage(metadata.usage);
       if (metadata.latency) messageMetadata.setLatency(metadata.latency);
     }
 
     return {
+      id,
       type: MESSAGE_TYPE.DONE,
       data: {} as never,
       metadata: messageMetadata.build(),
@@ -290,6 +265,7 @@ export class MessageFormatterService {
         message,
       });
       const errorMessage = this.formatError(
+        message.id,
         'Failed to serialize message',
         ErrorCode.SSE_FORMAT_ERROR,
         { originalMessage: message },

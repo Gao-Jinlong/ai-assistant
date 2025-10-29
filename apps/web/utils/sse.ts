@@ -1,4 +1,6 @@
-export function parseSSEMessage(chunk: string) {
+import type { StreamMessage } from '@server/chat/dto/sse-message.dto';
+
+export function parseSSEMessage(chunk: string): StreamMessage | null {
   if (!chunk) {
     return null;
   }

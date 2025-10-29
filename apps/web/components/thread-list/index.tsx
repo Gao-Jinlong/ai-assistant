@@ -5,7 +5,7 @@ import { useCallback, useMemo } from 'react';
 import { CreateButton } from './create-button';
 import { useQuery } from '@tanstack/react-query';
 import ThreadListItem from './ThreadListItem';
-import { deleteThread, ThreadDto } from '@web/service/thread';
+import { deleteThread, ThreadVO } from '@web/service/thread';
 import queries from '@web/queries';
 
 const ThreadList = ({ isSimple }: { isSimple: boolean }) => {
@@ -25,13 +25,13 @@ const ThreadList = ({ isSimple }: { isSimple: boolean }) => {
   });
 
   const onClick = useCallback(
-    async (thread: ThreadDto) => {
+    async (thread: ThreadVO) => {
       setCurrentThread(thread);
     },
     [setCurrentThread],
   );
   const onDelete = useCallback(
-    async (thread: ThreadDto) => {
+    async (thread: ThreadVO) => {
       await deleteThread(thread.id);
       threadQuery.refetch();
     },

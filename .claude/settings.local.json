@@ -14,7 +14,10 @@
       "Bash(pnpm test:run:*)",
       "Bash(npx vitest run:*)",
       "Bash(pnpm test:coverage)",
-      "Bash(pnpm test:*)"
+      "Bash(pnpm test:*)",
+      "Bash(pnpm -F=\"@ai-assistant/web\" add use-stick-to-bottom:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(pnpm -F=\"@ai-assistant/web\" lint:*)"
     ],
     "deny": [],
     "ask": []

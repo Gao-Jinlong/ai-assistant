@@ -4,7 +4,7 @@ import { del, get, post } from './fetch';
 
 export type MessageRole = 'user' | 'assistant';
 
-export interface ThreadDto {
+export interface ThreadVO {
   id: string;
   uid: string;
   title: string;
@@ -142,17 +142,17 @@ export interface MessageChunkDto {
   updatedAt: string;
 }
 export const getThreads = () => {
-  return get<ResponseWrapper<ThreadDto[]>>('thread');
+  return get<ResponseWrapper<ThreadVO[]>>('thread');
 };
 
 export const createThread = () => {
-  return post<ResponseWrapper<ThreadDto>>('thread');
+  return post<ResponseWrapper<ThreadVO>>('thread');
 };
 
 export const deleteThread = (id: string) => {
-  return del<ResponseWrapper<ThreadDto>>(`thread/${id}`);
+  return del<ResponseWrapper<ThreadVO>>(`thread/${id}`);
 };
 
-export const getThreadMessages = (id: ThreadDto['id']) => {
+export const getThreadMessages = (id: ThreadVO['id']) => {
   return get<ResponseWrapper<MessageChunkDto[]>>(`thread/${id}/messages`);
 };

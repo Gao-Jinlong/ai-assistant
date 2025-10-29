@@ -1,5 +1,4 @@
 import { cn } from '@web/lib/utils';
-import { MessageChunkDto } from '@web/service/thread';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
@@ -17,11 +16,12 @@ import { EquationNode } from '@web/lib/lexical/nodes/EquationNode';
 import { $getRoot } from 'lexical';
 import 'katex/dist/katex.css';
 import { PLAYGROUND_TRANSFORMERS } from '@web/lib/lexical/plugin/MarkdownTransformers';
-import { MESSAGE_ROLE } from '@server/chat/chat.interface';
+import { MESSAGE_ROLE, type MESSAGE_TYPE } from '@server/chat/chat.interface';
 import { HorizontalRuleNode } from '@lexical/react/LexicalHorizontalRuleNode';
+import type { StreamMessage } from '@server/chat/dto/sse-message.dto';
 
 export interface MessageItemProps {
-  message: MessageChunkDto;
+  message: StreamMessage & { type: MESSAGE_TYPE.MESSAGE_CHUNK };
 }
 
 // TODO 重构公式渲染逻辑

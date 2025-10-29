@@ -19,6 +19,7 @@ import { StreamMessage } from './dto/sse-message.dto';
 import { ErrorCode } from '@server/common/errors/error-codes';
 import path from 'node:path';
 import fs from 'node:fs';
+import { uuid as uuidUtils } from '@common/utils';
 
 @Injectable()
 export class ChatService {
@@ -32,13 +33,15 @@ export class ChatService {
   ) {}
 
   async chat(res: Response, jwtPayload: JwtPayload, body: CreateChatDto) {
-    const { threadUid, message } = body;
+    const { threadId: threadUid, content } = body;
+    const messageId = uuidUtils.generateMessageId();
     const messageStreamProcessor = new MessageStreamProcessor(
+      messageId,
       this.logger,
       this.messageFormatter,
     );
 
-    const userMessage = new HumanMessage(message);
+    const userMessage = new HumanMessage(content);
 
     const thread = await this.prisma.db.thread.findUnique({
       where: { uid: threadUid },
@@ -57,7 +60,7 @@ export class ChatService {
       let source$: Observable<StreamMessage>;
       if (isMockMode) {
         this.logger.info('Using mock mode for chat');
-        source$ = this.readMessagesFromMockFile();
+        source$ = this.readMessagesFromMockFile(messageId);
       } else {
         const stream = await this.agentService.run({
           thread,
@@ -74,6 +77,7 @@ export class ChatService {
       this.logger.error('Error in chat', { error, threadUid });
 
       const errorMessage = this.messageFormatter.formatError(
+        messageId,
         error as Error,
         ErrorCode.INTERNAL_SERVER_ERROR,
         { threadUid },
@@ -122,7 +126,7 @@ export class ChatService {
     source$.subscribe({
       next: (sseMessage) => {
         if (sseMessage.type === MESSAGE_TYPE.MESSAGE_CHUNK) {
-          mergedMessage = mergedMessage.concat(sseMessage.data.content);
+          mergedMessage = mergedMessage.concat(sseMessage.data.content ?? '');
         }
       },
       complete: async () => {
@@ -164,7 +168,7 @@ export class ChatService {
   /**
    * 从 mock 文件读取消息并创建 Observable 流
    */
-  private readMessagesFromMockFile(): Observable<StreamMessage> {
+  private readMessagesFromMockFile(id: string): Observable<StreamMessage> {
     const mockFilePath = this.configService.get('mock.path');
     const mockFile = path.join(mockFilePath, 'chat.txt');
 
@@ -188,7 +192,9 @@ export class ChatService {
       const messages: StreamMessage[] = lines
         .map((line) => {
           try {
-            return JSON.parse(line) as StreamMessage;
+            const message = JSON.parse(line) as StreamMessage;
+            message.id = id;
+            return message;
           } catch (error) {
             this.logger.error('Failed to parse mock message', { line, error });
             return null;

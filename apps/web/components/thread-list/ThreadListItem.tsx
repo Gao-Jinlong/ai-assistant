@@ -1,5 +1,5 @@
 'use client';
-import { ThreadDto } from '@web/service/thread';
+import { ThreadVO } from '@web/service/thread';
 import React, { FC, useCallback, useState } from 'react';
 import { motion } from 'motion/react';
 import {
@@ -12,10 +12,10 @@ import { Ellipsis } from 'lucide-react';
 import { cn } from '@web/lib/utils';
 
 export interface ThreadListItemProps {
-  thread: ThreadDto;
+  thread: ThreadVO;
   isActive: boolean;
-  onDelete: (thread: ThreadDto) => void;
-  onClick: (thread: ThreadDto) => void;
+  onDelete: (thread: ThreadVO) => void;
+  onClick: (thread: ThreadVO) => void;
 }
 const ThreadListItem: FC<ThreadListItemProps> = ({
   thread,

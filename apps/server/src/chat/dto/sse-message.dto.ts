@@ -25,21 +25,9 @@ export type StreamMessage =
  */
 export interface MessageMetadata {
   /**
-   * 消息块索引
-   */
-  messageChunkIndex?: number;
-  /**
-   * 消息组ID(同一轮对话)
-   */
-  threadId?: string;
-  /**
    * 时间戳
    */
   timestamp: number;
-  /**
-   * 使用的模型
-   */
-  model?: string;
   /**
    * Token使用情况
    */
@@ -73,8 +61,10 @@ export interface StructuredError {
  * 文本消息块数据
  */
 export interface MessageChunkData {
-  content: string; // 文本内容
+  content?: string; // 文本内容
   role: MESSAGE_ROLE; // 角色
+  finishReason?: 'stop' | 'interrupt' | 'tool_calls';
+  interruptFeedback?: string;
 }
 
 /**
@@ -89,7 +79,6 @@ export interface MessageStartData {
  */
 export interface MessageEndData {
   role: MESSAGE_ROLE;
-  finishReason: 'stop' | 'length' | 'tool_calls';
   usage: TokenUsage; // 完整的token统计
 }
 

@@ -1,13 +1,13 @@
-import { ThreadDto } from '@web/service/thread';
+import { ThreadVO } from '@web/service/thread';
 import { Store } from '.';
 
 export interface ThreadsStoreState {
-  threads: ThreadDto[];
+  threads: ThreadVO[];
 }
 
 export interface ThreadsStoreActions {
-  setThreads: (threads: ThreadDto[]) => void;
-  deleteThread: (thread: ThreadDto) => void;
+  setThreads: (threads: ThreadVO[]) => void;
+  deleteThread: (thread: ThreadVO) => void;
 }
 
 export interface ThreadsStore extends ThreadsStoreState, ThreadsStoreActions {}

@@ -1,27 +1,20 @@
-import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
-import { Inject } from '@nestjs/common';
-import { nanoid } from 'nanoid';
 import {
   AIMessageChunk,
   ToolCall,
   type BaseMessage,
 } from '@langchain/core/messages';
 import { MessageFormatterService } from './message-formatter.service';
-import {
-  StreamMessage,
-  MessageMetadata,
-  type MessageChunkData,
-} from './dto/sse-message.dto';
+import { StreamMessage, MessageMetadata } from './dto/sse-message.dto';
 import { ErrorCode } from '@server/common/errors/error-codes';
 import type { IterableReadableStream } from '@langchain/core/utils/stream';
+import { uuid as uuidUtils } from '@common/utils';
 
 /**
  * 消息流处理器
  * 负责从 agent stream 中提取不同类型的消息并生成统一格式的事件
  */
 export class MessageStreamProcessor {
-  private readonly groupId: string;
   private readonly startTime: number;
   private currentToolCall: ToolCall | null = null;
   private toolCallArgsBuffer: string = '';
@@ -31,10 +24,11 @@ export class MessageStreamProcessor {
     {};
 
   constructor(
-    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+    private readonly id: string,
+    private readonly logger: Logger,
     private readonly messageFormatter: MessageFormatterService,
   ) {
-    this.groupId = nanoid();
+    this.id = uuidUtils.generateMessageId();
     this.startTime = Date.now();
   }
 
@@ -48,12 +42,6 @@ export class MessageStreamProcessor {
     >,
   ): AsyncGenerator<StreamMessage, void, unknown> {
     try {
-      // 发送消息开始事件
-      yield this.messageFormatter.formatMessageStart({
-        threadId: this.groupId,
-        timestamp: this.startTime,
-      });
-
       for await (const chunk of stream) {
         const [type, payload] = chunk;
         switch (type) {
@@ -81,29 +69,25 @@ export class MessageStreamProcessor {
       // 发送消息结束事件
       const latency = Date.now() - this.startTime;
       yield this.messageFormatter.formatMessageEnd(
+        this.id,
         'stop', // 这里可以根据实际情况判断结束原因
         this.totalTokens,
         {
-          threadId: this.groupId,
           latency,
         },
       );
 
       // 发送流结束事件
-      yield this.messageFormatter.formatDone({
-        threadId: this.groupId,
+      yield this.messageFormatter.formatDone(this.id, {
         usage: this.totalTokens,
         latency,
       });
     } catch (error) {
       this.logger.error('Error processing message stream', { error });
       yield this.messageFormatter.formatError(
+        this.id,
         error as Error,
         ErrorCode.STREAM_ERROR,
-        { groupId: this.groupId },
-        {
-          threadId: this.groupId,
-        },
       );
     }
   }
@@ -117,22 +101,22 @@ export class MessageStreamProcessor {
     const [message, metadata] = chunk;
     const finalMetadata: Partial<MessageMetadata> = {
       ...metadata,
-      threadId: this.groupId,
-      messageChunkIndex: this.messageChunkIndex++,
     };
 
     if (message instanceof AIMessageChunk) {
-      // 检查是否有工具调用
       // TODO 处理工具调用
       if (this.messageFormatter.hasToolCalls(message)) {
         // yield* this.processToolCalls(message, finalMetadata);
         return;
       }
       const textContent = this.messageFormatter.extractTextContent(message);
-
       // 处理文本内容
       if (textContent) {
-        yield this.messageFormatter.formatMessageChunk(message, finalMetadata);
+        yield this.messageFormatter.formatMessageChunk(
+          this.id,
+          message,
+          finalMetadata,
+        );
       }
     }
   }
