@@ -1,34 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { JwtPayload } from '@server/auth/auth.service';
+import { MessageService } from '@server/message/message.service';
+import { MessageFormatterService } from '@server/message/message-formatter.service';
 import { PrismaService } from '@server/prisma/prisma.service';
-import { generateUid } from '@server/utils/uid';
-import { nanoid } from 'nanoid';
+import { generateThreadId } from '@common/utils/uuid';
 
 @Injectable()
 export class ThreadService {
-  constructor(private readonly prisma: PrismaService) {}
-
-  async mockDataInit() {
-    const user = await this.prisma.db.user.findFirst({});
-
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    await this.createThread(user.uid);
-    await this.createThread(user.uid);
-    await this.createThread(user.uid);
-    await this.createThread(user.uid);
-    await this.createThread(user.uid);
-    await this.createThread(user.uid);
-    await this.createThread(user.uid);
-    await this.createThread(user.uid);
-  }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly messageService: MessageService,
+    private readonly messageFormatter: MessageFormatterService,
+  ) {}
 
   async createThread(userId: string) {
     const thread = await this.prisma.db.thread.create({
       data: {
-        uid: generateUid('thread'),
+        uid: generateThreadId(),
         userUid: userId,
         title: null,
         totalTokens: 0,
@@ -69,30 +57,10 @@ export class ThreadService {
     return result;
   }
 
-  async getThreadMessages(user: JwtPayload, id: number) {
-    // const messages = await this.prisma.db.message.findMany({
-    //   where: {
-    //     threadId: id,
-    //   },
-    // });
-    const mockMessages = [
-      {
-        id: nanoid(),
-        content: 'Hello, world!',
-        role: 'user',
-      },
-      {
-        id: nanoid(),
-        content: 'Hello, ' + user.email,
-        role: 'ai',
-      },
-      {
-        id: nanoid(),
-        content: '消息id' + id,
-        role: 'ai',
-      },
-    ];
+  async getThreadMessages(user: JwtPayload, id: string) {
+    const messages = await this.messageService.getHistoryByThread(id);
+    const streamMessages = this.messageFormatter.toStreamMessages(messages);
 
-    return mockMessages;
+    return streamMessages;
   }
 }

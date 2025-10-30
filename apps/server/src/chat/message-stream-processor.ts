@@ -4,7 +4,7 @@ import {
   ToolCall,
   type BaseMessage,
 } from '@langchain/core/messages';
-import { MessageFormatterService } from './message-formatter.service';
+import { MessageFormatterService } from '@server/message/message-formatter.service';
 import { StreamMessage, MessageMetadata } from './dto/sse-message.dto';
 import { ErrorCode } from '@server/common/errors/error-codes';
 import type { IterableReadableStream } from '@langchain/core/utils/stream';

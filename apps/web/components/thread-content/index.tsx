@@ -2,24 +2,24 @@
 
 import useBoundStore from '@web/store';
 import MessageList from '../message-list';
-import { useMemo } from 'react';
-import { useStickToBottom } from 'use-stick-to-bottom';
+import { useMemo, useRef } from 'react';
+import { ScrollContainer, ScrollContainerRef } from '../scroll-container';
 
 const ThreadContent = () => {
   const messages = useBoundStore((state) => state.messages);
   const messagesList = useMemo(() => Array.from(messages.values()), [messages]);
-
-  const { scrollRef, contentRef } = useStickToBottom();
+  const scrollContainerRef = useRef<ScrollContainerRef | null>(null);
 
   return (
-    <div
-      className="flex w-full justify-center overflow-auto pt-12"
-      ref={scrollRef}
+    <ScrollContainer
+      className="flex h-full w-full justify-center"
+      autoScrollToBottom
+      ref={scrollContainerRef}
     >
-      <div ref={contentRef} className="flex h-max max-w-4xl flex-1 flex-col">
+      <div className="w-full max-w-4xl">
         <MessageList messages={messagesList} />
       </div>
-    </div>
+    </ScrollContainer>
   );
 };
 

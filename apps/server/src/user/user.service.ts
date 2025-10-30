@@ -11,7 +11,7 @@ import * as bcrypt from 'bcryptjs';
 import { AuthService } from '@server/auth/auth.service';
 import { LoginDto } from './dto/login.dto';
 import { pick } from 'es-toolkit';
-import { generateUid } from '@server/utils/uid';
+import { generateMessageId } from '@common/utils/uuid';
 
 @Injectable()
 export class UserService {
@@ -36,7 +36,7 @@ export class UserService {
 
     const user = await this.prisma.db.user.create({
       data: {
-        uid: generateUid('user'),
+        uid: generateMessageId(),
         name: `${data.email.split('@')[0]}`,
         ...data,
         password: hashedPassword,

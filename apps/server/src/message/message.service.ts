@@ -1,8 +1,8 @@
-import { AIMessage, BaseMessage, HumanMessage } from '@langchain/core/messages';
 import { Injectable } from '@nestjs/common';
+import { BaseMessage } from '@langchain/core/messages';
 import { Thread } from '@prisma/client';
 import { PrismaService } from '@server/prisma/prisma.service';
-import { generateUid } from '@server/utils/uid';
+import { generateMessageId } from '@common/utils/uuid';
 @Injectable()
 export class MessageService {
   constructor(private readonly prisma: PrismaService) {}
@@ -10,7 +10,7 @@ export class MessageService {
   async appendMessage(thread: Thread, data: BaseMessage[]) {
     const messages = data.map((item) => {
       return {
-        uid: generateUid('message'),
+        uid: generateMessageId(),
         content: item.content.toString(),
         role: item.type,
         threadUid: thread.uid,
@@ -24,7 +24,7 @@ export class MessageService {
     return result;
   }
 
-  async getHistoryByThread(threadUid: Thread['uid']): Promise<BaseMessage[]> {
+  async getHistoryByThread(threadUid: Thread['uid']) {
     const messages = await this.prisma.db.message.findMany({
       where: {
         threadUid,
@@ -35,14 +35,6 @@ export class MessageService {
       },
     });
 
-    const memory = messages.map((item) => {
-      if (item.role === 'user') {
-        return new HumanMessage(item.content);
-      } else {
-        return new AIMessage(item.content);
-      }
-    });
-
-    return memory;
+    return messages;
   }
 }

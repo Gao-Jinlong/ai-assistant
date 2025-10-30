@@ -17,16 +17,6 @@ export interface ThreadVO {
 }
 
 /**
- * 统一 SSE 消息格式
- */
-export interface SSEMessage {
-  type: MESSAGE_TYPE; // 消息类型
-  data: T; // 消息数据(根据type不同而不同)
-  metadata?: MessageMetadata; // 元数据(可选)
-  error?: StructuredError; // 错误信息(仅type=ERROR时)
-}
-
-/**
  * 消息元数据
  */
 export interface MessageMetadata {
@@ -145,9 +135,6 @@ export interface MessageChunkDto {
 export const getThreads = () => {
   return get<ResponseWrapper<ThreadVO[]>>('thread');
 };
-export const getThread = (id: ThreadVO['id']) => {
-  return get<ResponseWrapper<ThreadVO>>(`thread/${id}`);
-};
 export const createThread = () => {
   return post<ResponseWrapper<ThreadVO>>('thread');
 };
@@ -157,5 +144,5 @@ export const deleteThread = (id: string) => {
 };
 
 export const getThreadMessages = (id: ThreadVO['id']) => {
-  return get<ResponseWrapper<StreamMessage[]>>(`thread/${id}/messages`);
+  return get<ResponseWrapper<StreamMessage[]>>(`thread/${id}`);
 };

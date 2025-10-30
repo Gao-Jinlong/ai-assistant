@@ -7,19 +7,22 @@ import {
   AIMessageChunk,
   BaseMessage,
   ToolCall,
+  HumanMessage,
+  AIMessage,
 } from '@langchain/core/messages';
-import { MESSAGE_ROLE, MESSAGE_TYPE } from './chat.interface';
+import { MESSAGE_ROLE, MESSAGE_TYPE } from '@server/chat/chat.interface';
 import {
   StreamMessage,
   MessageMetadata,
   StructuredError,
   type MessageChunkData,
-} from './dto/sse-message.dto';
-import { MessageMetadataBuilder } from './dto/message-metadata.dto';
+} from '@server/chat/dto/sse-message.dto';
+import { MessageMetadataBuilder } from '@server/chat/dto/message-metadata.dto';
 import {
   ErrorCode,
   createStructuredError,
 } from '@server/common/errors/error-codes';
+import { Message } from '@prisma/client';
 
 /**
  * 消息格式化服务
@@ -304,5 +307,37 @@ export class MessageFormatterService {
       return message.content.toString();
     }
     return '';
+  }
+
+  /**
+   * 将数据库消息转换为 LangChain BaseMessage 格式
+   */
+  toLangChainMessages(messages: Message[]): BaseMessage[] {
+    return messages.map((item) => {
+      if (item.role === MESSAGE_ROLE.HUMAN) {
+        return new HumanMessage(item.content);
+      } else {
+        return new AIMessage(item.content);
+      }
+    });
+  }
+
+  /**
+   * 将数据库消息转换为 StreamMessage 格式
+   */
+  toStreamMessages(messages: Message[]): StreamMessage[] {
+    return messages.map((item) => ({
+      id: item.uid,
+      type: MESSAGE_TYPE.MESSAGE_CHUNK,
+      data: {
+        content: item.content,
+        role: item.role as MESSAGE_ROLE,
+      },
+      metadata: {
+        timestamp: item.createdAt.getTime(),
+        usage: undefined,
+        latency: undefined,
+      },
+    }));
   }
 }

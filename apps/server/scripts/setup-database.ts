@@ -1,5 +1,5 @@
+import { generateUid } from '@common/utils/uuid';
 import { PrismaClient } from '@prisma/client';
-import { generateUid } from '@server/utils/uid';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 

@@ -13,7 +13,7 @@ import { Thread } from '@prisma/client';
 import { from, share, interval, Observable } from 'rxjs';
 import { delay, concatMap, take } from 'rxjs/operators';
 import { MESSAGE_TYPE } from './chat.interface';
-import { MessageFormatterService } from './message-formatter.service';
+import { MessageFormatterService } from '@server/message/message-formatter.service';
 import { MessageStreamProcessor } from './message-stream-processor';
 import { StreamMessage } from './dto/sse-message.dto';
 import { ErrorCode } from '@server/common/errors/error-codes';
@@ -50,7 +50,8 @@ export class ChatService {
       throw new BadRequestException('Thread not found');
     }
 
-    const memory = await this.messageService.getHistoryByThread(thread.uid);
+    const messages = await this.messageService.getHistoryByThread(thread.uid);
+    const memory = this.messageFormatter.toLangChainMessages(messages);
     await this.messageService.appendMessage(thread, [userMessage]);
 
     try {

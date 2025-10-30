@@ -51,7 +51,7 @@ export default function ChatPage() {
 
   return (
     <div className="flex h-screen w-full flex-1 flex-col">
-      <div className="flex w-full flex-1 overflow-hidden">
+      <div className="flex w-full flex-1 overflow-hidden pt-12">
         {thread ? <ThreadContent /> : <ThreadDefault />}
       </div>
       <div className="flex w-full overflow-hidden p-8">

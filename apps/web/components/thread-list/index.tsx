@@ -8,6 +8,7 @@ import ThreadListItem from './ThreadListItem';
 import { deleteThread, getThreadMessages, ThreadVO } from '@web/service/thread';
 import queries from '@web/queries';
 import { toast } from 'sonner';
+import { setMessages } from '@web/store/currentThread';
 
 const ThreadList = ({ isSimple }: { isSimple: boolean }) => {
   const router = useBoundStore((state) => state.router);
@@ -28,18 +29,10 @@ const ThreadList = ({ isSimple }: { isSimple: boolean }) => {
   const onClick = useCallback(
     async (thread: ThreadVO) => {
       try {
-        // 先清空当前消息，避免显示上一个线程的消息
+        const response = await getThreadMessages(thread.uid);
         clearCurrent();
-        // 设置新的当前线程
         setCurrentThread(thread);
-
-        // 加载历史消息
-        const response = await getThreadMessages(thread.id);
-        if (response.code === 200 && response.data) {
-          useBoundStore.getState().setMessageList(response.data);
-        } else {
-          toast.error('加载历史消息失败');
-        }
+        setMessages(response.data);
       } catch (error) {
         console.error('Failed to load thread messages:', error);
         toast.error('加载历史消息失败');

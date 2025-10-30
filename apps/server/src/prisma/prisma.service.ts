@@ -4,7 +4,7 @@ import {
   DynamicClientExtensionThis,
   InternalArgs,
 } from '@prisma/client/runtime/library';
-import { generateUid } from '@server/utils/uid';
+import { generateUid } from '@common/utils/uuid';
 
 // 扩展后的 Prisma Client 类型
 type ExtendedPrismaClient = DynamicClientExtensionThis<
