@@ -38,7 +38,7 @@ const messageItemVariants = cva('flex gap-2', {
 });
 
 function SetMessage({ message }: MessageItemProps) {
-  const content = message.data.content;
+  const content = message.data.content ?? '';
 
   const [editor] = useLexicalComposerContext();
   useEffect(() => {
