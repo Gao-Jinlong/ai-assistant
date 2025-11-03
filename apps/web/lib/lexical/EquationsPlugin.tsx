@@ -34,27 +34,6 @@ type CommandPayload = {
 export const INSERT_EQUATION_COMMAND: LexicalCommand<CommandPayload> =
   createCommand('INSERT_EQUATION_COMMAND');
 
-// export function InsertEquationDialog({
-//   activeEditor,
-//   onClose,
-// }: {
-//   activeEditor: LexicalEditor;
-//   onClose: () => void;
-// }): JSX.Element {
-//   const onEquationConfirm = useCallback(
-//     (equation: string, inline: boolean) => {
-//       activeEditor.dispatchCommand(INSERT_EQUATION_COMMAND, {
-//         equation,
-//         inline,
-//       });
-//       onClose();
-//     },
-//     [activeEditor, onClose],
-//   );
-
-//   return <KatexEquationAlterer onConfirm={onEquationConfirm} />;
-// }
-
 export default function EquationsPlugin(): JSX.Element | null {
   const [editor] = useLexicalComposerContext();
 

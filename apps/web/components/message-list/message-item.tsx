@@ -11,7 +11,6 @@ import { ListItemNode, ListNode } from '@lexical/list';
 import { CodeHighlightNode, CodeNode } from '@lexical/code';
 import { AutoLinkNode, LinkNode } from '@lexical/link';
 import { $convertFromMarkdownString } from '@lexical/markdown';
-import EquationsPlugin from '@web/lib/lexical/EquationsPlugin';
 import { EquationNode } from '@web/lib/lexical/nodes/EquationNode';
 import { $getRoot } from 'lexical';
 import 'katex/dist/katex.css';
@@ -19,6 +18,7 @@ import { PLAYGROUND_TRANSFORMERS } from '@web/lib/lexical/plugin/MarkdownTransfo
 import { MESSAGE_ROLE, type MESSAGE_TYPE } from '@server/chat/chat.interface';
 import { HorizontalRuleNode } from '@lexical/react/LexicalHorizontalRuleNode';
 import type { StreamMessage } from '@server/chat/dto/sse-message.dto';
+import MarkdownPlugin from '@web/lib/lexical/plugin/MarkdownPlugin';
 
 export interface MessageItemProps {
   message: StreamMessage & { type: MESSAGE_TYPE.MESSAGE_CHUNK };
@@ -96,7 +96,7 @@ const MessageItem = ({ message }: MessageItemProps) => {
             }
             ErrorBoundary={LexicalErrorBoundary}
           />
-          <EquationsPlugin />
+          <MarkdownPlugin />
           <SetMessage message={message} />
         </LexicalComposer>
       </div>

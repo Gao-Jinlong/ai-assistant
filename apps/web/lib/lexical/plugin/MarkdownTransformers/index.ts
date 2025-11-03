@@ -51,6 +51,40 @@ export const HR: ElementTransformer = {
   type: 'element',
 };
 
+// export const EQUATION: TextMatchTransformer = {
+//   dependencies: [EquationNode],
+//   export: (node) => {
+//     if (!$isEquationNode(node)) {
+//       return null;
+//     }
+
+//     // 根据是否为内联公式决定输出格式
+//     const isInline = node.__inline;
+//     return isInline ? `$${node.getEquation()}$` : `$$${node.getEquation()}$$`;
+//   },
+//   importRegExp: /\$([^$]+?)\$/,
+//   regExp: /\$([^$]+?)\$/,
+//   replace: (textNode, match) => {
+//     const [fullMatch, equation] = match;
+
+//     // 判断是否为块级公式：$$...$$ 格式
+//     const isBlockFormula =
+//       fullMatch.startsWith('$$') && fullMatch.endsWith('$$');
+//     const isInlineFormula =
+//       fullMatch.startsWith('$') && fullMatch.endsWith('$') && !isBlockFormula;
+
+//     if (isBlockFormula || isInlineFormula) {
+//       const equationNode = $createEquationNode(
+//         equation.trim(),
+//         isInlineFormula,
+//       );
+//       textNode.replace(equationNode);
+//     }
+//   },
+//   trigger: '$',
+//   type: 'text-match',
+// };
+
 export const EQUATION: TextMatchTransformer = {
   dependencies: [EquationNode],
   export: (node) => {
@@ -58,28 +92,14 @@ export const EQUATION: TextMatchTransformer = {
       return null;
     }
 
-    // 根据是否为内联公式决定输出格式
-    const isInline = node.__inline;
-    return isInline ? `$${node.getEquation()}$` : `$$${node.getEquation()}$$`;
+    return `$${node.getEquation()}$`;
   },
   importRegExp: /\$([^$]+?)\$/,
-  regExp: /\$([^$]+?)\$/,
+  regExp: /\$([^$]+?)\$$/,
   replace: (textNode, match) => {
-    const [fullMatch, equation] = match;
-
-    // 判断是否为块级公式：$$...$$ 格式
-    const isBlockFormula =
-      fullMatch.startsWith('$$') && fullMatch.endsWith('$$');
-    const isInlineFormula =
-      fullMatch.startsWith('$') && fullMatch.endsWith('$') && !isBlockFormula;
-
-    if (isBlockFormula || isInlineFormula) {
-      const equationNode = $createEquationNode(
-        equation.trim(),
-        isInlineFormula,
-      );
-      textNode.replace(equationNode);
-    }
+    const [, equation] = match;
+    const equationNode = $createEquationNode(equation, true);
+    textNode.replace(equationNode);
   },
   trigger: '$',
   type: 'text-match',
@@ -205,10 +225,10 @@ export const EQUATION_BLOCK: MultilineElementTransformer = {
 
 export const PLAYGROUND_TRANSFORMERS: Array<Transformer> = [
   HR,
-  EQUATION_BLOCK,
-  LATEX_BLOCK_EQUATION,
+  // EQUATION_BLOCK,
+  // LATEX_BLOCK_EQUATION,
   EQUATION,
-  LATEX_INLINE_EQUATION,
+  // LATEX_INLINE_EQUATION,
   CHECK_LIST,
   ...ELEMENT_TRANSFORMERS,
   ...MULTILINE_ELEMENT_TRANSFORMERS,
