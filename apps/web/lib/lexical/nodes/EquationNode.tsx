@@ -147,6 +147,7 @@ export class EquationNode extends DecoratorNode<JSX.Element> {
   decorate(): JSX.Element {
     return (
       <EquationComponent
+        key={this.__key.toString()}
         equation={this.__equation}
         inline={this.__inline}
         nodeKey={this.__key}

@@ -1,13 +1,14 @@
-import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
+import type { NextConfig } from 'next';
 import { codeInspectorPlugin } from 'code-inspector-plugin';
 
 const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
-  webpack: (config, { dev, isServer }) => {
-    config.plugins.push(codeInspectorPlugin({ bundler: 'webpack' }));
-    return config;
+  turbopack: {
+    rules: codeInspectorPlugin({
+      bundler: 'turbopack',
+    }),
   },
 };
 

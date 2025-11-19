@@ -2,13 +2,23 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Launch Chrome",
+      "request": "launch",
+      "type": "chrome",
+      "url": "http://localhost:3000",
+      "userDataDir": false,
+      "webRoot": "${workspaceFolder}/apps/web"
+    },
+    {
       "type": "node",
       "request": "attach",
       "name": "附加到已运行的服务器",
       "port": 9229,
       "restart": true,
       "sourceMaps": true,
-      "skipFiles": ["<node_internals>/**"],
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
       "cwd": "${workspaceFolder}/apps/server"
     }
   ]

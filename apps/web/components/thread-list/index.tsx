@@ -1,9 +1,9 @@
 'use client';
 import useBoundStore from '@web/store';
 import { AnimatePresence, motion } from 'motion/react';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { CreateButton } from './create-button';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import ThreadListItem from './ThreadListItem';
 import { deleteThread, getThreadMessages, ThreadVO } from '@web/service/thread';
 import queries from '@web/queries';
@@ -19,12 +19,17 @@ const ThreadList = ({ isSimple }: { isSimple: boolean }) => {
   const clearCurrent = useBoundStore((state) => state.clearCurrent);
   const threads = useBoundStore((state) => state.threads);
   const isThread = useMemo(() => router.key === 'thread', [router]);
+
+  const queryClient = useQueryClient();
   const threadsQuery = useQuery({
     ...queries.thread.getThreads,
-    onSuccess: (resp) => {
-      setThreads(resp.data);
-    },
   });
+
+  useEffect(() => {
+    if (threadsQuery.data) {
+      setThreads(threadsQuery.data.data);
+    }
+  }, [threadsQuery.data, setThreads]);
 
   const onClick = useCallback(
     async (thread: ThreadVO) => {
@@ -40,12 +45,21 @@ const ThreadList = ({ isSimple }: { isSimple: boolean }) => {
     },
     [setCurrentThread, clearCurrent],
   );
-  const onDelete = useCallback(
-    async (thread: ThreadVO) => {
-      await deleteThread(thread.id);
-      threadsQuery.refetch();
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteThread,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queries.thread.getThreads.queryKey,
+      });
     },
-    [threadsQuery],
+  });
+
+  const onDelete = useCallback(
+    (thread: ThreadVO) => {
+      deleteMutation.mutate(thread.id);
+    },
+    [deleteMutation],
   );
 
   const handleCreate = useCallback(() => {
@@ -68,7 +82,7 @@ const ThreadList = ({ isSimple }: { isSimple: boolean }) => {
             <CreateButton isSimple={isSimple} onClick={handleCreate} />
           </div>
 
-          <div className="scrollbar-hide flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
+          <div className="scrollbar-hide flex flex-1 flex-col overflow-x-hidden overflow-y-auto">
             {!isSimple && (
               <motion.div
                 initial={{ opacity: 0 }}

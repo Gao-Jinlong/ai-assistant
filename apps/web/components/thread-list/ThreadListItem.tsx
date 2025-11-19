@@ -55,7 +55,7 @@ const ThreadListItem: FC<ThreadListItemProps> = ({
           <DropdownMenuTrigger asChild>
             <Ellipsis className="h-4 w-4" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-30">
+          <DropdownMenuContent className="w-32">
             <DropdownMenuItem onClick={handleDelete}>
               <span className="text-red-500">删除</span>
             </DropdownMenuItem>

@@ -24,7 +24,8 @@
       "Bash(pnpm -F=\"@ai-assistant/web\" list use-stick-to-bottom)",
       "mcp__context7__resolve-library-id",
       "mcp__context7__get-library-docs",
-      "Bash(pnpm -F \"@ai-assistant/web\" lint:*)"
+      "Bash(pnpm -F \"@ai-assistant/web\" lint:*)",
+      "Bash(pnpm -F=\"@ai-assistant/web\" add:*)"
     ],
     "deny": [],
     "ask": []

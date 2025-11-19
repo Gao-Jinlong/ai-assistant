@@ -54,6 +54,11 @@ function SetMessage({ message }: MessageItemProps) {
   return null;
 }
 
+/**
+ * TODO: 重构渲染逻辑
+ * 修改 lexical 到 extensions 方案
+ * 修改 message 更新方式，通过追加文本的方式更新，而不是全量更新
+ */
 const MessageItem = ({ message }: MessageItemProps) => {
   const initialConfig = {
     namespace: 'MyEditor',
