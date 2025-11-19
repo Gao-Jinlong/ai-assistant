@@ -112,6 +112,26 @@ pnpm clean
 pnpm install
 ```
 
+### 4. 端口无访问权限
+
+windows 环境中因为没有端口的访问权限，导致无法启动后端服务。
+
+错误信息：
+
+```bash
+[Nest] 35068  - 2025/11/19 22:39:44   ERROR [NestApplication] Error: listen EACCES: permission denied 0.0.0.0:4000 +1ms
+```
+
+修复方法：
+
+使用管理员权限运行终端，重启 winnat 服务
+
+```powershell
+net stop winnat
+
+net start winnat
+```
+
 ## 开发建议
 
 1. **使用 VS Code**: 推荐使用 VS Code 进行开发，支持 TypeScript 和调试

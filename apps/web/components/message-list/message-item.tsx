@@ -1,6 +1,6 @@
 import { cn } from '@web/lib/utils';
 import { cva } from 'class-variance-authority';
-import { memo, useEffect, useMemo } from 'react';
+import { memo, useEffect, useMemo, useRef } from 'react';
 import { MESSAGE_ROLE, type MESSAGE_TYPE } from '@server/chat/chat.interface';
 import type { StreamMessage } from '@server/chat/dto/sse-message.dto';
 
@@ -10,15 +10,15 @@ import { RichTextExtension } from '@lexical/rich-text';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { $convertFromMarkdownString } from '@lexical/markdown';
-import {
-  AutoFocusExtension,
-  HorizontalRuleExtension,
-} from '@lexical/extension';
+import { HorizontalRuleExtension } from '@lexical/extension';
 import { ReactExtension } from '@lexical/react/ReactExtension';
 
 import MarkdownExtension from '@web/lib/lexical/extensions/MarkdownExtension';
 import { EquationNode } from '@web/lib/lexical/nodes/EquationNode';
 import { PLAYGROUND_TRANSFORMERS } from '@web/lib/lexical/plugin/MarkdownTransformers';
+import IncrementUpdateExtension, {
+  INCREMENT_UPDATE_COMMAND,
+} from '@web/lib/lexical/extensions/IncrementUpdateExtension';
 
 export interface MessageItemProps {
   message: StreamMessage & { type: MESSAGE_TYPE.MESSAGE_CHUNK };
@@ -38,20 +38,18 @@ const messageItemVariants = cva('flex gap-2', {
 });
 
 function SetMessage({ message }: MessageItemProps) {
-  // TODO 通过 lexical 内置 command CONTROL_TEXT_INSERTION 来增量更新文本，参考 ContentEditable
-  const content = message.data.content ?? '';
-
   const [editor] = useLexicalComposerContext();
-  useEffect(() => {
-    editor.update(() => {
-      // 清空编辑器
-      const root = $getRoot();
-      root.clear();
+  const messageRef = useRef<number>(0);
 
-      // 先用默认转换器处理 Markdown
-      $convertFromMarkdownString(content, PLAYGROUND_TRANSFORMERS);
-    });
-  }, [editor, content]);
+  const incrementMessage = useMemo(() => {
+    return message.data.content?.slice(messageRef.current) ?? '';
+  }, [message.data.content]);
+
+  if (incrementMessage.length > 0) {
+    editor.dispatchCommand(INCREMENT_UPDATE_COMMAND, incrementMessage);
+    messageRef.current = message.data.content?.length ?? 0;
+  }
+
   return null;
 }
 
@@ -67,6 +65,7 @@ const MessageItem = ({ message }: MessageItemProps) => {
       dependencies: [
         RichTextExtension,
         HorizontalRuleExtension,
+        IncrementUpdateExtension,
         configExtension(MarkdownExtension, {
           nodes: () => [EquationNode],
           transformers: PLAYGROUND_TRANSFORMERS,
