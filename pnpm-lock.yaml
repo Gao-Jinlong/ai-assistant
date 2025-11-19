@@ -283,6 +283,9 @@ importers:
       '@lexical/code':
         specifier: ^0.38.2
         version: 0.38.2
+      '@lexical/extension':
+        specifier: ^0.38.2
+        version: 0.38.2
       '@lexical/html':
         specifier: ^0.38.2
         version: 0.38.2
@@ -299,6 +302,9 @@ importers:
         specifier: ^0.38.2
         version: 0.38.2(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(yjs@13.6.27)
       '@lexical/rich-text':
+        specifier: ^0.38.2
+        version: 0.38.2
+      '@lexical/table':
         specifier: ^0.38.2
         version: 0.38.2
       '@lexical/utils':
@@ -14012,7 +14018,7 @@ snapshots:
       isstream: 0.1.2
       jsonwebtoken: 9.0.2
       mime-types: 2.1.35
-      retry-axios: 2.6.0(axios@1.12.2(debug@4.4.3))
+      retry-axios: 2.6.0(axios@1.12.2)
       tough-cookie: 4.1.4
     transitivePeerDependencies:
       - supports-color
@@ -15990,7 +15996,7 @@ snapshots:
       onetime: 5.1.2
       signal-exit: 3.0.7
 
-  retry-axios@2.6.0(axios@1.12.2(debug@4.4.3)):
+  retry-axios@2.6.0(axios@1.12.2):
     dependencies:
       axios: 1.12.2(debug@4.4.3)
 

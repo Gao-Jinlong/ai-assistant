@@ -1,24 +1,24 @@
 import { cn } from '@web/lib/utils';
-import { ContentEditable } from '@lexical/react/LexicalContentEditable';
-import { LexicalComposer } from '@lexical/react/LexicalComposer';
-import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
-import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { cva } from 'class-variance-authority';
-import { memo, useEffect } from 'react';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { HeadingNode, QuoteNode } from '@lexical/rich-text';
-import { ListItemNode, ListNode } from '@lexical/list';
-import { CodeHighlightNode, CodeNode } from '@lexical/code';
-import { AutoLinkNode, LinkNode } from '@lexical/link';
-import { $convertFromMarkdownString } from '@lexical/markdown';
-import { EquationNode } from '@web/lib/lexical/nodes/EquationNode';
-import { $getRoot } from 'lexical';
-import 'katex/dist/katex.css';
-import { PLAYGROUND_TRANSFORMERS } from '@web/lib/lexical/plugin/MarkdownTransformers';
+import { memo, useEffect, useMemo } from 'react';
 import { MESSAGE_ROLE, type MESSAGE_TYPE } from '@server/chat/chat.interface';
-import { HorizontalRuleNode } from '@lexical/react/LexicalHorizontalRuleNode';
 import type { StreamMessage } from '@server/chat/dto/sse-message.dto';
-import MarkdownPlugin from '@web/lib/lexical/plugin/MarkdownPlugin';
+
+import { $getRoot, configExtension, defineExtension } from 'lexical';
+import { LexicalExtensionComposer } from '@lexical/react/LexicalExtensionComposer';
+import { RichTextExtension } from '@lexical/rich-text';
+import { ContentEditable } from '@lexical/react/LexicalContentEditable';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { $convertFromMarkdownString } from '@lexical/markdown';
+import {
+  AutoFocusExtension,
+  HorizontalRuleExtension,
+} from '@lexical/extension';
+import { ReactExtension } from '@lexical/react/ReactExtension';
+
+import MarkdownExtension from '@web/lib/lexical/extensions/MarkdownExtension';
+import { EquationNode } from '@web/lib/lexical/nodes/EquationNode';
+import { PLAYGROUND_TRANSFORMERS } from '@web/lib/lexical/plugin/MarkdownTransformers';
 
 export interface MessageItemProps {
   message: StreamMessage & { type: MESSAGE_TYPE.MESSAGE_CHUNK };
@@ -38,6 +38,7 @@ const messageItemVariants = cva('flex gap-2', {
 });
 
 function SetMessage({ message }: MessageItemProps) {
+  // TODO 通过 lexical 内置 command CONTROL_TEXT_INSERTION 来增量更新文本，参考 ContentEditable
   const content = message.data.content ?? '';
 
   const [editor] = useLexicalComposerContext();
@@ -55,31 +56,27 @@ function SetMessage({ message }: MessageItemProps) {
 }
 
 /**
- * TODO: 重构渲染逻辑
- * 修改 lexical 到 extensions 方案
+ * TODO
  * 修改 message 更新方式，通过追加文本的方式更新，而不是全量更新
  */
 const MessageItem = ({ message }: MessageItemProps) => {
-  const initialConfig = {
-    namespace: 'MyEditor',
-    editable: false, // 禁用编辑功能
-    onError: (error: Error) => {
-      console.error(error);
-    },
-    // 注册支持 Markdown 渲染的节点
-    nodes: [
-      HorizontalRuleNode,
-      HeadingNode,
-      QuoteNode,
-      ListNode,
-      ListItemNode,
-      CodeNode,
-      CodeHighlightNode,
-      LinkNode,
-      AutoLinkNode,
-      EquationNode,
-    ],
-  };
+  const extension = useMemo(() => {
+    return defineExtension({
+      name: 'LexicalEditor',
+      namespace: 'LexicalEditor',
+      dependencies: [
+        RichTextExtension,
+        HorizontalRuleExtension,
+        configExtension(MarkdownExtension, {
+          nodes: () => [EquationNode],
+          transformers: PLAYGROUND_TRANSFORMERS,
+        }),
+        configExtension(ReactExtension, {
+          contentEditable: <ContentEditable className="editor-content" />,
+        }),
+      ],
+    });
+  }, []);
 
   return (
     <div className={messageItemVariants({ role: message.data.role })}>
@@ -91,19 +88,9 @@ const MessageItem = ({ message }: MessageItemProps) => {
             : 'justify-start text-left',
         )}
       >
-        <LexicalComposer initialConfig={initialConfig}>
-          <RichTextPlugin
-            contentEditable={
-              <ContentEditable
-                readOnly={true}
-                className="prose prose-sm dark:prose-invert prose-headings:mt-2 prose-headings:mb-1 prose-p:my-1 prose-pre:bg-gray-100 prose-pre:p-2 prose-pre:rounded dark:prose-pre:bg-gray-800 max-w-none cursor-default focus:outline-none [&_div.editor-equation]:mx-0 [&_div.editor-equation]:my-3 [&_div.editor-equation]:block [&_div.editor-equation]:text-center [&_span.editor-equation]:mx-0.5 [&_span.editor-equation]:inline [&_span.editor-equation]:align-baseline"
-              />
-            }
-            ErrorBoundary={LexicalErrorBoundary}
-          />
-          <MarkdownPlugin />
+        <LexicalExtensionComposer extension={extension}>
           <SetMessage message={message} />
-        </LexicalComposer>
+        </LexicalExtensionComposer>
       </div>
     </div>
   );

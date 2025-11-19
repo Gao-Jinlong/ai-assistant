@@ -16,8 +16,8 @@ import type {
   Spread,
 } from 'lexical';
 import type { JSX } from 'react';
-
 import katex from 'katex';
+import 'katex/dist/katex.css';
 import { $applyNodeReplacement, DecoratorNode, DOMExportOutput } from 'lexical';
 import * as React from 'react';
 

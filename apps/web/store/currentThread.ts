@@ -10,6 +10,11 @@ export interface CurrentThreadStoreState {
   currentThread: ThreadVO | null;
   messageIds: Set<string>;
   messages: Map<string, StreamMessage>;
+  /**
+   * 消息缓冲区
+   * 用于暂存增量消息，用于 lexical 的增量更新
+   */
+  messageBuffer: Map<string, StreamMessage>;
   responding: boolean;
 }
 export interface CurrentThreadStoreActions {
@@ -19,6 +24,7 @@ export interface CurrentThreadStoreActions {
   appendMessage: (message: StreamMessage) => void;
   updateMessage: (message: StreamMessage) => void;
   updateMessages: (messages: StreamMessage[]) => void;
+  appendMessageBuffer: (messages: StreamMessage[]) => void;
   setMessages: (messageList: StreamMessage[]) => void;
 }
 
@@ -31,6 +37,7 @@ const currentThreadSlice: Store<CurrentThreadStore> = (set, get, store) => ({
   currentThread: null,
   messageIds: new Set(),
   messages: new Map(),
+  messageBuffer: new Map(),
   clearCurrent: () => {
     set({
       currentThread: null,
@@ -73,6 +80,17 @@ const currentThreadSlice: Store<CurrentThreadStore> = (set, get, store) => ({
     set({
       messages: new Map(messageList.map((message) => [message.id, message])),
       messageIds: new Set(messageList.map((message) => message.id)),
+    });
+  },
+  appendMessageBuffer: (messages) => {
+    set((state) => {
+      const messageBuffer = new Map(state.messageBuffer);
+      messages.forEach((message) => {
+        messageBuffer.set(message.id, message);
+      });
+      return {
+        messageBuffer: messageBuffer,
+      };
     });
   },
 });
@@ -120,6 +138,7 @@ export async function sendMessage(
         // Batch update message status
         if (pendingMessages.size > 0) {
           updateMessages(pendingMessages.values().toArray());
+          appendMessageBuffer(pendingMessages.values().toArray());
           pendingMessages.clear();
         }
         updateTimer = null;
@@ -198,4 +217,8 @@ function mergeMessage(
     };
   }
   return message;
+}
+function appendMessageBuffer(messages: StreamMessage[]) {
+  useBoundStore.getState().appendMessageBuffer(messages);
+  return messages;
 }
