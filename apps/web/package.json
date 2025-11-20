@@ -22,6 +22,7 @@
     "@lexical/react": "^0.38.2",
     "@lexical/rich-text": "^0.38.2",
     "@lexical/table": "^0.38.2",
+    "@lexical/tailwind": "^0.38.2",
     "@lexical/utils": "^0.38.2",
     "@lukemorales/query-key-factory": "^1.3.4",
     "@radix-ui/react-avatar": "^1.1.11",

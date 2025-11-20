@@ -10,6 +10,7 @@ import {
   $createTextNode,
   $createParagraphNode,
   $isParagraphNode,
+  COMMAND_PRIORITY_HIGH,
 } from 'lexical';
 
 export const INCREMENT_UPDATE_COMMAND = createCommand(
@@ -32,8 +33,6 @@ function registerIncrementUpdate(
           // 将 payload 文本追加到当前选区位置
           selection.insertNodes([textNode]);
         } else {
-          // TODO 文本插入不正确导致 markdown 解析失效
-          // 如果没有选区，创建新段落并在其中插入文本
           const root = $getRoot();
           const children = root.getChildAtIndex(-1);
           if ($isParagraphNode(children)) {
@@ -48,7 +47,7 @@ function registerIncrementUpdate(
       });
       return true;
     },
-    COMMAND_PRIORITY_NORMAL,
+    COMMAND_PRIORITY_HIGH,
   );
 }
 

@@ -307,6 +307,9 @@ importers:
       '@lexical/table':
         specifier: ^0.38.2
         version: 0.38.2
+      '@lexical/tailwind':
+        specifier: ^0.38.2
+        version: 0.38.2
       '@lexical/utils':
         specifier: ^0.38.2
         version: 0.38.2
@@ -2321,6 +2324,9 @@ packages:
 
   '@lexical/table@0.38.2':
     resolution: {integrity: sha512-uu0i7yz0nbClmHOO5ZFsinRJE6vQnFz2YPblYHAlNigiBedhqMwSv5bedrzDq8nTTHwych3mC63tcyKIrM+I1g==}
+
+  '@lexical/tailwind@0.38.2':
+    resolution: {integrity: sha512-GqN304BmHbeG7qNnEmNX7ZOW1wZSYDN1oUU7ExW5KnCn2TOhNPHk7vdvUOvwuOGhpdxY+yA4pSH2s3ger1XGWg==}
 
   '@lexical/text@0.38.2':
     resolution: {integrity: sha512-+juZxUugtC4T37aE3P0l4I9tsWbogDUnTI/mgYk4Ht9g+gLJnhQkzSA8chIyfTxbj5i0A8yWrUUSw+/xA7lKUQ==}
@@ -10414,6 +10420,11 @@ snapshots:
       '@lexical/clipboard': 0.38.2
       '@lexical/extension': 0.38.2
       '@lexical/utils': 0.38.2
+      lexical: 0.38.2
+
+  '@lexical/tailwind@0.38.2':
+    dependencies:
+      '@lexical/extension': 0.38.2
       lexical: 0.38.2
 
   '@lexical/text@0.38.2':

@@ -10,7 +10,7 @@ const MessageList = ({ messages }: MessageListProps) => {
     <>
       {messages.map((message) => {
         if (message.type === MESSAGE_TYPE.MESSAGE_CHUNK) {
-          return <MessageItem key={message.id} message={message} />;
+          return <MessageItem key={message.id} messageId={message.id} />;
         }
         return null;
       })}

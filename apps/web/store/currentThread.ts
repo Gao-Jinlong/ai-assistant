@@ -10,11 +10,6 @@ export interface CurrentThreadStoreState {
   currentThread: ThreadVO | null;
   messageIds: Set<string>;
   messages: Map<string, StreamMessage>;
-  /**
-   * 消息缓冲区
-   * 用于暂存增量消息，用于 lexical 的增量更新
-   */
-  messageBuffer: Map<string, StreamMessage>;
   responding: boolean;
 }
 export interface CurrentThreadStoreActions {
@@ -24,7 +19,6 @@ export interface CurrentThreadStoreActions {
   appendMessage: (message: StreamMessage) => void;
   updateMessage: (message: StreamMessage) => void;
   updateMessages: (messages: StreamMessage[]) => void;
-  appendMessageBuffer: (messages: StreamMessage[]) => void;
   setMessages: (messageList: StreamMessage[]) => void;
 }
 
@@ -37,7 +31,6 @@ const currentThreadSlice: Store<CurrentThreadStore> = (set, get, store) => ({
   currentThread: null,
   messageIds: new Set(),
   messages: new Map(),
-  messageBuffer: new Map(),
   clearCurrent: () => {
     set({
       currentThread: null,
@@ -82,17 +75,6 @@ const currentThreadSlice: Store<CurrentThreadStore> = (set, get, store) => ({
       messageIds: new Set(messageList.map((message) => message.id)),
     });
   },
-  appendMessageBuffer: (messages) => {
-    set((state) => {
-      const messageBuffer = new Map(state.messageBuffer);
-      messages.forEach((message) => {
-        messageBuffer.set(message.id, message);
-      });
-      return {
-        messageBuffer: messageBuffer,
-      };
-    });
-  },
 });
 
 export { currentThreadSlice as createCurrentThreadSlice };
@@ -131,27 +113,24 @@ export async function sendMessage(
     );
 
     let updateTimer: ReturnType<typeof setTimeout> | null = null;
-    const pendingMessages: Map<string, StreamMessage> = new Map();
+    const pendingMessages: Map<string, StreamMessage[]> = new Map();
     const scheduleUpdate = () => {
       if (updateTimer) clearTimeout(updateTimer);
       updateTimer = setTimeout(() => {
-        // Batch update message status
-        if (pendingMessages.size > 0) {
-          updateMessages(pendingMessages.values().toArray());
-          appendMessageBuffer(pendingMessages.values().toArray());
-          pendingMessages.clear();
-        }
-        updateTimer = null;
+        updateMessages(pendingMessages);
+        pendingMessages.clear();
       }, 16); // ~60fps
     };
 
     for await (const chunk of stream) {
       if (chunk.type === MESSAGE_TYPE.MESSAGE_CHUNK) {
-        const message = handleMessageChunk(chunk);
-        if (message) {
-          pendingMessages.set(message.id, message);
-          scheduleUpdate();
+        if (pendingMessages.has(chunk.id)) {
+          pendingMessages.get(chunk.id)?.push(chunk);
+        } else {
+          pendingMessages.set(chunk.id, [chunk]);
         }
+
+        scheduleUpdate();
       }
     }
 
@@ -164,16 +143,26 @@ export function setMessages(messages: StreamMessage[]) {
   useBoundStore.getState().setMessages(messages);
 }
 
-function handleMessageChunk(
-  chunk: StreamMessage & { type: MESSAGE_TYPE.MESSAGE_CHUNK },
+function handleMessageChunksMerged(
+  chunks: (StreamMessage & { type: MESSAGE_TYPE.MESSAGE_CHUNK })[],
 ) {
   let message: StreamMessage | undefined;
-  if (!existsMessage(chunk.id)) {
-    message = appendMessage(chunk);
+  const mergedChunk = chunks.reduce((acc, chunk) => {
+    return {
+      ...acc,
+      data: {
+        ...acc.data,
+        content: (acc.data.content ?? '') + (chunk.data.content ?? ''),
+      },
+    };
+  });
+
+  if (!existsMessage(mergedChunk.id)) {
+    message = appendMessage(mergedChunk);
   }
-  message ??= getMessage(chunk.id);
+  message ??= getMessage(mergedChunk.id);
   if (message) {
-    message = mergeMessage(message, chunk);
+    message = mergeMessage(message, mergedChunk);
   }
   return message;
 }
@@ -196,9 +185,20 @@ function updateMessage(message: StreamMessage) {
   useBoundStore.getState().updateMessage(message);
   return message;
 }
-function updateMessages(messages: StreamMessage[]) {
-  useBoundStore.getState().updateMessages(messages);
-  return messages;
+function updateMessages(messages: Map<string, StreamMessage[]>) {
+  const newMessages = messages
+    .entries()
+    .map(([messageId, messageList]) => {
+      const mergedChunk = messageList.filter(
+        (chunk) => chunk.type === MESSAGE_TYPE.MESSAGE_CHUNK,
+      );
+      const message = handleMessageChunksMerged(mergedChunk);
+      return message;
+    })
+    .filter((message) => message !== undefined)
+    .toArray();
+  useBoundStore.getState().updateMessages(newMessages);
+  return newMessages;
 }
 function mergeMessage(
   message: StreamMessage,
@@ -218,7 +218,7 @@ function mergeMessage(
   }
   return message;
 }
-function appendMessageBuffer(messages: StreamMessage[]) {
-  useBoundStore.getState().appendMessageBuffer(messages);
-  return messages;
-}
+
+// export function popMessageBuffer(messageId: string) {
+//   return undefined;
+// }

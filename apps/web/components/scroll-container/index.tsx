@@ -4,6 +4,7 @@
 import React, {
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
   type ReactNode,
   type RefObject,
@@ -12,6 +13,7 @@ import { useStickToBottom } from 'use-stick-to-bottom';
 
 import { ScrollArea } from '@web/components/ui/scroll-area';
 import { cn } from '@web/lib/utils';
+import { AnimatePresence, motion } from 'motion/react';
 
 export interface ScrollContainerProps {
   className?: string;
@@ -31,7 +33,7 @@ export function ScrollContainer({
   className,
   children,
   scrollShadow = true,
-  scrollShadowColor = 'var(--background)',
+  scrollShadowColor = 'var(--color-gray-50)',
   autoScrollToBottom = false,
   ref,
 }: ScrollContainerProps) {
@@ -69,8 +71,8 @@ export function ScrollContainer({
         <>
           <div
             className={cn(
-              'absolute left-0 right-0 top-0 z-10 h-10 bg-gradient-to-t',
-              `from-transparent to-[var(--scroll-shadow-color)]`,
+              'absolute top-0 right-0 left-0 z-10 h-10 bg-linear-to-t',
+              `from-transparent to-(--scroll-shadow-color)`,
             )}
             style={
               {
@@ -78,17 +80,28 @@ export function ScrollContainer({
               } as React.CSSProperties
             }
           ></div>
-          <div
-            className={cn(
-              'absolute bottom-0 left-0 right-0 z-10 h-10 bg-gradient-to-b',
-              `from-transparent to-[var(--scroll-shadow-color)]`,
+          <AnimatePresence>
+            {!isAtBottom && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div
+                  className={cn(
+                    'absolute right-0 bottom-0 left-0 z-10 h-10 bg-linear-to-b',
+                    `from-transparent to-(--scroll-shadow-color)`,
+                  )}
+                  style={
+                    {
+                      '--scroll-shadow-color': scrollShadowColor,
+                    } as React.CSSProperties
+                  }
+                ></div>
+              </motion.div>
             )}
-            style={
-              {
-                '--scroll-shadow-color': scrollShadowColor,
-              } as React.CSSProperties
-            }
-          ></div>
+          </AnimatePresence>
         </>
       )}
       <ScrollArea ref={scrollRef} className="w-full">

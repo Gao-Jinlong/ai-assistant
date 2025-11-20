@@ -22,7 +22,7 @@ export function AuthLayout({
   footer,
 }: AuthLayoutProps) {
   return (
-    <div className="flex h-full flex-1 items-center justify-center bg-gray-50">
+    <div className="flex h-full flex-1 items-center justify-center">
       <Card className="mx-4 w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-bold">{title}</CardTitle>

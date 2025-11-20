@@ -15,7 +15,10 @@ import {
   TRANSFORMERS,
   type Transformer,
 } from '@lexical/markdown';
-import { HorizontalRuleNode } from '@lexical/react/LexicalHorizontalRuleNode';
+import {
+  HorizontalRuleExtension,
+  HorizontalRuleNode,
+} from '@lexical/extension';
 
 interface MarkdownExtensionConfig {
   nodes?: () => readonly LexicalNodeConfig[] | LexicalNodeConfig[];
@@ -25,7 +28,7 @@ interface MarkdownExtensionConfig {
 const MarkdownExtension = defineExtension({
   name: 'MarkdownExtension',
   namespace: 'MarkdownExtension',
-  dependencies: [],
+  dependencies: [HorizontalRuleExtension],
   nodes: () => [
     ParagraphNode,
     TextNode,
@@ -37,10 +40,10 @@ const MarkdownExtension = defineExtension({
     ListItemNode,
     CodeNode,
     CodeHighlightNode,
-    HorizontalRuleNode,
     TableCellNode,
     TableNode,
     TableRowNode,
+    HorizontalRuleNode,
   ],
   init(editorConfig, config) {
     const nodes = [];

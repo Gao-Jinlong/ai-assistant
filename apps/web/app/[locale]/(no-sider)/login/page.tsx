@@ -28,7 +28,7 @@ import useBoundStore from '@web/store';
 const formSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
-  rememberMe: z.boolean().default(false),
+  rememberMe: z.boolean(),
 });
 
 export default function Login() {

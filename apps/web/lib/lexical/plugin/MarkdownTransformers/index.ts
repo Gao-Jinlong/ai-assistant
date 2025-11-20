@@ -17,11 +17,6 @@ import {
   TextMatchTransformer,
   Transformer,
 } from '@lexical/markdown';
-import {
-  $createHorizontalRuleNode,
-  $isHorizontalRuleNode,
-  HorizontalRuleNode,
-} from '@lexical/react/LexicalHorizontalRuleNode';
 import { LexicalNode } from 'lexical';
 
 import {
@@ -29,9 +24,13 @@ import {
   $isEquationNode,
   EquationNode,
 } from '../../nodes/EquationNode';
+import {
+  $createHorizontalRuleNode,
+  $isHorizontalRuleNode,
+} from '@lexical/extension';
 
 export const HR: ElementTransformer = {
-  dependencies: [HorizontalRuleNode],
+  dependencies: [],
   export: (node: LexicalNode) => {
     return $isHorizontalRuleNode(node) ? '***' : null;
   },
