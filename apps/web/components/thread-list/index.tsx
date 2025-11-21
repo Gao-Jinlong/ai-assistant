@@ -8,15 +8,14 @@ import ThreadListItem from './ThreadListItem';
 import { deleteThread, getThreadMessages, ThreadVO } from '@web/service/thread';
 import queries from '@web/queries';
 import { toast } from 'sonner';
-import { setMessages } from '@web/store/currentThread';
+import { setActiveThread, setMessages } from '@web/store/active-thread';
 
 const ThreadList = ({ isSimple }: { isSimple: boolean }) => {
   const router = useBoundStore((state) => state.router);
 
-  const currentThread = useBoundStore((state) => state.currentThread);
+  const currentThread = useBoundStore((state) => state.activeThread);
   const setThreads = useBoundStore((state) => state.setThreads);
-  const setCurrentThread = useBoundStore((state) => state.setCurrentThread);
-  const clearCurrent = useBoundStore((state) => state.clearCurrent);
+  const clearActiveThread = useBoundStore((state) => state.clearActiveThread);
   const threads = useBoundStore((state) => state.threads);
   const isThread = useMemo(() => router.key === 'thread', [router]);
 
@@ -34,16 +33,13 @@ const ThreadList = ({ isSimple }: { isSimple: boolean }) => {
   const onClick = useCallback(
     async (thread: ThreadVO) => {
       try {
-        const response = await getThreadMessages(thread.uid);
-        clearCurrent();
-        setCurrentThread(thread);
-        setMessages(response.data);
+        await setActiveThread(thread);
       } catch (error) {
         console.error('Failed to load thread messages:', error);
         toast.error('加载历史消息失败');
       }
     },
-    [setCurrentThread, clearCurrent],
+    [clearActiveThread],
   );
 
   const deleteMutation = useMutation({
@@ -63,8 +59,8 @@ const ThreadList = ({ isSimple }: { isSimple: boolean }) => {
   );
 
   const handleCreate = useCallback(() => {
-    clearCurrent();
-  }, [clearCurrent]);
+    clearActiveThread();
+  }, [clearActiveThread]);
 
   return (
     <AnimatePresence>

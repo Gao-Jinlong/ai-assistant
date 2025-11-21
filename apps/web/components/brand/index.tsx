@@ -17,13 +17,13 @@ const Brand = ({
       href={link}
       className="flex items-center justify-center gap-2 font-semibold"
     >
-      <div className="flex w-8 flex-shrink-0 items-center justify-center">
+      <div className="flex w-8 shrink-0 items-center justify-center">
         <Image
           src="https://ginlon-bucket-01.oss-cn-shanghai.aliyuncs.com/favicon.svg"
           alt="logo"
           width={20}
-          height={20}
-          className="flex-shrink-0"
+          height={31}
+          className="aspect-auto h-auto shrink-0"
         />
       </div>
 

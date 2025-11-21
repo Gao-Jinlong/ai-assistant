@@ -62,12 +62,12 @@ export interface Message extends MessageChunkData {
 export async function* chatStream(
   content: string,
   params: ChatStreamParams,
-  options: { signal?: AbortSignal } = {},
+  options: { signal?: AbortController } = {},
 ) {
   const response = await sse(`chat`, {
     method: 'POST',
     body: JSON.stringify({ role: MESSAGE_ROLE.HUMAN, content, ...params }),
-    ...options,
+    signal: options.signal?.signal,
   });
 
   const reader = response.body

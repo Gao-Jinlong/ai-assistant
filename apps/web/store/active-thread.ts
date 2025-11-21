@@ -1,20 +1,22 @@
 import { MESSAGE_ROLE } from '@common/constants';
 import { MESSAGE_TYPE } from '@server/chat/chat.interface';
 import type { StreamMessage } from '@server/chat/dto/sse-message.dto';
-import { ThreadVO } from '@web/service/thread';
+import { getThreadMessages, ThreadVO } from '@web/service/thread';
 import useBoundStore, { Store } from '.';
 import { uuid as uuidUtils } from '@common/utils';
 import { chatService } from '@web/service';
 
-export interface CurrentThreadStoreState {
-  currentThread: ThreadVO | null;
+export interface ActiveThreadStoreState {
+  activeThread: ThreadVO | null;
   messageIds: Set<string>;
   messages: Map<string, StreamMessage>;
   responding: boolean;
+  loading: boolean;
 }
-export interface CurrentThreadStoreActions {
-  clearCurrent: () => void;
-  setCurrentThread: (current: ThreadVO | null) => void;
+export interface ActiveThreadStoreActions {
+  setLoading: (loading: boolean) => void;
+  clearActiveThread: () => void;
+  setActiveThread: (current: ThreadVO | null) => void;
   setResponding: (responding: boolean) => void;
   appendMessage: (message: StreamMessage) => void;
   updateMessage: (message: StreamMessage) => void;
@@ -22,18 +24,25 @@ export interface CurrentThreadStoreActions {
   setMessages: (messageList: StreamMessage[]) => void;
 }
 
-export interface CurrentThreadStore
-  extends CurrentThreadStoreState,
-    CurrentThreadStoreActions {}
+export interface ActiveThreadStore
+  extends ActiveThreadStoreState,
+    ActiveThreadStoreActions {}
 
-const currentThreadSlice: Store<CurrentThreadStore> = (set, get, store) => ({
+// TODO 重构 activeThread 状态管理
+// 将 activeThread 的 abortController 转移到 store 中
+// 通过 js module 作用域管理 activeThread 的状态
+let abortController: AbortController | null = null;
+
+const activeThreadSlice: Store<ActiveThreadStore> = (set, get, store) => ({
   responding: false,
-  currentThread: null,
+  loading: false,
+  activeThread: null,
   messageIds: new Set(),
   messages: new Map(),
-  clearCurrent: () => {
+  setLoading: (loading) => set({ loading }),
+  clearActiveThread: () => {
     set({
-      currentThread: null,
+      activeThread: null,
       responding: false,
       messageIds: new Set(),
       messages: new Map(),
@@ -67,7 +76,7 @@ const currentThreadSlice: Store<CurrentThreadStore> = (set, get, store) => ({
       };
     });
   },
-  setCurrentThread: (current) => set({ currentThread: current }),
+  setActiveThread: (current) => set({ activeThread: current }),
   setResponding: (isResponding) => set({ responding: isResponding }),
   setMessages: (messageList) => {
     set({
@@ -77,14 +86,41 @@ const currentThreadSlice: Store<CurrentThreadStore> = (set, get, store) => ({
   },
 });
 
-export { currentThreadSlice as createCurrentThreadSlice };
+export { activeThreadSlice as createActiveThreadSlice };
 
+export async function setActiveThread(thread: ThreadVO) {
+  const store = useBoundStore.getState();
+  const currentThread = store.activeThread;
+  if (currentThread?.uid === thread.uid) {
+    return;
+  }
+  store.setLoading(true);
+
+  abortController?.abort();
+  store.clearActiveThread();
+  store.setActiveThread(thread);
+
+  try {
+    if (thread.uid) {
+      await restoreThread(thread);
+    }
+  } finally {
+    store.setLoading(false);
+  }
+  // TODO 未结束对话恢复
+}
+async function restoreThread(thread: ThreadVO) {
+  const response = await getThreadMessages(thread.uid);
+  setMessages(response.data);
+}
 export async function sendMessage(
   content: string,
-  options?: { signal?: AbortSignal },
+  options?: { signal?: AbortController },
 ) {
+  abortController = options?.signal || new AbortController();
+  const signal = abortController.signal;
   const threadId =
-    useBoundStore.getState().currentThread?.uid ?? uuidUtils.generateThreadId();
+    useBoundStore.getState().activeThread?.uid ?? uuidUtils.generateThreadId();
   if (content == null) {
     return;
   }
@@ -123,6 +159,9 @@ export async function sendMessage(
     };
 
     for await (const chunk of stream) {
+      if (signal?.aborted) {
+        break;
+      }
       if (chunk.type === MESSAGE_TYPE.MESSAGE_CHUNK) {
         if (pendingMessages.has(chunk.id)) {
           pendingMessages.get(chunk.id)?.push(chunk);

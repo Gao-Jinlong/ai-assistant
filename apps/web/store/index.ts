@@ -2,11 +2,11 @@ import { create, StateCreator } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { createUserSlice, UserStore } from './user';
 import { createRouterSlice, RouterStore } from './router';
-import { createCurrentThreadSlice, CurrentThreadStore } from './currentThread';
+import { createActiveThreadSlice, ActiveThreadStore } from './active-thread';
 import { LOGIN_INFO_KEY } from '@web/constant';
 import { createThreadsSlice, ThreadsStore } from './threads';
 
-type UnionStore = UserStore & RouterStore & CurrentThreadStore & ThreadsStore;
+type UnionStore = UserStore & RouterStore & ActiveThreadStore & ThreadsStore;
 export type Store<T> = StateCreator<UnionStore, [], [], T>;
 
 const useBoundStore = create<UnionStore>()(
@@ -14,7 +14,7 @@ const useBoundStore = create<UnionStore>()(
     (...actions) => ({
       ...createUserSlice(...actions),
       ...createRouterSlice(...actions),
-      ...createCurrentThreadSlice(...actions),
+      ...createActiveThreadSlice(...actions),
       ...createThreadsSlice(...actions),
     }),
     {

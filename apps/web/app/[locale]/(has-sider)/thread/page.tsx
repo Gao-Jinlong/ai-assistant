@@ -7,19 +7,17 @@ import { threadService } from '@web/service';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import queries from '@web/queries';
 import { toast } from 'sonner';
-import { sendMessage } from '@web/store/currentThread';
+import { sendMessage, setActiveThread } from '@web/store/active-thread';
 import { useEventCallback } from 'usehooks-ts';
+import { ThreadVO } from '@web/service/thread';
+import { AnimatePresence, motion } from 'motion/react';
 
 export default function ChatPage() {
-  const thread = useBoundStore((state) => state.currentThread);
-  const setCurrentThread = useBoundStore((state) => state.setCurrentThread);
+  const thread = useBoundStore((state) => state.activeThread);
   const queryClient = useQueryClient();
 
   const createThread = useMutation({
     mutationFn: threadService.createThread,
-    onSuccess: (resp) => {
-      setCurrentThread(resp.data);
-    },
   });
 
   const handleSendMessage = useEventCallback(async (message: string) => {
@@ -34,15 +32,16 @@ export default function ChatPage() {
           throw new Error('创建会话失败');
         }
         currentThread = res.data;
+        await setActiveThread(currentThread);
       }
       if (!currentThread?.uid) {
         throw new Error('会话不存在');
       }
-      sendMessage(message);
+      await sendMessage(message);
     } catch (error) {
       console.error(error);
       if (createThread.isError) {
-        console.log('🚀 ~ ChatPage ~ createThread:', createThread.error);
+        console.log('create thread error:', createThread.error);
       } else if (error instanceof Error) {
         toast.error(error.message);
       } else {
@@ -53,8 +52,31 @@ export default function ChatPage() {
 
   return (
     <div className="flex h-screen w-full flex-1 flex-col">
-      <div className="flex w-full flex-1 overflow-hidden pt-12">
-        {thread ? <ThreadContent /> : <ThreadDefault />}
+      <div className="relative flex w-full flex-1 overflow-hidden pt-12">
+        <AnimatePresence mode="wait">
+          {thread ? (
+            <motion.div
+              className="absolute inset-0 flex h-full w-full flex-1 flex-col"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              <ThreadContent />
+            </motion.div>
+          ) : (
+            <motion.div
+              className="absolute inset-0 flex h-full w-full flex-1 flex-col"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              key="thread-default"
+            >
+              <ThreadDefault />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
       <div className="flex w-full overflow-hidden p-8">
         <ThreadInput thread={thread} onSend={handleSendMessage} />
