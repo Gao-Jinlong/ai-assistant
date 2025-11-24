@@ -4,6 +4,7 @@ import { MessageService } from '@server/message/message.service';
 import { MessageFormatterService } from '@server/message/message-formatter.service';
 import { PrismaService } from '@server/prisma/prisma.service';
 import { generateThreadId } from '@common/utils/uuid';
+import { ThreadStatus } from './thread-status.enum';
 
 @Injectable()
 export class ThreadService {
@@ -20,6 +21,7 @@ export class ThreadService {
         userUid: userId,
         title: null,
         totalTokens: 0,
+        status: ThreadStatus.COMPLETED, // 新建线程默认已完成/已结束
       },
     });
 
@@ -37,6 +39,7 @@ export class ThreadService {
         title: true,
         messageCount: true,
         totalTokens: true,
+        status: true,
         metadata: true,
         createdAt: true,
         updatedAt: true,
@@ -62,5 +65,47 @@ export class ThreadService {
     const streamMessages = this.messageFormatter.toStreamMessages(messages);
 
     return streamMessages;
+  }
+
+  /**
+   * 更新 Thread 的 status 状态
+   */
+  async updateStatus(
+    threadId: string,
+    status: ThreadStatus,
+  ): Promise<void> {
+    try {
+      await this.prisma.db.thread.update({
+        where: { uid: threadId },
+        data: { status },
+      });
+    } catch (error) {
+      console.error('Failed to update thread status', { error, threadId, status });
+    }
+  }
+
+  /**
+   * 获取单个 Thread 详情
+   */
+  async getThreadDetail(userId: string, threadId: string) {
+    const thread = await this.prisma.db.thread.findFirst({
+      where: {
+        uid: threadId,
+        userUid: userId,
+      },
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        messageCount: true,
+        totalTokens: true,
+        status: true,
+        metadata: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    return thread;
   }
 }

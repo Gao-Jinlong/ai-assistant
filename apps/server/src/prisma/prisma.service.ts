@@ -1,10 +1,10 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaClient, Prisma } from '@prisma/client';
+import { generateUid } from '@ai-assistant/common/utils/uuid';
 import {
   DynamicClientExtensionThis,
   InternalArgs,
-} from '@prisma/client/runtime/library';
-import { generateUid } from '@common/utils/uuid';
+} from '@prisma/client/runtime/client';
 
 // 扩展后的 Prisma Client 类型
 type ExtendedPrismaClient = DynamicClientExtensionThis<

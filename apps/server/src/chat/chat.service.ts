@@ -17,12 +17,18 @@ import { MessageFormatterService } from '@server/message/message-formatter.servi
 import { MessageStreamProcessor } from './message-stream-processor';
 import { StreamMessage } from './dto/sse-message.dto';
 import { ErrorCode } from '@server/common/errors/error-codes';
+import { CacheService } from '@server/cache/cache.service';
+import { ThreadService } from '@server/thread/thread.service';
+import { ThreadStatus } from '@server/thread/thread-status.enum';
 import path from 'node:path';
 import fs from 'node:fs';
 import { uuid as uuidUtils } from '@common/utils';
 
 @Injectable()
 export class ChatService {
+  // Redis 客户端（用于 List 和 Pub/Sub 操作）
+  private redisClient: any;
+
   constructor(
     private readonly prisma: PrismaService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
@@ -30,7 +36,30 @@ export class ChatService {
     private readonly agentService: AgentService,
     private readonly configService: ConfigService,
     private readonly messageFormatter: MessageFormatterService,
-  ) {}
+    private readonly cacheService: CacheService,
+    private readonly threadService: ThreadService,
+  ) {
+    // 初始化 Redis 客户端（在模块初始化后）
+    this.initializeRedisClient();
+  }
+
+  /**
+   * 初始化 Redis 客户端
+   */
+  private async initializeRedisClient() {
+    try {
+      // 从 cache-manager 获取 Redis 客户端
+      const cacheManager = (this.cacheService as any).cacheManager;
+      if (cacheManager && cacheManager.store && cacheManager.store.getClient) {
+        this.redisClient = cacheManager.store.getClient();
+        this.logger.info('Redis client initialized from cache-manager');
+      } else {
+        this.logger.warn('Redis client not available, some features may not work');
+      }
+    } catch (error) {
+      this.logger.error('Failed to initialize Redis client', { error });
+    }
+  }
 
   async chat(res: Response, jwtPayload: JwtPayload, body: CreateChatDto) {
     const { threadId: threadUid, content } = body;
@@ -102,20 +131,101 @@ export class ChatService {
     thread: Thread;
     isMockMode: boolean;
   }) {
+    // Redis 缓存键
+    const listKey = `streaming:thread:${thread.uid}:messages`;
+    const channel = `streaming:thread:${thread.uid}:channel`;
+    const statusKey = `streaming:thread:${thread.uid}:status`;
+
+    // 标记对话状态为进行中
+    if (this.redisClient) {
+      try {
+        await this.redisClient.setex(statusKey, 3600, 'in_progress');
+        await this.threadService.updateStatus(thread.uid, ThreadStatus.IN_PROGRESS);
+        this.logger.info('Thread status set to IN_PROGRESS', { threadId: thread.uid });
+      } catch (error) {
+        this.logger.error('Failed to set thread status', { error, threadId: thread.uid });
+      }
+    }
+
     if (!isMockMode) {
       this.saveMessageToMockFile(source$, isMockMode);
     }
     this.saveMessageToDatabase(source$, thread);
-    this.transmitMessageToClient(source$, res);
+    this.transmitMessageToClient(source$, res, listKey, channel, statusKey);
   }
 
   private async transmitMessageToClient(
     source$: Observable<StreamMessage>,
     res: Response,
+    listKey: string,
+    channel: string,
+    statusKey: string,
   ) {
     source$.subscribe({
-      next: (sseMessage) => {
+      next: async (sseMessage) => {
+        // 1. 写入客户端 SSE
         res.write(this.messageFormatter.serializeToSSE(sseMessage));
+
+        // 2. 写入 Redis List 缓存（历史）
+        // 3. 发布到 Pub/Sub 通道（实时）
+        if (this.redisClient) {
+          try {
+            // 排除控制消息（PING, ERROR, DONE）
+            const isControlMessage =
+              sseMessage.type === MESSAGE_TYPE.PING ||
+              sseMessage.type === MESSAGE_TYPE.ERROR ||
+              sseMessage.type === MESSAGE_TYPE.DONE;
+
+            if (!isControlMessage) {
+              const messageStr = JSON.stringify(sseMessage);
+
+              // 并行执行 Redis 操作
+              await Promise.all([
+                this.redisClient.rpush(listKey, messageStr),
+                this.redisClient.publish(channel, messageStr),
+              ]);
+
+              // 设置 TTL
+              await this.redisClient.expire(listKey, 3600);
+            }
+          } catch (error) {
+            this.logger.error('Failed to cache message to Redis', {
+              error,
+              threadId: res.req?.params?.threadId,
+              messageType: sseMessage.type,
+            });
+          }
+        }
+      },
+
+      complete: async () => {
+        // 对话完成，标记状态
+        if (this.redisClient) {
+          try {
+            await this.redisClient.setex(statusKey, 3600, 'completed');
+            await this.threadService.updateStatus(res.req?.params?.threadId || '', ThreadStatus.COMPLETED);
+
+            // 发布完成事件到 control channel
+            await this.redisClient.publish(`${channel}:control`, 'complete');
+
+            this.logger.info('Thread status set to COMPLETED', { threadId: res.req?.params?.threadId });
+          } catch (error) {
+            this.logger.error('Failed to mark thread as completed', {
+              error,
+              threadId: res.req?.params?.threadId,
+            });
+          }
+        }
+
+        res.end();
+      },
+
+      error: async (err) => {
+        this.logger.error('Stream error', { error: err, threadId: res.req?.params?.threadId });
+
+        // 错误处理：是否需要标记为 completed？
+        // 这里可以决定是否将错误状态标记为 completed
+        res.end();
       },
     });
   }
@@ -167,8 +277,144 @@ export class ChatService {
   }
 
   /**
-   * 从 mock 文件读取消息并创建 Observable 流
+   * Restore 对话（SSE 接口）
    */
+  async restoreThread(threadId: string): Promise<Observable<StreamMessage>> {
+    const listKey = `streaming:thread:${threadId}:messages`;
+    const channel = `streaming:thread:${threadId}:channel`;
+    const sentMessageUids = new Set<string>(); // 记录已发送消息的 UID
+
+    return new Observable((subscriber) => {
+      let pubSubClient: any | null = null;
+      let isInitialized = false;
+      let unsubscribe: (() => void) | null = null;
+
+      const cleanup = () => {
+        if (unsubscribe) {
+          unsubscribe();
+        }
+        if (pubSubClient && typeof pubSubClient.quit === 'function') {
+          pubSubClient.quit();
+        }
+        sentMessageUids.clear();
+      };
+
+      (async () => {
+        try {
+          if (!this.redisClient) {
+            subscriber.error(new Error('Redis client not available'));
+            cleanup();
+            return;
+          }
+
+          // 步骤 0: 立即订阅 Pub/Sub，暂存消息
+          pubSubClient = (this.redisClient as any).duplicate
+            ? (this.redisClient as any).duplicate()
+            : this.redisClient;
+
+          const newMessageBuffer: any[] = [];
+
+          // 订阅消息通道
+          const messageHandler = (message: string) => {
+            try {
+              const msg = JSON.parse(message);
+              if (!isInitialized) {
+                newMessageBuffer.push(msg);
+              } else {
+                if (!sentMessageUids.has(msg.id)) {
+                  subscriber.next(msg);
+                  sentMessageUids.add(msg.id);
+                }
+              }
+            } catch (e) {
+              this.logger.error('Parse pub/sub message failed', { error: e, threadId });
+            }
+          };
+
+          await pubSubClient.subscribe(channel, messageHandler);
+
+          // 等待订阅生效
+          await new Promise((resolve) => setTimeout(resolve, 50));
+
+          // 步骤 1: 第一次读取 List（历史）
+          const history1 = await this.redisClient.lrange(listKey, 0, -1);
+          const historyCount1 = history1.length;
+
+          // 发送历史消息（从旧到新）
+          for (const msgStr of history1) {
+            try {
+              const msg = JSON.parse(msgStr);
+              if (!sentMessageUids.has(msg.id)) {
+                subscriber.next(msg);
+                sentMessageUids.add(msg.id);
+              }
+            } catch (e) {
+              this.logger.error('Parse history message failed', { error: e, threadId });
+            }
+          }
+
+          // 步骤 2: 第二次读取 List，检查新增消息
+          await new Promise((resolve) => setTimeout(resolve, 100));
+
+          const history2 = await this.redisClient.lrange(listKey, 0, -1);
+          const historyCount2 = history2.length;
+
+          if (historyCount2 > historyCount1) {
+            // 有新消息加入（窗口期间写入的）
+            const newlyAdded = history2.slice(historyCount1);
+
+            for (const msgStr of newlyAdded) {
+              try {
+                const msg = JSON.parse(msgStr);
+                if (!sentMessageUids.has(msg.id)) {
+                  subscriber.next(msg);
+                  sentMessageUids.add(msg.id);
+                }
+              } catch (e) {
+                this.logger.error('Parse newly added message failed', { error: e, threadId });
+              }
+            }
+          }
+
+          // 步骤 3: 处理订阅期间缓存的消息
+          isInitialized = true;
+
+          for (const msg of newMessageBuffer) {
+            if (!sentMessageUids.has(msg.id)) {
+              subscriber.next(msg);
+              sentMessageUids.add(msg.id);
+            }
+          }
+
+          // 订阅控制通道（用于接收 complete 事件）
+          const controlChannel = `${channel}:control`;
+          const controlHandler = (message: string) => {
+            if (message === 'complete') {
+              this.logger.info('Received complete event from control channel', { threadId });
+
+              // 延迟3秒确保所有消息已接收
+              setTimeout(() => {
+                subscriber.complete();
+                cleanup();
+              }, 3000);
+            }
+          };
+
+          await pubSubClient.subscribe(controlChannel, controlHandler);
+
+          this.logger.info('Restore connection established', { threadId });
+        } catch (error) {
+          this.logger.error('Restore failed', { error, threadId });
+          subscriber.error(error);
+          cleanup();
+        }
+      })();
+
+      // 返回清理函数
+      return cleanup;
+    });
+  }
+
   private readMessagesFromMockFile(id: string): Observable<StreamMessage> {
     const mockFilePath = this.configService.get('mock.path');
     const mockFile = path.join(mockFilePath, 'chat.txt');

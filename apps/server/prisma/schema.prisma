@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -28,22 +29,24 @@ model Thread {
   messageCount Int      @default(0)
   totalTokens  Int      @default(0)
   metadata     Json?
+  status       Int      @default(0)
   deleted      Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   @@index([userUid])
+  @@index([status])
 }
 
 model Message {
   id        Int      @id @default(autoincrement())
   uid       String   @unique
   threadUid String
-  content   String   @db.Text
+  content   String
   role      String
-  deleted   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deleted   Boolean  @default(false)
 
   @@index([threadUid])
 }
