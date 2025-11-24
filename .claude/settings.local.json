@@ -26,7 +26,11 @@
       "mcp__context7__get-library-docs",
       "Bash(pnpm -F \"@ai-assistant/web\" lint:*)",
       "Bash(pnpm -F=\"@ai-assistant/web\" add:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(pnpm add ioredis)",
+      "Bash(pnpm add -D @types/ioredis)",
+      "Bash(pnpm prisma:migrate:dev --name add_thread_streaming_status)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

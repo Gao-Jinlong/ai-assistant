@@ -11,13 +11,18 @@ async function setupDatabase() {
 
   try {
     // 根据环境加载对应的 .env 文件
-    import('dotenv').then((dotenv) => {
-      dotenv.config({
-        path: `.env.${env}`,
-      });
+    const dotenv = await import('dotenv');
+    dotenv.config({
+      path: `.env.${env}`,
     });
 
-    const prisma = new PrismaClient();
+    const prisma = new PrismaClient({
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL,
+        },
+      },
+    });
 
     // 运行数据库迁移
     await execAsync('npx prisma migrate deploy');
