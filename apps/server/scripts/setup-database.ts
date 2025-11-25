@@ -1,7 +1,8 @@
 import { generateUid } from '@common/utils/uuid';
-import { PrismaClient } from '@prisma/client';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { PrismaClient } from '../generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 
 const execAsync = promisify(exec);
 
@@ -16,13 +17,9 @@ async function setupDatabase() {
       path: `.env.${env}`,
     });
 
-    const prisma = new PrismaClient({
-      datasources: {
-        db: {
-          url: process.env.DATABASE_URL,
-        },
-      },
-    });
+    const connectionString = process.env.DATABASE_URL;
+    const adapter = new PrismaPg({ connectionString });
+    const prisma = new PrismaClient({ adapter });
 
     // 运行数据库迁移
     await execAsync('npx prisma migrate deploy');

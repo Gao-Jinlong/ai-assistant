@@ -110,9 +110,9 @@ export const MessageScalarFieldEnum = {
   threadUid: 'threadUid',
   content: 'content',
   role: 'role',
-  deleted: 'deleted',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  deleted: 'deleted'
 } as const
 
 export type MessageScalarFieldEnum = (typeof MessageScalarFieldEnum)[keyof typeof MessageScalarFieldEnum]

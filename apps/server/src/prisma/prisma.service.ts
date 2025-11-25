@@ -1,49 +1,21 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { PrismaClient, Prisma } from '@prisma/client';
-import { generateUid } from '@ai-assistant/common/utils/uuid';
-import {
-  DynamicClientExtensionThis,
-  InternalArgs,
-} from '@prisma/client/runtime/client';
+import { generateUid } from '@common/utils/uuid';
 
-// 扩展后的 Prisma Client 类型
-type ExtendedPrismaClient = DynamicClientExtensionThis<
-  Prisma.TypeMap<
-    InternalArgs & {
-      result: object;
-      model: object;
-      query: object;
-      client: object;
-    },
-    Prisma.PrismaClientOptions
-  >,
-  Prisma.TypeMapCb,
-  {
-    model: object;
-    result: object;
-    query: object;
-    client: object;
-  }
->;
+import { Prisma, PrismaClient } from 'generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { ConfigService } from '@nestjs/config';
 
-const omitFields = {
-  createdAt: true,
-  updatedAt: true,
-  deleted: true,
-};
 @Injectable()
 export class PrismaService implements OnModuleInit {
-  private readonly client: ExtendedPrismaClient;
+  private readonly client: PrismaClient<
+    never,
+    Prisma.GlobalOmitConfig | undefined
+  >;
 
-  constructor() {
+  constructor(private readonly configService: ConfigService) {
+    const connectionString = this.configService.get('DATABASE_URL');
     const prisma = new PrismaClient({
-      omit: {
-        // user: omitFields,
-        thread: omitFields,
-        // assessment: omitFields,
-        // assessmentResult: omitFields,
-        // assessmentType: omitFields,
-      },
+      adapter: new PrismaPg({ connectionString }),
     })
       .$extends({
         name: 'auto-uid',
@@ -110,7 +82,7 @@ export class PrismaService implements OnModuleInit {
         },
       });
 
-    this.client = prisma;
+    this.client = prisma as unknown as any;
   }
 
   async onModuleInit() {}

@@ -1,4 +1,4 @@
-import { User as UserModel } from '@prisma/client';
+import { User as UserModel } from 'generated/prisma/client';
 
 export class User implements UserModel {
   uid!: string;

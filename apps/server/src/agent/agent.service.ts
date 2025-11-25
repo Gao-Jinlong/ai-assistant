@@ -8,7 +8,7 @@ import {
 import { MODEL_TYPE } from '@server/model-manager/interface';
 import { MessageService } from '@server/message/message.service';
 import { Tool } from '@langchain/core/tools';
-import { Thread } from '@prisma/client';
+import { Thread } from 'generated/prisma/client';
 import {
   END,
   Annotation,

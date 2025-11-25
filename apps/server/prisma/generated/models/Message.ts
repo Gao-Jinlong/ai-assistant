@@ -40,9 +40,9 @@ export type MessageMinAggregateOutputType = {
   threadUid: string | null
   content: string | null
   role: string | null
-  deleted: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
+  deleted: boolean | null
 }
 
 export type MessageMaxAggregateOutputType = {
@@ -51,9 +51,9 @@ export type MessageMaxAggregateOutputType = {
   threadUid: string | null
   content: string | null
   role: string | null
-  deleted: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
+  deleted: boolean | null
 }
 
 export type MessageCountAggregateOutputType = {
@@ -62,9 +62,9 @@ export type MessageCountAggregateOutputType = {
   threadUid: number
   content: number
   role: number
-  deleted: number
   createdAt: number
   updatedAt: number
+  deleted: number
   _all: number
 }
 
@@ -83,9 +83,9 @@ export type MessageMinAggregateInputType = {
   threadUid?: true
   content?: true
   role?: true
-  deleted?: true
   createdAt?: true
   updatedAt?: true
+  deleted?: true
 }
 
 export type MessageMaxAggregateInputType = {
@@ -94,9 +94,9 @@ export type MessageMaxAggregateInputType = {
   threadUid?: true
   content?: true
   role?: true
-  deleted?: true
   createdAt?: true
   updatedAt?: true
+  deleted?: true
 }
 
 export type MessageCountAggregateInputType = {
@@ -105,9 +105,9 @@ export type MessageCountAggregateInputType = {
   threadUid?: true
   content?: true
   role?: true
-  deleted?: true
   createdAt?: true
   updatedAt?: true
+  deleted?: true
   _all?: true
 }
 
@@ -203,9 +203,9 @@ export type MessageGroupByOutputType = {
   threadUid: string
   content: string
   role: string
-  deleted: boolean
   createdAt: Date
   updatedAt: Date
+  deleted: boolean
   _count: MessageCountAggregateOutputType | null
   _avg: MessageAvgAggregateOutputType | null
   _sum: MessageSumAggregateOutputType | null
@@ -237,9 +237,9 @@ export type MessageWhereInput = {
   threadUid?: Prisma.StringFilter<"Message"> | string
   content?: Prisma.StringFilter<"Message"> | string
   role?: Prisma.StringFilter<"Message"> | string
-  deleted?: Prisma.BoolFilter<"Message"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Message"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Message"> | Date | string
+  deleted?: Prisma.BoolFilter<"Message"> | boolean
 }
 
 export type MessageOrderByWithRelationInput = {
@@ -248,9 +248,9 @@ export type MessageOrderByWithRelationInput = {
   threadUid?: Prisma.SortOrder
   content?: Prisma.SortOrder
   role?: Prisma.SortOrder
-  deleted?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  deleted?: Prisma.SortOrder
 }
 
 export type MessageWhereUniqueInput = Prisma.AtLeast<{
@@ -262,9 +262,9 @@ export type MessageWhereUniqueInput = Prisma.AtLeast<{
   threadUid?: Prisma.StringFilter<"Message"> | string
   content?: Prisma.StringFilter<"Message"> | string
   role?: Prisma.StringFilter<"Message"> | string
-  deleted?: Prisma.BoolFilter<"Message"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Message"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Message"> | Date | string
+  deleted?: Prisma.BoolFilter<"Message"> | boolean
 }, "id" | "uid">
 
 export type MessageOrderByWithAggregationInput = {
@@ -273,9 +273,9 @@ export type MessageOrderByWithAggregationInput = {
   threadUid?: Prisma.SortOrder
   content?: Prisma.SortOrder
   role?: Prisma.SortOrder
-  deleted?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  deleted?: Prisma.SortOrder
   _count?: Prisma.MessageCountOrderByAggregateInput
   _avg?: Prisma.MessageAvgOrderByAggregateInput
   _max?: Prisma.MessageMaxOrderByAggregateInput
@@ -292,9 +292,9 @@ export type MessageScalarWhereWithAggregatesInput = {
   threadUid?: Prisma.StringWithAggregatesFilter<"Message"> | string
   content?: Prisma.StringWithAggregatesFilter<"Message"> | string
   role?: Prisma.StringWithAggregatesFilter<"Message"> | string
-  deleted?: Prisma.BoolWithAggregatesFilter<"Message"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Message"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Message"> | Date | string
+  deleted?: Prisma.BoolWithAggregatesFilter<"Message"> | boolean
 }
 
 export type MessageCreateInput = {
@@ -302,9 +302,9 @@ export type MessageCreateInput = {
   threadUid: string
   content: string
   role: string
-  deleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  deleted?: boolean
 }
 
 export type MessageUncheckedCreateInput = {
@@ -313,9 +313,9 @@ export type MessageUncheckedCreateInput = {
   threadUid: string
   content: string
   role: string
-  deleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  deleted?: boolean
 }
 
 export type MessageUpdateInput = {
@@ -323,9 +323,9 @@ export type MessageUpdateInput = {
   threadUid?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
-  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type MessageUncheckedUpdateInput = {
@@ -334,9 +334,9 @@ export type MessageUncheckedUpdateInput = {
   threadUid?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
-  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type MessageCreateManyInput = {
@@ -345,9 +345,9 @@ export type MessageCreateManyInput = {
   threadUid: string
   content: string
   role: string
-  deleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  deleted?: boolean
 }
 
 export type MessageUpdateManyMutationInput = {
@@ -355,9 +355,9 @@ export type MessageUpdateManyMutationInput = {
   threadUid?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
-  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type MessageUncheckedUpdateManyInput = {
@@ -366,9 +366,9 @@ export type MessageUncheckedUpdateManyInput = {
   threadUid?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
-  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type MessageCountOrderByAggregateInput = {
@@ -377,9 +377,9 @@ export type MessageCountOrderByAggregateInput = {
   threadUid?: Prisma.SortOrder
   content?: Prisma.SortOrder
   role?: Prisma.SortOrder
-  deleted?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  deleted?: Prisma.SortOrder
 }
 
 export type MessageAvgOrderByAggregateInput = {
@@ -392,9 +392,9 @@ export type MessageMaxOrderByAggregateInput = {
   threadUid?: Prisma.SortOrder
   content?: Prisma.SortOrder
   role?: Prisma.SortOrder
-  deleted?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  deleted?: Prisma.SortOrder
 }
 
 export type MessageMinOrderByAggregateInput = {
@@ -403,9 +403,9 @@ export type MessageMinOrderByAggregateInput = {
   threadUid?: Prisma.SortOrder
   content?: Prisma.SortOrder
   role?: Prisma.SortOrder
-  deleted?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  deleted?: Prisma.SortOrder
 }
 
 export type MessageSumOrderByAggregateInput = {
@@ -420,9 +420,9 @@ export type MessageSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   threadUid?: boolean
   content?: boolean
   role?: boolean
-  deleted?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  deleted?: boolean
 }, ExtArgs["result"]["message"]>
 
 export type MessageSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -431,9 +431,9 @@ export type MessageSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   threadUid?: boolean
   content?: boolean
   role?: boolean
-  deleted?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  deleted?: boolean
 }, ExtArgs["result"]["message"]>
 
 export type MessageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -442,9 +442,9 @@ export type MessageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   threadUid?: boolean
   content?: boolean
   role?: boolean
-  deleted?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  deleted?: boolean
 }, ExtArgs["result"]["message"]>
 
 export type MessageSelectScalar = {
@@ -453,12 +453,12 @@ export type MessageSelectScalar = {
   threadUid?: boolean
   content?: boolean
   role?: boolean
-  deleted?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  deleted?: boolean
 }
 
-export type MessageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "uid" | "threadUid" | "content" | "role" | "deleted" | "createdAt" | "updatedAt", ExtArgs["result"]["message"]>
+export type MessageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "uid" | "threadUid" | "content" | "role" | "createdAt" | "updatedAt" | "deleted", ExtArgs["result"]["message"]>
 
 export type $MessagePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Message"
@@ -469,9 +469,9 @@ export type $MessagePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     threadUid: string
     content: string
     role: string
-    deleted: boolean
     createdAt: Date
     updatedAt: Date
+    deleted: boolean
   }, ExtArgs["result"]["message"]>
   composites: {}
 }
@@ -900,9 +900,9 @@ export interface MessageFieldRefs {
   readonly threadUid: Prisma.FieldRef<"Message", 'String'>
   readonly content: Prisma.FieldRef<"Message", 'String'>
   readonly role: Prisma.FieldRef<"Message", 'String'>
-  readonly deleted: Prisma.FieldRef<"Message", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Message", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Message", 'DateTime'>
+  readonly deleted: Prisma.FieldRef<"Message", 'Boolean'>
 }
     
 

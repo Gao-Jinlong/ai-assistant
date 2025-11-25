@@ -22,7 +22,7 @@ import {
   ErrorCode,
   createStructuredError,
 } from '@server/common/errors/error-codes';
-import { Message } from '@prisma/client';
+import { Message } from 'generated/prisma/client';
 
 /**
  * 消息格式化服务

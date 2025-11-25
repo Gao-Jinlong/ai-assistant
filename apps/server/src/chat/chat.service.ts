@@ -9,7 +9,7 @@ import { JwtPayload } from '@server/auth/auth.service';
 import { AgentService } from '@server/agent/agent.service';
 import { AIMessage, HumanMessage } from '@langchain/core/messages';
 import { ConfigService } from '@nestjs/config';
-import { Thread } from '@prisma/client';
+import { Thread } from 'generated/prisma/client';
 import { from, share, interval, Observable } from 'rxjs';
 import { delay, concatMap, take } from 'rxjs/operators';
 import { MESSAGE_TYPE } from './chat.interface';
@@ -54,7 +54,9 @@ export class ChatService {
         this.redisClient = cacheManager.store.getClient();
         this.logger.info('Redis client initialized from cache-manager');
       } else {
-        this.logger.warn('Redis client not available, some features may not work');
+        this.logger.warn(
+          'Redis client not available, some features may not work',
+        );
       }
     } catch (error) {
       this.logger.error('Failed to initialize Redis client', { error });
@@ -140,10 +142,18 @@ export class ChatService {
     if (this.redisClient) {
       try {
         await this.redisClient.setex(statusKey, 3600, 'in_progress');
-        await this.threadService.updateStatus(thread.uid, ThreadStatus.IN_PROGRESS);
-        this.logger.info('Thread status set to IN_PROGRESS', { threadId: thread.uid });
+        await this.threadService.updateStatus(
+          thread.uid,
+          ThreadStatus.IN_PROGRESS,
+        );
+        this.logger.info('Thread status set to IN_PROGRESS', {
+          threadId: thread.uid,
+        });
       } catch (error) {
-        this.logger.error('Failed to set thread status', { error, threadId: thread.uid });
+        this.logger.error('Failed to set thread status', {
+          error,
+          threadId: thread.uid,
+        });
       }
     }
 
@@ -203,12 +213,17 @@ export class ChatService {
         if (this.redisClient) {
           try {
             await this.redisClient.setex(statusKey, 3600, 'completed');
-            await this.threadService.updateStatus(res.req?.params?.threadId || '', ThreadStatus.COMPLETED);
+            await this.threadService.updateStatus(
+              res.req?.params?.threadId || '',
+              ThreadStatus.COMPLETED,
+            );
 
             // 发布完成事件到 control channel
             await this.redisClient.publish(`${channel}:control`, 'complete');
 
-            this.logger.info('Thread status set to COMPLETED', { threadId: res.req?.params?.threadId });
+            this.logger.info('Thread status set to COMPLETED', {
+              threadId: res.req?.params?.threadId,
+            });
           } catch (error) {
             this.logger.error('Failed to mark thread as completed', {
               error,
@@ -221,7 +236,10 @@ export class ChatService {
       },
 
       error: async (err) => {
-        this.logger.error('Stream error', { error: err, threadId: res.req?.params?.threadId });
+        this.logger.error('Stream error', {
+          error: err,
+          threadId: res.req?.params?.threadId,
+        });
 
         // 错误处理：是否需要标记为 completed？
         // 这里可以决定是否将错误状态标记为 completed
@@ -287,11 +305,11 @@ export class ChatService {
     return new Observable((subscriber) => {
       let pubSubClient: any | null = null;
       let isInitialized = false;
-      let unsubscribe: (() => void) | null = null;
+      const unsubscribe: (() => void) | null = null;
 
       const cleanup = () => {
         if (unsubscribe) {
-          unsubscribe();
+          // unsubscribe();
         }
         if (pubSubClient && typeof pubSubClient.quit === 'function') {
           pubSubClient.quit();
@@ -327,7 +345,10 @@ export class ChatService {
                 }
               }
             } catch (e) {
-              this.logger.error('Parse pub/sub message failed', { error: e, threadId });
+              this.logger.error('Parse pub/sub message failed', {
+                error: e,
+                threadId,
+              });
             }
           };
 
@@ -349,7 +370,10 @@ export class ChatService {
                 sentMessageUids.add(msg.id);
               }
             } catch (e) {
-              this.logger.error('Parse history message failed', { error: e, threadId });
+              this.logger.error('Parse history message failed', {
+                error: e,
+                threadId,
+              });
             }
           }
 
@@ -371,7 +395,10 @@ export class ChatService {
                   sentMessageUids.add(msg.id);
                 }
               } catch (e) {
-                this.logger.error('Parse newly added message failed', { error: e, threadId });
+                this.logger.error('Parse newly added message failed', {
+                  error: e,
+                  threadId,
+                });
               }
             }
           }
@@ -390,7 +417,9 @@ export class ChatService {
           const controlChannel = `${channel}:control`;
           const controlHandler = (message: string) => {
             if (message === 'complete') {
-              this.logger.info('Received complete event from control channel', { threadId });
+              this.logger.info('Received complete event from control channel', {
+                threadId,
+              });
 
               // 延迟3秒确保所有消息已接收
               setTimeout(() => {

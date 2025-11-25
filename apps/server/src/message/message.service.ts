@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { BaseMessage } from '@langchain/core/messages';
-import { Thread } from '@prisma/client';
+import { Thread } from 'generated/prisma/client';
 import { PrismaService } from '@server/prisma/prisma.service';
 import { generateMessageId } from '@common/utils/uuid';
 @Injectable()
