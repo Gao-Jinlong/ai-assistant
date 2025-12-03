@@ -38,7 +38,7 @@ export class AuthGuard implements CanActivate {
     }
 
     if (!token) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('未提供认证令牌');
     }
     try {
       const payload = await this.jwtService.verifyAsync(token, {
@@ -46,7 +46,7 @@ export class AuthGuard implements CanActivate {
       });
       request['jwt'] = payload;
     } catch {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('认证令牌无效或已过期');
     }
     return true;
   }

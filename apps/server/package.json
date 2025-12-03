@@ -53,7 +53,6 @@
     "@prisma/adapter-pg": "^7.0.0",
     "@prisma/client": "^7.0.0",
     "@prisma/client-runtime-utils": "^7.0.0",
-    "@trpc/server": "^10.45.2",
     "@types/fs-extra": "^11.0.4",
     "bcryptjs": "^3.0.2",
     "cache-manager": "^7.1.1",

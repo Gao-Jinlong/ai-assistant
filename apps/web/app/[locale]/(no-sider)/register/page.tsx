@@ -15,7 +15,6 @@ import { Input } from '@web/components/ui/input';
 import { z } from 'zod';
 import { useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { TRPCClientError } from '@trpc/client';
 import { useTranslations, useLocale } from 'next-intl';
 import { AuthLayout } from '@web/components/auth/auth-layout';
 import { AuthMessage } from '@web/components/auth/auth-message';
@@ -81,17 +80,10 @@ export default function Register() {
           router.push(`/${locale}/login`);
         }, 2000);
       } catch (error) {
-        if (error instanceof TRPCClientError) {
-          setMessage({
-            type: 'error',
-            text: error.message,
-          });
-        } else {
-          setMessage({
-            type: 'error',
-            text: t('register.unknownError'),
-          });
-        }
+        setMessage({
+          type: 'error',
+          text: error instanceof Error ? error.message : t('register.unknownError'),
+        });
       }
 
       setLoading(false);

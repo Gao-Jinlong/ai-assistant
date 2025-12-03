@@ -2,6 +2,7 @@ import ky, { Options } from 'ky';
 import { LOGIN_INFO_KEY } from '@web/constant';
 import { requestUtils } from '@web/utils';
 import { merge } from 'es-toolkit';
+import { toast } from 'sonner';
 
 function handleAuthorization(request: Request) {
   const accessToken = requestUtils.getToken();
@@ -16,17 +17,33 @@ async function handleUnauthorized(
   response: Response,
 ) {
   if (response.status === 401 || response.status === 403) {
-    // 清除本地登录信息
-    localStorage.removeItem(LOGIN_INFO_KEY);
-    // 获取当前语言
-    let locale = 'zh';
     try {
-      locale = requestUtils.getLocale();
+      // 尝试解析错误信息
+      const errorData = await response.clone().json();
+      // 清除本地登录信息
+      localStorage.removeItem(LOGIN_INFO_KEY);
+      // 获取当前语言
+      let locale = 'zh';
+      try {
+        locale = requestUtils.getLocale();
+      } catch {
+        locale = 'zh';
+      }
+      toast.error(errorData.message || '认证失败，即将跳转到登录页');
+      // 延迟重定向，让用户有机会看到错误信息
+      setTimeout(() => {
+        window.location.href = `/${locale}/login`;
+      }, 1000);
+
+      // 返回错误，让调用方可以捕获
+      return Promise.reject(
+        new Error(errorData.message || '认证失败，即将跳转到登录页'),
+      );
     } catch {
-      locale = 'zh';
+      // 如果解析失败，直接重定向
+      localStorage.removeItem(LOGIN_INFO_KEY);
+      window.location.href = '/zh/login';
     }
-    // 跳转到登录页
-    window.location.href = `/${locale}/login`;
   }
 }
 

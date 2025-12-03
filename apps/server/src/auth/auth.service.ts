@@ -1,11 +1,12 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '@server/prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
 import { User } from 'generated/prisma/client';
 import { LoginDto } from '@server/user/dto/login.dto';
 import { ConfigService } from '@nestjs/config';
-import { TRPCError } from '@trpc/server';
+import { Logger } from 'winston';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 
 export interface JwtPayload {
   email: string;
@@ -18,6 +19,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private config: ConfigService,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
   async validateUser(user: User, loginDto: LoginDto) {
@@ -56,11 +58,10 @@ export class AuthService {
       const decoded = this.jwtService.verify<JwtPayload>(token);
       return decoded;
     } catch (error) {
-      // TODO 记录日志
-      throw new TRPCError({
-        code: 'UNAUTHORIZED',
-        message: 'Invalid token',
+      this.logger.error('validateToken error', {
+        error,
       });
+      throw new UnauthorizedException('Invalid token');
     }
   }
 }

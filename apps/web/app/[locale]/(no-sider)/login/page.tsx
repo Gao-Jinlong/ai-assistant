@@ -15,7 +15,6 @@ import { Input } from '@web/components/ui/input';
 import { z } from 'zod';
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { TRPCClientError } from '@trpc/client';
 import { Checkbox } from '@web/components/ui/checkbox';
 import { useTranslations, useLocale } from 'next-intl';
 import { AuthLayout } from '@web/components/auth/auth-layout';
@@ -71,12 +70,10 @@ export default function Login() {
         }
       } catch (error) {
         console.error('🚀 ~ error:', error);
-        if (error instanceof TRPCClientError) {
-          setMessage({
-            type: 'error',
-            text: error.message,
-          });
-        }
+        setMessage({
+          type: 'error',
+          text: error instanceof Error ? error.message : t('common.unknownError'),
+        });
       }
 
       setLoading(false);

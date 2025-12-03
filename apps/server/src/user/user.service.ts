@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  HttpException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -61,7 +62,13 @@ export class UserService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('用户不存在');
+      throw new HttpException(
+        {
+          status: 403,
+          message: '用户不存在',
+        },
+        403,
+      );
     }
 
     const isPasswordValid = await this.authService.validateUser(user, loginDto);
