@@ -5,14 +5,16 @@ import { MessageModule } from '@server/message/message.module';
 import { AgentModule } from '@server/agent/agent.module';
 import { ThreadModule } from '@server/thread/thread.module';
 import { MessageStreamProcessor } from './message-stream-processor';
+import { RedisModule } from '@server/redis/redis.module';
 
 /**
  * 对话模块
  *
- * 管理整个对话流程
+ * 管理整个对话流程，使用 Redis 实现 SSE 流式传输
+ * 依赖 RedisModule 进行消息缓存和实时广播
  */
 @Module({
-  imports: [MessageModule, AgentModule, ThreadModule],
+  imports: [MessageModule, AgentModule, ThreadModule, RedisModule],
   controllers: [ChatController],
   providers: [ChatService, MessageStreamProcessor],
   exports: [ChatService, MessageStreamProcessor],

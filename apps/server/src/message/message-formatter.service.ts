@@ -18,10 +18,6 @@ import {
   type MessageChunkData,
 } from '@server/chat/dto/sse-message.dto';
 import { MessageMetadataBuilder } from '@server/chat/dto/message-metadata.dto';
-import {
-  ErrorCode,
-  createStructuredError,
-} from '@server/common/errors/error-codes';
 import { Message } from 'generated/prisma/client';
 
 /**
@@ -208,7 +204,7 @@ export class MessageFormatterService {
   formatError(
     id: string,
     error: Error | string,
-    code: ErrorCode = ErrorCode.UNKNOWN_ERROR,
+    code: number = 500,
     details?: Record<string, unknown>,
     metadata?: Partial<MessageMetadata>,
   ): StreamMessage {
@@ -218,15 +214,15 @@ export class MessageFormatterService {
       if (metadata.latency) messageMetadata.setLatency(metadata.latency);
     }
 
-    const structuredError: StructuredError =
-      typeof error === 'string'
-        ? createStructuredError(code, error, details)
-        : createStructuredError(
-            code,
-            error.message,
-            { ...details, originalError: error.name },
-            error.stack,
-          );
+    const structuredError: StructuredError = {
+      code,
+      message: error instanceof Error ? error.message : error,
+      details: {
+        ...details,
+        originalError: error instanceof Error ? error.name : undefined,
+      },
+      stack: error instanceof Error ? error.stack : undefined,
+    };
 
     return {
       id,
@@ -269,8 +265,8 @@ export class MessageFormatterService {
       });
       const errorMessage = this.formatError(
         message.id,
-        'Failed to serialize message',
-        ErrorCode.SSE_FORMAT_ERROR,
+        new Error('Failed to serialize message'),
+        500,
         { originalMessage: message },
       );
       return `data: ${JSON.stringify(errorMessage)}\n\n`;

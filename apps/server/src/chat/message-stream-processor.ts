@@ -6,7 +6,6 @@ import {
 } from '@langchain/core/messages';
 import { MessageFormatterService } from '@server/message/message-formatter.service';
 import { StreamMessage, MessageMetadata } from './dto/sse-message.dto';
-import { ErrorCode } from '@server/common/errors/error-codes';
 import type { IterableReadableStream } from '@langchain/core/utils/stream';
 import { uuid as uuidUtils } from '@common/utils';
 
@@ -84,11 +83,7 @@ export class MessageStreamProcessor {
       });
     } catch (error) {
       this.logger.error('Error processing message stream', { error });
-      yield this.messageFormatter.formatError(
-        this.id,
-        error as Error,
-        ErrorCode.STREAM_ERROR,
-      );
+      yield this.messageFormatter.formatError(this.id, error as Error, 500);
     }
   }
 

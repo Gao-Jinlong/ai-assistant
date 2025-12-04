@@ -25,6 +25,7 @@ import { ModelManagerModule } from './model-manager/model-manager.module';
 import { AgentModule } from './agent/agent.module';
 import { ChatModule } from './chat/chat.module';
 import { CacheModule } from './cache/cache.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -51,7 +52,8 @@ import { CacheModule } from './cache/cache.module';
     }),
     CommonModule, // 添加公共模块
     PrismaModule,
-    CacheModule, // 添加缓存模块
+    CacheModule, // 缓存模块（内存）
+    RedisModule, // Redis 模块（独立）
 
     // 业务模块
     UserModule,

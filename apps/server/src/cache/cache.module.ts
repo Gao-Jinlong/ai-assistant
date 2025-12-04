@@ -8,6 +8,21 @@ import { CacheableMemory } from 'cacheable';
 import { createKeyv } from '@keyv/redis';
 import { UserCacheExample } from './examples/user-cache.example';
 
+/**
+ * Cache Module
+ *
+ * 提供通用缓存服务，使用内存作为存储后端
+ * 适用于需要高速缓存但不需要持久化的场景
+ *
+ * @example
+ * ```typescript
+ * @Module({
+ *   imports: [CacheModule],
+ *   providers: [MyService]
+ * })
+ * export class MyModule {}
+ * ```
+ */
 @Global()
 @Module({
   imports: [

@@ -2,6 +2,26 @@ import { Injectable, Inject } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 
+/**
+ * Cache Service
+ *
+ * 提供通用缓存服务，使用内存作为存储后端
+ * 适用于需要高速缓存但不需要持久化的场景
+ *
+ * @example
+ * ```typescript
+ * @Injectable()
+ * export class MyService {
+ *   constructor(private readonly cacheService: CacheService) {}
+ *
+ *   async getUser(id: string) {
+ *     return this.cacheService.getOrSet(`user:${id}`, () =>
+ *       this.userRepository.findById(id)
+ *     );
+ *   }
+ * }
+ * ```
+ */
 @Injectable()
 export class CacheService {
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}

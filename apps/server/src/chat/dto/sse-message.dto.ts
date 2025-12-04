@@ -51,7 +51,7 @@ export interface TokenUsage {
  * 结构化错误
  */
 export interface StructuredError {
-  code: string; // 错误码
+  code: number; // 错误码
   message: string; // 错误消息
   details?: Record<string, unknown>; // 错误详情
   stack?: string; // 堆栈信息(仅开发环境)
