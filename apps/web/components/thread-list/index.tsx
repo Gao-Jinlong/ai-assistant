@@ -30,6 +30,7 @@ const ThreadList = ({ isSimple }: { isSimple: boolean }) => {
     }
   }, [threadsQuery.data, setThreads]);
 
+  // TODO: 点击时调用接口查询 thread 状态，决定是否调用 restoreThread 接口
   const onClick = useCallback(
     async (thread: ThreadVO) => {
       try {

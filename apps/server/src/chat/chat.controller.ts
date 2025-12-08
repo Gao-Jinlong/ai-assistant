@@ -1,9 +1,19 @@
-import { Body, Controller, Post, Req, Res, Sse, Get, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  Req,
+  Res,
+  Sse,
+  Get,
+  Query,
+} from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { Request, Response } from 'express';
 import { Observable } from 'rxjs';
 import { StreamMessage } from './dto/sse-message.dto';
+import { map } from 'rxjs/operators';
 
 @Controller('chat')
 export class ChatController {
@@ -27,7 +37,10 @@ export class ChatController {
 
   @Get('threads/restore')
   @Sse()
-  async restoreThread(@Query('threadId') threadId: string): Promise<Observable<StreamMessage>> {
-    return this.chatService.restoreThread(threadId);
+  async restoreThread(
+    @Query('threadId') threadId: string,
+  ): Promise<Observable<{ data: StreamMessage }>> {
+    const stream$ = await this.chatService.restoreThread(threadId);
+    return stream$.pipe(map((message) => ({ data: message })));
   }
 }
