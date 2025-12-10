@@ -28,18 +28,12 @@ export class ThreadController {
   @Post()
   async createThread(@Req() req: Request) {
     const user = req['jwt'];
-    if (!user) {
-      throw new BadRequestException('user is required');
-    }
     return this.threadService.createThread(user.uid);
   }
 
   @Get()
   async getThreads(@Req() req: Request) {
     const user = req['jwt'];
-    if (!user) {
-      throw new BadRequestException('user is required');
-    }
     return this.threadService.getThreads(user.uid);
   }
 
@@ -49,18 +43,18 @@ export class ThreadController {
     @Param('id', ParseIntPipe) id: number,
   ) {
     const user = req['jwt'];
-    if (!user) {
-      throw new BadRequestException('user is required');
-    }
     return this.threadService.deleteThread(user.uid, id);
   }
 
-  @Get(':id')
+  @Get(':id/messages')
   async getThreadMessages(@Req() req: Request, @Param('id') id: string) {
     const user = req['jwt'];
-    if (!user) {
-      throw new BadRequestException('user is required');
-    }
     return this.threadService.getThreadMessages(user, id);
+  }
+
+  @Get(':id/detail')
+  async getThreadDetail(@Req() req: Request, @Param('id') id: string) {
+    const user = req['jwt'];
+    return this.threadService.getThreadDetail(user.uid, id);
   }
 }

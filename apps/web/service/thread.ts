@@ -2,6 +2,7 @@ import type { MESSAGE_TYPE } from '@server/chat/chat.interface';
 import { ResponseWrapper } from '.';
 import { del, get, post } from './fetch';
 import { StreamMessage } from '@server/chat/dto/sse-message.dto';
+import { ThreadStatus } from '@server/thread/thread-status.enum';
 
 export type MessageRole = 'user' | 'assistant';
 
@@ -11,6 +12,7 @@ export interface ThreadVO {
   title: string;
   messageCount: number;
   totalTokens: number;
+  status: ThreadStatus;
   metadata: Record<string, any>;
   createdAt: string;
   updatedAt: string;
@@ -144,5 +146,9 @@ export const deleteThread = (id: string) => {
 };
 
 export const getThreadMessages = (id: ThreadVO['id']) => {
-  return get<ResponseWrapper<StreamMessage[]>>(`thread/${id}`);
+  return get<ResponseWrapper<StreamMessage[]>>(`thread/${id}/messages`);
+};
+
+export const getThreadDetail = (id: ThreadVO['id']) => {
+  return get<ResponseWrapper<ThreadVO>>(`thread/${id}/detail`);
 };

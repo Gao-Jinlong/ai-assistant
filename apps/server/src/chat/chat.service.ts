@@ -3,7 +3,7 @@ import { PrismaService } from '@server/prisma/prisma.service';
 import { Response } from 'express';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
-import { CreateChatDto } from './dto/create-chat.dto';
+import { CreateChatDto, RestoreChatDto } from './dto/create-chat.dto';
 import { MessageService } from '@server/message/message.service';
 import { JwtPayload } from '@server/auth/auth.service';
 import { AgentService } from '@server/agent/agent.service';
@@ -142,7 +142,7 @@ export class ChatService {
     }
     this.saveMessageToRedis(source$, thread);
     this.saveMessageToDatabase(source$, thread);
-    this.transmitMessageToClient(source$, res, listKey, channel);
+    this.transmitMessageToClient(source$, res);
 
     source$.subscribe({
       complete: async () => {
@@ -151,15 +151,22 @@ export class ChatService {
           ThreadStatus.COMPLETED,
         );
       },
+      error: async (err) => {
+        await this.threadService.updateStatus(thread.uid, ThreadStatus.ERROR);
+        this.logger.error('Stream error', {
+          error: err,
+          threadId: thread.uid,
+        });
+      },
     });
   }
 
   private async transmitMessageToClient(
     source$: Observable<StreamMessage>,
     res: Response,
-    listKey: string,
-    channel: string,
   ) {
+    const threadId = res.req?.params?.threadId;
+
     source$.subscribe({
       next: async (sseMessage) => {
         res.write(this.messageFormatter.serializeToSSE(sseMessage));
@@ -170,20 +177,16 @@ export class ChatService {
         if (this.redisService.isAvailable) {
           try {
             await this.threadService.updateStatus(
-              res.req?.params?.threadId || '',
+              threadId || '',
               ThreadStatus.COMPLETED,
             );
-
-            // 发布完成事件到 control channel
-            await this.redisService.publish(`${channel}:control`, 'complete');
-
             this.logger.info('Thread status set to COMPLETED', {
-              threadId: res.req?.params?.threadId,
+              threadId,
             });
           } catch (error) {
             this.logger.error('Failed to mark thread as completed', {
               error,
-              threadId: res.req?.params?.threadId,
+              threadId,
             });
           }
         }
@@ -192,13 +195,6 @@ export class ChatService {
       },
 
       error: async (err) => {
-        this.logger.error('Stream error', {
-          error: err,
-          threadId: res.req?.params?.threadId,
-        });
-
-        // 错误处理：是否需要标记为 completed？
-        // 这里可以决定是否将错误状态标记为 completed
         res.end();
       },
     });
@@ -298,199 +294,25 @@ export class ChatService {
   /**
    * Restore 对话（SSE 接口）
    */
-  async restoreThread(threadId: string): Promise<Observable<StreamMessage>> {
-    const listKey = getRedisMessage(threadId);
-    const channel = getRedisChannel(threadId);
-    const pubSubClient = this.redisService.getPubSubClient();
-    let isCompleted = false;
-    let historyProcessed = false;
-    let pendingMessages: StreamMessage[] = [];
-    let lastSentTimestamp = 0;
-
-    return new Observable<StreamMessage>((subscriber) => {
-      const messageHandler = (recvChannel: string, message: string) => {
-        if (isCompleted || recvChannel !== channel) return;
-
-        try {
-          const msg = JSON.parse(message) as StreamMessage;
-
-          if (historyProcessed) {
-            // 历史消息已处理完，直接发送新消息
-            if (msg.metadata.timestamp >= lastSentTimestamp) {
-              subscriber.next(msg);
-              lastSentTimestamp = msg.metadata.timestamp;
-            } else {
-              // 如果新消息时间戳早于最后发送的消息，需要重新排序
-              pendingMessages.push(msg);
-              processPendingMessages();
-            }
-          } else {
-            // 历史消息未处理完，先缓存
-            pendingMessages.push(msg);
-          }
-        } catch (error) {
-          this.logger.error(
-            `Failed to parse Redis message from channel ${recvChannel}`,
-            error,
-          );
-          // 不中断流，只记录错误
-        }
-      };
-
-      const processPendingMessages = () => {
-        if (pendingMessages.length === 0) return;
-
-        // 排序并发送待处理消息
-        pendingMessages.sort(
-          (a, b) => a.metadata.timestamp - b.metadata.timestamp,
-        );
-
-        for (const msg of pendingMessages) {
-          if (msg.metadata.timestamp > lastSentTimestamp) {
-            subscriber.next(msg);
-            lastSentTimestamp = msg.metadata.timestamp;
-          }
-        }
-
-        // 清空已发送的消息
-        pendingMessages = pendingMessages.filter(
-          (msg) => msg.metadata.timestamp > lastSentTimestamp,
-        );
-      };
-
-      const cleanup = async () => {
-        isCompleted = true;
-        try {
-          pubSubClient.removeListener('message', messageHandler);
-          await this.redisService.unsubscribeFromChannels(channel);
-          this.logger.debug(
-            `Cleaned up restore thread subscription for ${threadId}`,
-          );
-        } catch (error) {
-          this.logger.error('Error during cleanup of restore thread', error);
-        }
-      };
-
-      // 设置清理函数
-      subscriber.add(() => {
-        cleanup();
-      });
-
-      // 启动订阅流程
-      (async () => {
-        try {
-          // 检查 Redis 是否可用
-          if (!this.redisService.isAvailable) {
-            throw new Error('Redis service is not available');
-          }
-
-          // 1. 先设置消息监听器
-          pubSubClient.on('message', messageHandler);
-
-          // 2. 订阅频道
-          await this.redisService.subscribeToChannels(channel);
-          this.logger.debug(`Subscribed to Redis channel: ${channel}`);
-
-          // 3. 读取历史消息
-          const historyMessages = await this.redisService.getListRange(listKey);
-          this.logger.debug(
-            `Found ${historyMessages.length} history messages for thread ${threadId}`,
-          );
-
-          if (historyMessages.length === 0) {
-            // 如果没有历史消息，发送一个 PING 消息表示连接已建立
-            const pingMessage: StreamMessage = {
-              type: MESSAGE_TYPE.PING,
-              data: null,
-              id: uuid.generateUid(),
-              metadata: {
-                timestamp: Date.now(),
-              },
-            };
-            subscriber.next(pingMessage);
-            this.logger.debug(`Sent ping message for empty thread ${threadId}`);
-            return;
-          }
-
-          // 4. 解析历史消息
-          const parsedMessages: StreamMessage[] = [];
-          for (const messageStr of historyMessages) {
-            try {
-              const msg = JSON.parse(messageStr) as StreamMessage;
-              parsedMessages.push(msg);
-            } catch (error) {
-              this.logger.error('Failed to parse history message', error);
-              // 跳过无法解析的消息，继续处理其他消息
-            }
-          }
-
-          // 5. 合并历史消息和待处理的新消息
-          const allMessages = [...parsedMessages, ...pendingMessages];
-
-          if (allMessages.length === 0) {
-            // 如果没有任何消息，发送一个 PING 消息表示连接已建立
-            const pingMessage: StreamMessage = {
-              type: MESSAGE_TYPE.PING,
-              data: null,
-              id: uuid.generateUid(),
-              metadata: {
-                timestamp: Date.now(),
-              },
-            };
-            subscriber.next(pingMessage);
-            this.logger.debug(`Sent ping message for empty thread ${threadId}`);
-            historyProcessed = true;
-            pendingMessages = [];
-            return;
-          }
-
-          // 6. 按时间戳排序所有消息
-          allMessages.sort(
-            (a, b) => a.metadata.timestamp - b.metadata.timestamp,
-          );
-
-          // 7. 发送所有消息
-          for (const message of allMessages) {
-            if (isCompleted) break;
-            subscriber.next(message);
-            lastSentTimestamp = message.metadata.timestamp;
-          }
-
-          // 8. 标记历史消息处理完成，清空待处理队列
-          historyProcessed = true;
-          pendingMessages = [];
-
-          this.logger.debug(
-            `Sent ${allMessages.length} total messages for thread ${threadId}`,
-          );
-        } catch (error) {
-          this.logger.error(`Failed to restore thread ${threadId}`, error);
-
-          // 发送错误消息而不是中断流
-          const errorMessage: StreamMessage = {
-            type: MESSAGE_TYPE.ERROR,
-            data: null,
-            id: uuid.generateMessageId(),
-            metadata: {
-              timestamp: Date.now(),
-            },
-            error: {
-              code: 500,
-              message:
-                error instanceof Error
-                  ? error.message
-                  : 'Unknown error occurred',
-              details: { threadId },
-            },
-          };
-
-          subscriber.next(errorMessage);
-          await cleanup();
-        }
-      })();
-    });
+  async restoreThread(
+    res: Response,
+    jwtPayload: JwtPayload,
+    body: RestoreChatDto,
+  ) {
+    // TODO 实现恢复对话逻辑
   }
 
+  private handleRestoreStream({
+    source$,
+    res,
+  }: {
+    source$: Observable<StreamMessage>;
+    res: Response;
+    thread: Thread;
+    isMockMode: boolean;
+  }) {
+    // TODO 实现恢复对话逻辑
+  }
   private readMessagesFromMockFile(id: string): Observable<StreamMessage> {
     const mockFilePath = this.configService.get('mock.path');
     const mockFile = path.join(mockFilePath, 'chat.txt');

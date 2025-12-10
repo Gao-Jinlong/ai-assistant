@@ -8,7 +8,7 @@ import ThreadListItem from './ThreadListItem';
 import { deleteThread, getThreadMessages, ThreadVO } from '@web/service/thread';
 import queries from '@web/queries';
 import { toast } from 'sonner';
-import { setActiveThread, setMessages } from '@web/store/active-thread';
+import { setActiveThread } from '@web/store/active-thread';
 
 const ThreadList = ({ isSimple }: { isSimple: boolean }) => {
   const router = useBoundStore((state) => state.router);

@@ -1,10 +1,16 @@
 import { MESSAGE_ROLE } from '@common/constants';
 import { MESSAGE_TYPE } from '@server/chat/chat.interface';
 import type { StreamMessage } from '@server/chat/dto/sse-message.dto';
-import { getThreadMessages, ThreadVO } from '@web/service/thread';
+import {
+  getThreadDetail,
+  getThreadMessages,
+  ThreadVO,
+} from '@web/service/thread';
 import useBoundStore, { Store } from '.';
 import { uuid as uuidUtils } from '@common/utils';
 import { chatService } from '@web/service';
+import { ThreadStatus } from '@server/thread/thread-status.enum';
+import { updateThread } from './threads';
 
 export interface ActiveThreadStoreState {
   activeThread: ThreadVO | null;
@@ -102,17 +108,27 @@ export async function setActiveThread(thread: ThreadVO) {
 
   try {
     if (thread.uid) {
-      await restoreThread(thread);
+      const detail = await getThreadDetail(thread.uid);
+      if (detail.data?.status === ThreadStatus.IN_PROGRESS) {
+        updateThread(detail.data);
+        // TODO 未结束对话恢复
+      } else {
+        await restoreThread(thread);
+      }
     }
   } finally {
     store.setLoading(false);
   }
-  // TODO 未结束对话恢复
 }
 async function restoreThread(thread: ThreadVO) {
   const response = await getThreadMessages(thread.uid);
   setMessages(response.data);
 }
+/**
+ * 发送消息处理函数
+ * 没有 activeThread 时会自动创建新的 thread
+ * 有 activeThread 时会继续当前对话
+ */
 export async function sendMessage(
   content: string,
   options?: { signal?: AbortController },
@@ -178,7 +194,12 @@ export async function sendMessage(
     setResponding(false);
   }
 }
-export function setMessages(messages: StreamMessage[]) {
+
+function restoreChat(thread: ThreadVO) {}
+/**
+ * 设置消息列表
+ */
+function setMessages(messages: StreamMessage[]) {
   useBoundStore.getState().setMessages(messages);
 }
 
