@@ -1,4 +1,6 @@
 import { LOGIN_INFO_KEY } from '@web/constant';
+import { ResponseWrapper } from '@web/service';
+import { isHTTPError, isKyError } from 'ky';
 
 export function getToken() {
   const localLoginInfo = localStorage.getItem(LOGIN_INFO_KEY);
@@ -17,9 +19,12 @@ export function getLocale() {
   return 'zh';
 }
 
-export function getErrorMessage(error: unknown) {
-  if (error instanceof Error) {
-    return error.message;
+export async function getErrorMessage(error: unknown): Promise<string> {
+  if (isHTTPError(error)) {
+    const result: ResponseWrapper<{
+      message: string;
+    }> = await error.response.json();
+    return result.message;
   }
-  return String(error);
+  return error instanceof Error ? error.message : String(error);
 }

@@ -20,6 +20,7 @@ import { AuthLayout } from '@web/components/auth/auth-layout';
 import { AuthMessage } from '@web/components/auth/auth-message';
 import { AuthFooter } from '@web/components/auth/auth-footer';
 import { userService } from '@web/service';
+import { getErrorMessage } from '@web/utils/request';
 
 export default function Register() {
   const router = useRouter();
@@ -80,9 +81,10 @@ export default function Register() {
           router.push(`/${locale}/login`);
         }, 2000);
       } catch (error) {
+        const message = await getErrorMessage(error);
         setMessage({
           type: 'error',
-          text: error instanceof Error ? error.message : t('register.unknownError'),
+          text: message,
         });
       }
 

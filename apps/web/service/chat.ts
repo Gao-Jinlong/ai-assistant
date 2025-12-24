@@ -124,3 +124,11 @@ export async function* chatStream(
     reader.releaseLock();
   }
 }
+
+export async function restoreChat(threadId: string) {
+  const response = await sse(`chat/threads/restore`, {
+    method: 'GET',
+    params: { threadId },
+  });
+  return response.data;
+}
