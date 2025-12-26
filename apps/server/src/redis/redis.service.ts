@@ -2,11 +2,14 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
+/**
+ * Redis 服务
+ * 注意：此服务仅用于缓存功能，Pub/Sub 功能已迁移至 Kafka
+ */
 @Injectable()
 export class RedisService implements OnModuleInit {
   private readonly logger = new Logger(RedisService.name);
   private client: Redis | null = null;
-  private pubSubClient: Redis | null = null;
 
   constructor(private readonly configService: ConfigService) {}
 
@@ -17,61 +20,36 @@ export class RedisService implements OnModuleInit {
         throw new Error('Redis URL is not configured');
       }
 
-      // 主客户端（用于常规操作）
+      // 主客户端（用于常规缓存操作）
       this.client = new Redis(redisUrl);
 
-      // 订阅客户端（专门用于 Pub/Sub）
-      this.pubSubClient = new Redis(redisUrl);
+      // 等待客户端准备就绪
+      await new Promise<void>((resolve, reject) => {
+        this.client!.once('ready', () => {
+          this.logger.log('Redis cache client ready');
+          resolve();
+        });
+        this.client!.once('error', (error) => {
+          this.logger.error('Redis cache client connection error', error);
+          reject(error);
+        });
+      });
 
-      // 等待两个客户端都准备就绪
-      await Promise.all([
-        new Promise<void>((resolve, reject) => {
-          this.client!.once('ready', () => {
-            this.logger.log('Redis client ready');
-            resolve();
-          });
-          this.client!.once('error', (error) => {
-            this.logger.error('Redis client connection error', error);
-            reject(error);
-          });
-        }),
-        new Promise<void>((resolve, reject) => {
-          this.pubSubClient!.once('ready', () => {
-            this.logger.log('Redis pub/sub client ready');
-            resolve();
-          });
-          this.pubSubClient!.once('error', (error) => {
-            this.logger.error('Redis pub/sub client connection error', error);
-            reject(error);
-          });
-        }),
-      ]);
-
-      this.logger.log('Redis service initialized successfully');
+      this.logger.log('Redis cache service initialized successfully');
     } catch (error) {
-      this.logger.error('Failed to initialize Redis service', error);
+      this.logger.error('Failed to initialize Redis cache service', error);
       throw error;
     }
   }
 
   /**
-   * 获取主 Redis 客户端
+   * 获取 Redis 客户端（用于缓存操作）
    */
   getClient(): Redis {
     if (!this.client) {
       throw new Error('Redis client is not initialized');
     }
     return this.client;
-  }
-
-  /**
-   * 获取 Pub/Sub 专用的 Redis 客户端
-   */
-  getPubSubClient(): Redis {
-    if (!this.pubSubClient) {
-      throw new Error('Redis pub/sub client is not initialized');
-    }
-    return this.pubSubClient;
   }
 
   /**
@@ -119,24 +97,6 @@ export class RedisService implements OnModuleInit {
   }
 
   /**
-   * 发布消息到频道（Redis PUBLISH）
-   * @param channel 频道名
-   * @param message 消息内容
-   * @returns 接收到消息的订阅者数量
-   */
-  async publish(channel: string, message: string): Promise<number> {
-    if (!this.client) {
-      throw new Error('Redis client is not available');
-    }
-    try {
-      return await this.client.publish(channel, message);
-    } catch (error) {
-      this.logger.error(`Failed to publish to channel ${channel}`, error);
-      throw error;
-    }
-  }
-
-  /**
    * 设置键值并设置过期时间（Redis SETEX）
    * @param key 键名
    * @param ttl 过期时间（秒）
@@ -151,63 +111,6 @@ export class RedisService implements OnModuleInit {
       return await this.client.setex(key, ttl, value);
     } catch (error) {
       this.logger.error(`Failed to set key ${key} with TTL`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * 订阅频道（Redis SUBSCRIBE）
-   * @param channel 频道名
-   * @param handler 消息处理函数，接收 (channel, message) 参数
-   */
-  subscribe(
-    channel: string,
-    handler: (channel: string, message: string) => void,
-  ): void {
-    if (!this.pubSubClient) {
-      throw new Error('Redis pub/sub client is not available');
-    }
-
-    // 监听 message 事件（所有频道）
-    this.pubSubClient.on('message', handler);
-  }
-
-  /**
-   * 订阅一个或多个频道
-   * @param channels 频道名数组
-   * @returns Promise
-   */
-  async subscribeToChannels(...channels: string[]): Promise<void> {
-    if (!this.pubSubClient) {
-      throw new Error('Redis pub/sub client is not available');
-    }
-    try {
-      await this.pubSubClient.subscribe(...channels);
-    } catch (error) {
-      this.logger.error(
-        `Failed to subscribe to channels ${channels.join(', ')}`,
-        error,
-      );
-      throw error;
-    }
-  }
-
-  /**
-   * 取消订阅频道
-   * @param channels 频道名数组
-   * @returns Promise
-   */
-  async unsubscribeFromChannels(...channels: string[]): Promise<void> {
-    if (!this.pubSubClient) {
-      throw new Error('Redis pub/sub client is not available');
-    }
-    try {
-      await this.pubSubClient.unsubscribe(...channels);
-    } catch (error) {
-      this.logger.error(
-        `Failed to unsubscribe from channels ${channels.join(', ')}`,
-        error,
-      );
       throw error;
     }
   }

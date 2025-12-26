@@ -9,7 +9,7 @@ Claude Code 文档: https://docs.claude.com/en/docs/claude-code/
 ### 数据库设置
 
 ```bash
-# 启动 PostgreSQL 和 Redis 服务
+# 启动 PostgreSQL、Redis、Kafka 和 ZooKeeper 服务
 pnpm start:db
 
 # 停止数据库服务
@@ -19,6 +19,22 @@ docker-compose -f docker-compose.dev.yml down
 pnpm -F="@ai-assistant/server" prisma:migrate:dev
 pnpm -F="@ai-assistant/server" prisma:studio
 pnpm -F="@ai-assistant/server" prisma:generate  # 生成 Prisma 客户端
+```
+
+### Kafka 相关
+
+```bash
+# 访问 Kafka UI (Kafdrop)
+# 浏览器访问: http://localhost:9000
+
+# 查看 Kafka 健康状态
+curl http://localhost:4000/kafka/health
+
+# 查看 Kafka Topics
+curl http://localhost:4000/kafka/topics
+
+# 测试 Kafka 连接
+curl -X POST http://localhost:4000/kafka/test
 ```
 
 ### 开发环境
@@ -82,16 +98,18 @@ pnpm -F="@ai-assistant/server" test:e2e
 - **前端**: Next.js 15 网页应用，位于 `apps/web/` (端口 3000，可通过 NEXT_PORT 修改)
 - **数据库**: PostgreSQL 配合 Prisma ORM
 - **缓存**: Redis 配合 cache-manager 集成
+- **消息队列**: Kafka 用于事件流、日志收集和异步任务处理
 - **存储**: AWS S3 兼容存储
 
 ### 核心后端模块
 
 - **Auth**: 基于 JWT 的身份认证，使用 bcrypt 加密
 - **User**: 用户管理，支持 CRUD 操作
-- **Chat/Message**: 对话管理，支持软删除功能
+- **Chat/Message**: 对话管理，支持软删除功能，使用 Kafka 进行消息事件流处理
 - **Agent**: AI 代理集成，使用 LangGraph
 - **Model Manager**: 大语言模型管理
 - **Cache**: Redis 缓存，支持装饰器和拦截器
+- **Kafka**: 消息队列服务，用于聊天消息事件流、系统日志收集和异步任务处理
 - **Thread**: 对话线程管理
 - **Storage**: AWS S3 兼容文件存储
 - **LLM**: 大语言模型集成模块
@@ -115,6 +133,16 @@ pnpm -F="@ai-assistant/server" test:e2e
 - **Chat**: 聊天会话
 - **Model**: AI 模型配置
 
+### Kafka Topics
+
+- **chat.messages**: 聊天消息事件流，实时传输聊天消息
+- **chat.events**: 聊天会话事件（开始、结束等）
+- **system.logs**: 系统日志收集
+- **system.events**: 系统事件通知
+- **async.tasks**: 异步任务队列
+- **user.events**: 用户活动事件
+- **agent.events**: AI 代理状态变化事件
+
 ### 开发模式
 
 - 全栈使用 Zod 进行数据验证
@@ -129,8 +157,15 @@ pnpm -F="@ai-assistant/server" test:e2e
 
 - 数据库: `postgresql://postgres:postgres@localhost:5432/ai-assistant-dev`
 - Redis: `redis://localhost:6379`
+- Kafka: `localhost:9092`（通过 Docker Compose 运行）
+- Kafka UI (Kafdrop): http://localhost:9000
 - 使用 `.env` 文件管理环境变量
 - 数据库服务通过 Docker Compose 运行
+
+**Kafka 环境变量**:
+- `KAFKA_BROKERS`: Kafka 代理地址 (默认: `localhost:9092`)
+- `KAFKA_CLIENT_ID`: Kafka 客户端标识 (默认: `ai-assistant-server`)
+- `KAFKA_CONSUMER_GROUP_ID`: 消费者组 ID (默认: `ai-assistant-group`)
 
 ### 代码规范指南
 

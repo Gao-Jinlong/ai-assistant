@@ -19,6 +19,8 @@ import { StreamMessage } from './dto/sse-message.dto';
 import { ThreadService } from '@server/thread/thread.service';
 import { ThreadStatus } from '@server/thread/thread-status.enum';
 import { RedisService } from '@server/redis/redis.service';
+import { KafkaService } from '@server/kafka/kafka.service';
+import { KafkaTopic, KafkaEventType, KafkaMessagePayload } from '@server/kafka/kafka.constants';
 import path from 'node:path';
 import fs from 'node:fs';
 import { uuid } from '@common/utils';
@@ -27,9 +29,6 @@ const REDIS_KEY_PREFIX = 'streaming:thread:';
 
 const getRedisMessage = (threadUid: string) => {
   return `${REDIS_KEY_PREFIX}${threadUid}:messages`;
-};
-const getRedisChannel = (threadUid: string) => {
-  return `${REDIS_KEY_PREFIX}${threadUid}:channel`;
 };
 
 @Injectable()
@@ -42,6 +41,7 @@ export class ChatService {
     private readonly configService: ConfigService,
     private readonly messageFormatter: MessageFormatterService,
     private readonly redisService: RedisService,
+    private readonly kafkaService: KafkaService,
     private readonly threadService: ThreadService,
   ) {}
 
@@ -115,10 +115,6 @@ export class ChatService {
     thread: Thread;
     isMockMode: boolean;
   }) {
-    // Redis 缓存键
-    const listKey = getRedisMessage(thread.uid);
-    const channel = getRedisChannel(thread.uid);
-
     // 标记对话状态为进行中
     if (this.redisService.isAvailable) {
       try {
@@ -142,14 +138,21 @@ export class ChatService {
     }
     this.saveMessageToRedis(source$, thread);
     this.saveMessageToDatabase(source$, thread);
-    this.transmitMessageToClient(source$, res);
 
+    // 传输消息到客户端并处理完成事件
     source$.subscribe({
+      next: async (sseMessage) => {
+        res.write(this.messageFormatter.serializeToSSE(sseMessage));
+      },
       complete: async () => {
         await this.threadService.updateStatus(
           thread.uid,
           ThreadStatus.COMPLETED,
         );
+        this.logger.info('Thread status set to COMPLETED', {
+          threadId: thread.uid,
+        });
+        res.end();
       },
       error: async (err) => {
         await this.threadService.updateStatus(thread.uid, ThreadStatus.ERROR);
@@ -157,48 +160,11 @@ export class ChatService {
           error: err,
           threadId: thread.uid,
         });
-      },
-    });
-  }
-
-  private async transmitMessageToClient(
-    source$: Observable<StreamMessage>,
-    res: Response,
-  ) {
-    const threadId = res.req?.params?.threadId;
-
-    source$.subscribe({
-      next: async (sseMessage) => {
-        res.write(this.messageFormatter.serializeToSSE(sseMessage));
-      },
-
-      complete: async () => {
-        // 对话完成，标记状态
-        if (this.redisService.isAvailable) {
-          try {
-            await this.threadService.updateStatus(
-              threadId || '',
-              ThreadStatus.COMPLETED,
-            );
-            this.logger.info('Thread status set to COMPLETED', {
-              threadId,
-            });
-          } catch (error) {
-            this.logger.error('Failed to mark thread as completed', {
-              error,
-              threadId,
-            });
-          }
-        }
-
-        res.end();
-      },
-
-      error: async (err) => {
         res.end();
       },
     });
   }
+
   private saveMessageToDatabase(
     source$: Observable<StreamMessage>,
     thread: Thread,
@@ -218,7 +184,7 @@ export class ChatService {
     });
   }
   /**
-   * 保存消息到 Redis
+   * 保存消息到 Redis 和发送到 Kafka
    * @param source$
    * @param thread
    */
@@ -227,32 +193,51 @@ export class ChatService {
     thread: Thread,
   ) {
     const listKey = getRedisMessage(thread.uid);
-    const channel = getRedisChannel(thread.uid);
 
     source$.subscribe({
       next: async (sseMessage) => {
-        if (this.redisService.isAvailable) {
-          try {
-            // 排除控制消息（PING, ERROR, DONE）
-            const isControlMessage =
-              sseMessage.type === MESSAGE_TYPE.PING ||
-              sseMessage.type === MESSAGE_TYPE.ERROR ||
-              sseMessage.type === MESSAGE_TYPE.DONE;
+        // 排除控制消息（PING, ERROR, DONE）
+        const isControlMessage =
+          sseMessage.type === MESSAGE_TYPE.PING ||
+          sseMessage.type === MESSAGE_TYPE.ERROR ||
+          sseMessage.type === MESSAGE_TYPE.DONE;
 
-            if (!isControlMessage) {
-              const messageStr = JSON.stringify(sseMessage);
+        if (!isControlMessage) {
+          const messageStr = JSON.stringify(sseMessage);
 
-              // 并行执行 Redis 操作
-              await Promise.all([
-                this.redisService.pushToList(listKey, messageStr),
-                this.redisService.publish(channel, messageStr),
-              ]);
-
+          // 保存到 Redis List（用于缓存）
+          if (this.redisService.isAvailable) {
+            try {
+              await this.redisService.pushToList(listKey, messageStr);
               // 设置 TTL
               await this.redisService.expire(listKey, 3600);
+            } catch (error) {
+              this.logger.error('Failed to cache message to Redis', {
+                error,
+                threadUid: thread.uid,
+                message: sseMessage,
+              });
             }
+          }
+
+          // 发送到 Kafka（替代 Redis pub/sub）
+          try {
+            const kafkaPayload: KafkaMessagePayload = {
+              eventType: KafkaEventType.MESSAGE_CREATED,
+              timestamp: Date.now(),
+              data: sseMessage,
+              metadata: {
+                threadId: thread.uid,
+              },
+            };
+
+            await this.kafkaService.produceToTopic(
+              KafkaTopic.CHAT_MESSAGES,
+              kafkaPayload,
+              thread.uid, // 使用 thread UID 作为 key，保证同一 thread 的消息顺序
+            );
           } catch (error) {
-            this.logger.error('Failed to cache message to Redis', {
+            this.logger.error('Failed to send message to Kafka', {
               error,
               threadUid: thread.uid,
               message: sseMessage,

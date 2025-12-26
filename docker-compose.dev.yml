@@ -27,9 +27,72 @@ services:
     networks:
       - ai-assistant-dev-network
 
+  # ZooKeeper (Kafka 依赖)
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: ai-assistant-zookeeper-dev
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper_dev_data:/var/lib/zookeeper/data
+      - zookeeper_dev_logs:/var/lib/zookeeper/log
+    ports:
+      - '2181:2181'
+    networks:
+      - ai-assistant-dev-network
+
+  # Kafka 消息队列
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: ai-assistant-kafka-dev
+    depends_on:
+      - zookeeper
+    ports:
+      - '9092:9092'
+      - '9093:9093'
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_LOG_RETENTION_HOURS: 168
+      KAFKA_LOG_SEGMENT_BYTES: 1073741824
+      KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS: 300000
+    volumes:
+      - kafka_dev_data:/var/lib/kafka/data
+    networks:
+      - ai-assistant-dev-network
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Kafka UI (Kafdrop)
+  kafdrop:
+    image: obsidiandynamics/kafdrop:3.30.0
+    container_name: ai-assistant-kafdrop-dev
+    depends_on:
+      - kafka
+    ports:
+      - '9000:9000'
+    environment:
+      KAFKA_BROKERCONNECT: kafka:29092
+      JVM_OPTS: '-Xms32M -Xmx64M'
+      SERVER_SERVLET_CONTEXTPATH: /
+    networks:
+      - ai-assistant-dev-network
+
 volumes:
   postgres_dev_data:
   redis_dev_data:
+  zookeeper_dev_data:
+  zookeeper_dev_logs:
+  kafka_dev_data:
 
 networks:
   ai-assistant-dev-network:

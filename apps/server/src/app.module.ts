@@ -26,6 +26,7 @@ import { AgentModule } from './agent/agent.module';
 import { ChatModule } from './chat/chat.module';
 import { CacheModule } from './cache/cache.module';
 import { RedisModule } from './redis/redis.module';
+import { KafkaModule } from './kafka/kafka.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { RedisModule } from './redis/redis.module';
     PrismaModule,
     CacheModule, // 缓存模块（内存）
     RedisModule, // Redis 模块（独立）
+    KafkaModule, // Kafka 模块（全局）
 
     // 业务模块
     UserModule,
