@@ -1,4 +1,10 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '@server/prisma/prisma.service';
 import { Response } from 'express';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
@@ -10,7 +16,7 @@ import { AgentService } from '@server/agent/agent.service';
 import { AIMessage, HumanMessage } from '@langchain/core/messages';
 import { ConfigService } from '@nestjs/config';
 import { Thread } from 'generated/prisma/client';
-import { from, share, interval, Observable } from 'rxjs';
+import { from, share, interval, Observable, Subject } from 'rxjs';
 import { delay, concatMap, take } from 'rxjs/operators';
 import { MESSAGE_TYPE } from './chat.interface';
 import { MessageFormatterService } from '@server/message/message-formatter.service';
@@ -20,16 +26,11 @@ import { ThreadService } from '@server/thread/thread.service';
 import { ThreadStatus } from '@server/thread/thread-status.enum';
 import { RedisService } from '@server/redis/redis.service';
 import { KafkaService } from '@server/kafka/kafka.service';
-import { KafkaTopic, KafkaEventType, KafkaMessagePayload } from '@server/kafka/kafka.constants';
+import { KafkaEventType, KafkaMessagePayload } from '@server/kafka/kafka.constants';
 import path from 'node:path';
 import fs from 'node:fs';
 import { uuid } from '@common/utils';
-
-const REDIS_KEY_PREFIX = 'streaming:thread:';
-
-const getRedisMessage = (threadUid: string) => {
-  return `${REDIS_KEY_PREFIX}${threadUid}:messages`;
-};
+import { Consumer, KafkaMessage } from 'kafkajs';
 
 @Injectable()
 export class ChatService {
@@ -133,17 +134,22 @@ export class ChatService {
       }
     }
 
+    // 确保 Thread Topic 已创建（异步执行，不阻塞主流程）
+    this.kafkaService.createThreadTopic(thread.uid).catch((error) => {
+      this.logger.warn('Failed to create thread topic, will retry on produce', {
+        error,
+        threadUid: thread.uid,
+      });
+    });
+
     if (!isMockMode) {
       this.saveMessageToMockFile(source$, isMockMode);
     }
-    this.saveMessageToRedis(source$, thread);
+    this.saveMessageToKafka(source$, thread);
     this.saveMessageToDatabase(source$, thread);
+    this.transmitMessageToClient(source$, res);
 
-    // 传输消息到客户端并处理完成事件
     source$.subscribe({
-      next: async (sseMessage) => {
-        res.write(this.messageFormatter.serializeToSSE(sseMessage));
-      },
       complete: async () => {
         await this.threadService.updateStatus(
           thread.uid,
@@ -159,6 +165,10 @@ export class ChatService {
         this.logger.error('Stream error', {
           error: err,
           threadId: thread.uid,
+        });
+        res.status(500).send({
+          code: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: err instanceof Error ? err.message : String(err),
         });
         res.end();
       },
@@ -184,66 +194,51 @@ export class ChatService {
     });
   }
   /**
-   * 保存消息到 Redis 和发送到 Kafka
+   * 保存消息到 Kafka（每个 Thread 独立 Topic）
    * @param source$
    * @param thread
    */
-  private saveMessageToRedis(
+  private saveMessageToKafka(
     source$: Observable<StreamMessage>,
     thread: Thread,
   ) {
-    const listKey = getRedisMessage(thread.uid);
-
     source$.subscribe({
       next: async (sseMessage) => {
-        // 排除控制消息（PING, ERROR, DONE）
-        const isControlMessage =
-          sseMessage.type === MESSAGE_TYPE.PING ||
-          sseMessage.type === MESSAGE_TYPE.ERROR ||
-          sseMessage.type === MESSAGE_TYPE.DONE;
-
-        if (!isControlMessage) {
-          const messageStr = JSON.stringify(sseMessage);
-
-          // 保存到 Redis List（用于缓存）
-          if (this.redisService.isAvailable) {
-            try {
-              await this.redisService.pushToList(listKey, messageStr);
-              // 设置 TTL
-              await this.redisService.expire(listKey, 3600);
-            } catch (error) {
-              this.logger.error('Failed to cache message to Redis', {
-                error,
-                threadUid: thread.uid,
-                message: sseMessage,
-              });
-            }
-          }
-
-          // 发送到 Kafka（替代 Redis pub/sub）
-          try {
-            const kafkaPayload: KafkaMessagePayload = {
-              eventType: KafkaEventType.MESSAGE_CREATED,
-              timestamp: Date.now(),
-              data: sseMessage,
-              metadata: {
-                threadId: thread.uid,
-              },
-            };
-
-            await this.kafkaService.produceToTopic(
-              KafkaTopic.CHAT_MESSAGES,
-              kafkaPayload,
-              thread.uid, // 使用 thread UID 作为 key，保证同一 thread 的消息顺序
-            );
-          } catch (error) {
-            this.logger.error('Failed to send message to Kafka', {
-              error,
+        // 发送到 Kafka Thread 专用 Topic
+        try {
+          const kafkaPayload: KafkaMessagePayload = {
+            eventType: KafkaEventType.MESSAGE_CREATED,
+            timestamp: Date.now(),
+            data: sseMessage,
+            metadata: {
               threadUid: thread.uid,
-              message: sseMessage,
-            });
-          }
+            },
+          };
+
+          // 发送到 Thread 专用 Topic：chat-messages-{threadUid}
+          await this.kafkaService.produceToThreadTopic(thread.uid, kafkaPayload);
+
+          this.logger.debug(
+            `Message sent to Kafka thread topic for thread ${thread.uid}`,
+          );
+        } catch (error) {
+          this.logger.error('Failed to send message to Kafka', {
+            error,
+            threadUid: thread.uid,
+            message: sseMessage,
+          });
         }
+      },
+    });
+  }
+
+  private transmitMessageToClient(
+    source$: Observable<StreamMessage>,
+    res: Response,
+  ) {
+    source$.subscribe({
+      next: (sseMessage) => {
+        res.write(this.messageFormatter.serializeToSSE(sseMessage));
       },
     });
   }
@@ -284,19 +279,182 @@ export class ChatService {
     jwtPayload: JwtPayload,
     body: RestoreChatDto,
   ) {
-    // TODO 实现恢复对话逻辑
+    const { threadId: threadUid } = body;
+
+    this.logger.info(
+      `Restoring thread ${threadUid} for user ${jwtPayload.uid}`,
+    );
+
+    try {
+      // 1. 验证 thread 所有权
+      const thread = await this.threadService.getThreadDetail(
+        jwtPayload.uid,
+        threadUid,
+      );
+
+      if (!thread) {
+        this.logger.warn(
+          `Thread ${threadUid} not found or access denied for user ${jwtPayload.email}`,
+        );
+        throw new ForbiddenException('Thread not found or access denied');
+      }
+
+      this.logger.info(
+        `Thread ${threadUid} access granted for user ${jwtPayload.uid}`,
+      );
+
+      // 2. 从 Kafka 消费消息
+      const source$ = this.consumeMessagesFromKafka(threadUid, jwtPayload.uid);
+
+      // 3. 传输消息到客户端
+      this.transmitMessageToClient(source$, res);
+
+      // 4. 处理订阅生命周期
+      source$.subscribe({
+        complete: async () => {
+          this.logger.info(`Thread ${threadUid} restore completed`);
+          res.end();
+        },
+        error: async (err) => {
+          this.logger.error(`Thread ${threadUid} restore error`, {
+            error: err,
+          });
+
+          // 发送错误消息到客户端
+          const errorMessage = this.messageFormatter.formatError(
+            uuid.generateMessageId(),
+            err instanceof Error ? err : new Error(String(err)),
+            500,
+            { threadUid },
+          );
+
+          res.write(this.messageFormatter.serializeToSSE(errorMessage));
+          res.end();
+        },
+      });
+
+      this.logger.info(`Thread ${threadUid} restore started`);
+    } catch (error) {
+      this.logger.error('Failed to restore thread', { error, threadUid });
+
+      // 如果是已知的异常类型，直接抛出
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
+
+      // 否则包装为内部错误
+      throw new BadRequestException('Failed to restore thread');
+    }
   }
 
-  private handleRestoreStream({
-    source$,
-    res,
-  }: {
-    source$: Observable<StreamMessage>;
-    res: Response;
-    thread: Thread;
-    isMockMode: boolean;
-  }) {
-    // TODO 实现恢复对话逻辑
+  /**
+   * 从 Kafka 消费指定 thread 的消息
+   * 返回 Observable 来流式传输消息
+   *
+   * 优化说明：
+   * - 每个 thread 有独立的 topic，无需过滤
+   * - 使用独立消费者组，每次都从起始位置开始消费
+   * - 简化的消费逻辑，无需手动 assign 和 seek
+   */
+  private consumeMessagesFromKafka(
+    threadUid: string,
+    userUid: string,
+  ): Observable<StreamMessage> {
+    const messageSubject = new Subject<StreamMessage>();
+    const consumerGroupId = `restore-${userUid}-${threadUid}`;
+    let consumer: Consumer | undefined;
+
+    this.logger.info(`Restoring thread ${threadUid} from its dedicated topic`);
+
+    const processKafkaMessage = async (payload: KafkaMessagePayload) => {
+      try {
+        // 所有消息都属于当前 thread（因为每个 thread 有独立 topic），无需过滤
+        if (payload.eventType === KafkaEventType.MESSAGE_CREATED) {
+          const streamMessage = payload.data as StreamMessage;
+
+          this.logger.debug(
+            `Restoring message for thread ${threadUid}: ${streamMessage.type}`,
+          );
+
+          // 将消息推送到 Subject
+          messageSubject.next(streamMessage);
+        }
+      } catch (error) {
+        this.logger.error('Failed to process Kafka message during restore', {
+          error,
+          threadUid,
+          payload,
+        });
+      }
+    };
+
+    // 启动消费者
+    this.kafkaService
+      .createConsumerForThread(threadUid, consumerGroupId)
+      .then(async (createdConsumer) => {
+        consumer = createdConsumer;
+
+        this.logger.debug(
+          `Consumer subscribed to thread topic for thread ${threadUid}`,
+        );
+
+        // 开始消费消息（从起始位置开始）
+        await consumer.run({
+          eachMessage: async ({ message }: { message: KafkaMessage }) => {
+            try {
+              const payload: KafkaMessagePayload = JSON.parse(
+                message.value?.toString() || '{}',
+              );
+              await processKafkaMessage(payload);
+            } catch (error) {
+              this.logger.error(
+                'Failed to parse Kafka message during restore',
+                { error, threadUid },
+              );
+            }
+          },
+        });
+      })
+      .catch((error) => {
+        this.logger.error('Failed to start Kafka consumer for restore', {
+          error,
+          threadUid,
+          consumerGroupId,
+        });
+        messageSubject.error(error);
+      });
+
+    // 返回 Observable，并添加清理逻辑
+    return new Observable<StreamMessage>((observer) => {
+      const subscription = messageSubject.subscribe({
+        next: (msg) => observer.next(msg),
+        error: (err) => observer.error(err),
+        complete: () => observer.complete(),
+      });
+
+      // 当取消订阅时，清理消费者
+      return () => {
+        subscription.unsubscribe();
+        messageSubject.complete();
+
+        // 断开消费者连接
+        if (consumer !== undefined) {
+          consumer
+            .disconnect()
+            .then(() => {
+              this.logger.debug(
+                `Consumer disconnected for thread ${threadUid}`,
+              );
+            })
+            .catch((err: Error) => {
+              this.logger.error(
+                `Failed to disconnect consumer for thread ${threadUid}`,
+                { error: err },
+              );
+            });
+        }
+      };
+    });
   }
   private readMessagesFromMockFile(id: string): Observable<StreamMessage> {
     const mockFilePath = this.configService.get('mock.path');

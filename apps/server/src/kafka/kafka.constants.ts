@@ -66,7 +66,7 @@ export enum KafkaEventType {
 /**
  * Kafka 消息结构接口
  */
-export interface KafkaMessagePayload<T = any> {
+export interface KafkaMessagePayload<T = unknown> {
   eventType: KafkaEventType;
   timestamp: number;
   data: T;
@@ -74,7 +74,7 @@ export interface KafkaMessagePayload<T = any> {
     userId?: string;
     chatId?: string;
     messageId?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -82,9 +82,28 @@ export interface KafkaMessagePayload<T = any> {
  * Kafka 配置常量
  */
 export const KAFKA_CONFIG = {
-  DEFAULT_PARTITION_COUNT: 1,
+  DEFAULT_PARTITION_COUNT: 10,
   DEFAULT_REPLICATION_FACTOR: 1,
   PRODUCE_TIMEOUT: 30000,
   CONSUMER_SESSION_TIMEOUT: 30000,
   CONSUMER_HEARTBEAT_INTERVAL: 3000,
+
+  // Thread 专用 Topic 配置
+  THREAD_TOPIC_PARTITION_COUNT: 1, // 每个 thread topic 单分区
+  THREAD_TOPIC_REPLICATION_FACTOR: 1,
+  THREAD_TOPIC_RETENTION_MS: 60 * 60 * 1000, // 1小时保留期
 } as const;
+
+/**
+ * Thread Topic 命名模板
+ */
+export const THREAD_TOPIC_PREFIX = 'chat-messages-';
+
+/**
+ * 获取 Thread 专用 Topic 名称
+ * @param threadUid Thread UID
+ * @returns Topic 名称，格式：chat-messages-{threadUid}
+ */
+export function getThreadTopicName(threadUid: string): string {
+  return `${THREAD_TOPIC_PREFIX}${threadUid}`;
+}

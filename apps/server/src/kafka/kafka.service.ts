@@ -5,12 +5,12 @@ import {
   Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Kafka, Producer, Consumer, KafkaMessage } from 'kafkajs';
+import { Kafka, Producer, Consumer } from 'kafkajs';
 import {
   KafkaTopic,
-  KAFKA_CONSUMER_GROUPS,
   KafkaMessagePayload,
   KAFKA_CONFIG,
+  getThreadTopicName,
 } from './kafka.constants';
 
 /**
@@ -41,11 +41,11 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
 
   constructor(private configService: ConfigService) {
     const brokers = this.configService.get<string>(
-      'KAFKA_BROKERS',
+      'kafka.brokers',
       'localhost:9092',
     );
     const clientId = this.configService.get<string>(
-      'KAFKA_CLIENT_ID',
+      'kafka.clientId',
       'ai-assistant-server',
     );
 
@@ -98,6 +98,34 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
     } catch (error) {
       this.logger.error('Failed to disconnect Kafka Producer', error);
     }
+  }
+
+  /**
+   * 计算给定 key 应该路由到的分区号
+   * 使用与 Kafka 默认分区器相同的 hash 算法
+   */
+  private calculatePartition(
+    key: string,
+    numPartitions: number,
+  ): number {
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) {
+      const char = key.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    return Math.abs(hash) % numPartitions;
+  }
+
+  /**
+   * 获取给定 key 应该路由到的分区号
+   * @param key - 消息 key（如 threadUid）
+   * @param numPartitions - 分区数量，默认使用配置值
+   * @returns 分区号（0 到 numPartitions-1）
+   */
+  getPartitionForKey(key: string, numPartitions?: number): number {
+    const partitions = numPartitions || KAFKA_CONFIG.DEFAULT_PARTITION_COUNT;
+    return this.calculatePartition(key, partitions);
   }
 
   /**
@@ -339,5 +367,155 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
       totalConsumers: this.consumers.size,
       consumers: Array.from(this.consumers.keys()),
     };
+  }
+
+  /**
+   * 创建临时消费者（不在内部 consumers 列表中管理）
+   * 用于一次性读取消息的场景，调用者需要负责断开连接
+   */
+  async createTemporaryConsumer(groupId: string): Promise<Consumer> {
+    const consumer = this.kafka.consumer({
+      groupId,
+      sessionTimeout: KAFKA_CONFIG.CONSUMER_SESSION_TIMEOUT,
+      heartbeatInterval: KAFKA_CONFIG.CONSUMER_HEARTBEAT_INTERVAL,
+    });
+
+    await consumer.connect();
+
+    this.logger.debug(`Temporary consumer created with groupId: ${groupId}`);
+    return consumer;
+  }
+
+  /**
+   * 为 Thread 创建专用的 Topic
+   * Topic 名称：chat-messages-{threadUid}
+   * 配置：单分区、副本数 1、保留时间 1 小时
+   */
+  async createThreadTopic(threadUid: string): Promise<void> {
+    const topicName = getThreadTopicName(threadUid);
+
+    try {
+      const admin = this.kafka.admin();
+      await admin.connect();
+
+      await admin.createTopics({
+        topics: [
+          {
+            topic: topicName,
+            numPartitions: KAFKA_CONFIG.THREAD_TOPIC_PARTITION_COUNT,
+            replicationFactor: KAFKA_CONFIG.THREAD_TOPIC_REPLICATION_FACTOR,
+            // 设置 topic 级别的 retention.ms
+            configEntries: [
+              {
+                name: 'retention.ms',
+                value: String(KAFKA_CONFIG.THREAD_TOPIC_RETENTION_MS),
+              },
+            ],
+          },
+        ],
+        waitForLeaders: true,
+      });
+
+      await admin.disconnect();
+
+      this.logger.log(
+        `Thread topic ${topicName} created successfully (retention: ${KAFKA_CONFIG.THREAD_TOPIC_RETENTION_MS}ms)`,
+      );
+    } catch (error: unknown) {
+      // 如果 topic 已存在，忽略错误
+      if (
+        error &&
+        typeof error === 'object' &&
+        'type' in error &&
+        error.type === 'TOPIC_ALREADY_EXISTS'
+      ) {
+        this.logger.debug(`Thread topic ${topicName} already exists`);
+        return;
+      }
+      this.logger.error(`Failed to create thread topic ${topicName}`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * 发送消息到 Thread 专用 Topic
+   * @param threadUid - Thread UID
+   * @param payload - 消息载荷
+   */
+  async produceToThreadTopic<T = unknown>(
+    threadUid: string,
+    payload: KafkaMessagePayload<T>,
+  ): Promise<void> {
+    const topicName = getThreadTopicName(threadUid);
+
+    if (!this.isConnectedFlag) {
+      throw new Error('Kafka Producer is not connected');
+    }
+
+    try {
+      const value = JSON.stringify(payload);
+
+      await this.producer.send({
+        topic: topicName,
+        messages: [
+          {
+            value: Buffer.from(value),
+            // 不需要 key，因为每个 thread topic 只有单分区
+          },
+        ],
+      });
+
+      this.logger.debug(
+        `Message sent to thread topic ${topicName} for thread ${threadUid}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to send message to thread topic ${topicName}`,
+        error,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * 为 Thread 创建消费者（从起始位置开始消费）
+   * 用于 restore 场景，需要读取 thread 的所有历史消息
+   *
+   * @param threadUid - Thread UID
+   * @param consumerGroupId - 消费者组 ID
+   * @returns Consumer 实例，调用者需要负责断开连接
+   */
+  async createConsumerForThread(
+    threadUid: string,
+    consumerGroupId: string,
+  ): Promise<Consumer> {
+    const topicName = getThreadTopicName(threadUid);
+    const consumer = this.kafka.consumer({
+      groupId: consumerGroupId,
+      sessionTimeout: KAFKA_CONFIG.CONSUMER_SESSION_TIMEOUT,
+      heartbeatInterval: KAFKA_CONFIG.CONSUMER_HEARTBEAT_INTERVAL,
+    });
+
+    try {
+      await consumer.connect();
+
+      // 订阅 topic 并从起始位置开始消费
+      await consumer.subscribe({
+        topic: topicName,
+        fromBeginning: true,
+      });
+
+      this.logger.debug(
+        `Consumer created for thread ${threadUid}, topic ${topicName}, from beginning`,
+      );
+
+      return consumer;
+    } catch (error) {
+      this.logger.error(
+        `Failed to create consumer for thread ${threadUid}`,
+        error,
+      );
+      throw error;
+    }
   }
 }

@@ -29,6 +29,7 @@ model Thread {
   messageCount Int      @default(0)
   totalTokens  Int      @default(0)
   metadata     Json?
+  /// 0: pending, 1: completed, 2: failed
   status       Int      @default(0)
   deleted      Boolean  @default(false)
   createdAt    DateTime @default(now())

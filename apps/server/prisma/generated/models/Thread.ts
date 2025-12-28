@@ -561,6 +561,9 @@ export type $ThreadPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     messageCount: number
     totalTokens: number
     metadata: runtime.JsonValue | null
+    /**
+     * 0: pending, 1: completed, 2: failed
+     */
     status: number
     deleted: boolean
     createdAt: Date
