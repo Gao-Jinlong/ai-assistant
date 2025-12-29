@@ -25,8 +25,11 @@ import { StreamMessage } from './dto/sse-message.dto';
 import { ThreadService } from '@server/thread/thread.service';
 import { ThreadStatus } from '@server/thread/thread-status.enum';
 import { RedisService } from '@server/redis/redis.service';
-import { KafkaService } from '@server/kafka/kafka.service';
-import { KafkaEventType, KafkaMessagePayload } from '@server/kafka/kafka.constants';
+import { ChatKafkaService } from './chat-kafka.service';
+import {
+  KafkaEventType,
+  KafkaMessagePayload,
+} from '@server/kafka/kafka.constants';
 import path from 'node:path';
 import fs from 'node:fs';
 import { uuid } from '@common/utils';
@@ -42,7 +45,7 @@ export class ChatService {
     private readonly configService: ConfigService,
     private readonly messageFormatter: MessageFormatterService,
     private readonly redisService: RedisService,
-    private readonly kafkaService: KafkaService,
+    private readonly chatKafkaService: ChatKafkaService,
     private readonly threadService: ThreadService,
   ) {}
 
@@ -135,7 +138,7 @@ export class ChatService {
     }
 
     // 确保 Thread Topic 已创建（异步执行，不阻塞主流程）
-    this.kafkaService.createThreadTopic(thread.uid).catch((error) => {
+    this.chatKafkaService.createThreadTopic(thread.uid).catch((error) => {
       this.logger.warn('Failed to create thread topic, will retry on produce', {
         error,
         threadUid: thread.uid,
@@ -216,7 +219,10 @@ export class ChatService {
           };
 
           // 发送到 Thread 专用 Topic：chat-messages-{threadUid}
-          await this.kafkaService.produceToThreadTopic(thread.uid, kafkaPayload);
+          await this.chatKafkaService.produceToThreadTopic(
+            thread.uid,
+            kafkaPayload,
+          );
 
           this.logger.debug(
             `Message sent to Kafka thread topic for thread ${thread.uid}`,
@@ -226,6 +232,21 @@ export class ChatService {
             error,
             threadUid: thread.uid,
             message: sseMessage,
+          });
+        }
+      },
+      complete: async () => {
+        // 对话完成后，删除 Thread 专用 Topic（异步执行）
+        const autoDeleteTopic = this.configService.get(
+          'kafka.autoDeleteThreadTopic',
+          true,
+        );
+        if (autoDeleteTopic) {
+          this.chatKafkaService.deleteThreadTopic(thread.uid).catch((error) => {
+            this.logger.warn('Failed to delete thread topic', {
+              error,
+              threadUid: thread.uid,
+            });
           });
         }
       },
@@ -389,7 +410,7 @@ export class ChatService {
     };
 
     // 启动消费者
-    this.kafkaService
+    this.chatKafkaService
       .createConsumerForThread(threadUid, consumerGroupId)
       .then(async (createdConsumer) => {
         consumer = createdConsumer;

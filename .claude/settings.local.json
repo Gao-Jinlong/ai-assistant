@@ -31,7 +31,8 @@
       "Bash(pnpm add -D @types/ioredis)",
       "Bash(pnpm prisma:migrate:dev --name add_thread_streaming_status)",
       "Bash(cat:*)",
-      "Bash(pnpm:*)"
+      "Bash(pnpm:*)",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []

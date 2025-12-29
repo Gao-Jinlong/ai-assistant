@@ -6,6 +6,8 @@ import { AgentModule } from '@server/agent/agent.module';
 import { ThreadModule } from '@server/thread/thread.module';
 import { MessageStreamProcessor } from './message-stream-processor';
 import { RedisModule } from '@server/redis/redis.module';
+import { KafkaModule } from '@server/kafka/kafka.module';
+import { ChatKafkaService } from './chat-kafka.service';
 
 /**
  * 对话模块
@@ -14,9 +16,15 @@ import { RedisModule } from '@server/redis/redis.module';
  * 依赖 RedisModule 进行消息缓存和实时广播
  */
 @Module({
-  imports: [MessageModule, AgentModule, ThreadModule, RedisModule],
+  imports: [
+    MessageModule,
+    AgentModule,
+    ThreadModule,
+    RedisModule,
+    KafkaModule,
+  ],
   controllers: [ChatController],
-  providers: [ChatService, MessageStreamProcessor],
-  exports: [ChatService, MessageStreamProcessor],
+  providers: [ChatService, MessageStreamProcessor, ChatKafkaService],
+  exports: [ChatService, MessageStreamProcessor, ChatKafkaService],
 })
 export class ChatModule {}
