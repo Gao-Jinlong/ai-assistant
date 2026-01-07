@@ -386,7 +386,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   User: 'User',
   Thread: 'Thread',
-  Message: 'Message'
+  Message: 'Message',
+  ThreadMessageBuffer: 'ThreadMessageBuffer'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -402,7 +403,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "thread" | "message"
+    modelProps: "user" | "thread" | "message" | "threadMessageBuffer"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -628,6 +629,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ThreadMessageBuffer: {
+      payload: Prisma.$ThreadMessageBufferPayload<ExtArgs>
+      fields: Prisma.ThreadMessageBufferFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ThreadMessageBufferFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ThreadMessageBufferPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ThreadMessageBufferFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ThreadMessageBufferPayload>
+        }
+        findFirst: {
+          args: Prisma.ThreadMessageBufferFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ThreadMessageBufferPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ThreadMessageBufferFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ThreadMessageBufferPayload>
+        }
+        findMany: {
+          args: Prisma.ThreadMessageBufferFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ThreadMessageBufferPayload>[]
+        }
+        create: {
+          args: Prisma.ThreadMessageBufferCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ThreadMessageBufferPayload>
+        }
+        createMany: {
+          args: Prisma.ThreadMessageBufferCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ThreadMessageBufferCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ThreadMessageBufferPayload>[]
+        }
+        delete: {
+          args: Prisma.ThreadMessageBufferDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ThreadMessageBufferPayload>
+        }
+        update: {
+          args: Prisma.ThreadMessageBufferUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ThreadMessageBufferPayload>
+        }
+        deleteMany: {
+          args: Prisma.ThreadMessageBufferDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ThreadMessageBufferUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ThreadMessageBufferUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ThreadMessageBufferPayload>[]
+        }
+        upsert: {
+          args: Prisma.ThreadMessageBufferUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ThreadMessageBufferPayload>
+        }
+        aggregate: {
+          args: Prisma.ThreadMessageBufferAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateThreadMessageBuffer>
+        }
+        groupBy: {
+          args: Prisma.ThreadMessageBufferGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ThreadMessageBufferGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ThreadMessageBufferCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ThreadMessageBufferCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -713,6 +788,18 @@ export const MessageScalarFieldEnum = {
 export type MessageScalarFieldEnum = (typeof MessageScalarFieldEnum)[keyof typeof MessageScalarFieldEnum]
 
 
+export const ThreadMessageBufferScalarFieldEnum = {
+  id: 'id',
+  threadUid: 'threadUid',
+  messageData: 'messageData',
+  messageIndex: 'messageIndex',
+  deleted: 'deleted',
+  createdAt: 'createdAt'
+} as const
+
+export type ThreadMessageBufferScalarFieldEnum = (typeof ThreadMessageBufferScalarFieldEnum)[keyof typeof ThreadMessageBufferScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -727,6 +814,13 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {
@@ -918,6 +1012,7 @@ export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   thread?: Prisma.ThreadOmit
   message?: Prisma.MessageOmit
+  threadMessageBuffer?: Prisma.ThreadMessageBufferOmit
 }
 
 /* Types for Logging */

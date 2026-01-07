@@ -11,4 +11,5 @@
 export type * from './models/User.js'
 export type * from './models/Thread.js'
 export type * from './models/Message.js'
+export type * from './models/ThreadMessageBuffer.js'
 export type * from './commonInputTypes.js'

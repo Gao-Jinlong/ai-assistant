@@ -53,7 +53,8 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   Thread: 'Thread',
-  Message: 'Message'
+  Message: 'Message',
+  ThreadMessageBuffer: 'ThreadMessageBuffer'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -118,6 +119,18 @@ export const MessageScalarFieldEnum = {
 export type MessageScalarFieldEnum = (typeof MessageScalarFieldEnum)[keyof typeof MessageScalarFieldEnum]
 
 
+export const ThreadMessageBufferScalarFieldEnum = {
+  id: 'id',
+  threadUid: 'threadUid',
+  messageData: 'messageData',
+  messageIndex: 'messageIndex',
+  deleted: 'deleted',
+  createdAt: 'createdAt'
+} as const
+
+export type ThreadMessageBufferScalarFieldEnum = (typeof ThreadMessageBufferScalarFieldEnum)[keyof typeof ThreadMessageBufferScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -132,6 +145,13 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: 'JsonNull'
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {

@@ -32,7 +32,8 @@
       "Bash(pnpm prisma:migrate:dev --name add_thread_streaming_status)",
       "Bash(cat:*)",
       "Bash(pnpm:*)",
-      "WebSearch"
+      "WebSearch",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": []

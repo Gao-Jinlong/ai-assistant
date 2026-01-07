@@ -132,3 +132,74 @@ export async function restoreChat(threadId: string) {
   });
   return response.data;
 }
+
+/**
+ * 恢复正在进行中的对话的消息流
+ * @param threadId - 线程 ID
+ * @param options - 可选配置，包含 signal 用于取消请求
+ * @returns 异步生成器，产生流式消息
+ */
+export async function* restoreChatStream(
+  threadId: string,
+  options: { signal?: AbortController } = {},
+) {
+  const response = await sse(`chat/restore`, {
+    method: 'POST',
+    body: JSON.stringify({ threadId }),
+    signal: options.signal?.signal,
+  });
+
+  const reader = response.body
+    ?.pipeThrough(new TextDecoderStream())
+    .getReader();
+
+  if (!reader) {
+    throw new Error('Response body is not readable');
+  }
+
+  try {
+    let buffer = '';
+    // Use configurable buffer size from environment, default to 1MB (1048576 bytes)
+    const MAX_BUFFER_SIZE = 2 ** 20;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) {
+        // Handle remaining buffer data
+        if (buffer.trim()) {
+          const event = sseUtils.parseSSEMessage(buffer.trim());
+          if (event) {
+            yield event;
+          }
+        }
+        break;
+      }
+
+      buffer += value;
+
+      // Check buffer size to avoid memory overflow
+      if (buffer.length > MAX_BUFFER_SIZE) {
+        throw new Error(
+          `Buffer overflow - received ${(buffer.length / 1024 / 1024).toFixed(2)}MB of data without proper event boundaries. ` +
+            `Max buffer size is ${(MAX_BUFFER_SIZE / 1024 / 1024).toFixed(2)}MB. ` +
+            `You can increase this by setting NEXT_PUBLIC_MAX_STREAM_BUFFER_SIZE environment variable.`,
+        );
+      }
+
+      let newlineIndex;
+      while ((newlineIndex = buffer.indexOf('\n\n')) !== -1) {
+        const chunk = buffer.slice(0, newlineIndex);
+        buffer = buffer.slice(newlineIndex + 2);
+
+        if (chunk.trim()) {
+          const event = sseUtils.parseSSEMessage(chunk);
+          if (event) {
+            yield event;
+          }
+        }
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}

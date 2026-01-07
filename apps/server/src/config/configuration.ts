@@ -33,9 +33,10 @@ export default () => ({
       process.env.REDIS_URL ||
       `redis://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || '6379'}`,
   },
-  kafka: {
-    brokers: process.env.KAFKA_BROKERS || 'localhost:9092',
-    clientId: process.env.KAFKA_CLIENT_ID || 'ai-assistant-server',
-    consumerGroupId: process.env.KAFKA_CONSUMER_GROUP_ID || 'ai-assistant-group',
+  thread: {
+    buffer: {
+      autoCleanup: process.env.THREAD_BUFFER_AUTO_CLEANUP !== 'false',
+      cleanupDelayMs: parseInt(process.env.THREAD_BUFFER_CLEANUP_DELAY_MS || '5000', 10),
+    },
   },
 });

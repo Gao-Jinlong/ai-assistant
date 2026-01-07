@@ -102,7 +102,11 @@ export async function setActiveThread(thread: ThreadVO) {
   }
   store.setLoading(true);
 
+  // 中断之前的请求（无论是 /chat 还是 /restore）
   abortController?.abort();
+  // 重置 abortController，避免重复 abort
+  abortController = null;
+
   store.clearActiveThread();
   store.setActiveThread(thread);
 
@@ -111,7 +115,8 @@ export async function setActiveThread(thread: ThreadVO) {
       const detail = await getThreadDetail(thread.uid);
       if (detail.data?.status === ThreadStatus.IN_PROGRESS) {
         updateThread(detail.data);
-        // TODO 未结束对话恢复
+        // 恢复未结束的对话消息接收
+        await restoreChat(thread);
       } else {
         await restoreThread(thread);
       }
@@ -195,7 +200,115 @@ export async function sendMessage(
   }
 }
 
-function restoreChat(thread: ThreadVO) {}
+/**
+ * 恢复正在进行中的对话的消息接收
+ * @param thread - 要恢复的线程对象
+ */
+async function restoreChat(thread: ThreadVO) {
+  const store = useBoundStore.getState();
+
+  // 创建 AbortController 并立即存储到模块级变量
+  // 这样 setActiveThread 可以在中断时访问到它
+  abortController = new AbortController();
+  const signal = abortController.signal;
+
+  try {
+    // 1. 先从数据库加载已持久化的历史消息
+    // 这样可以确保用户看到完整的对话历史
+    try {
+      const response = await getThreadMessages(thread.uid);
+      if (response.data && response.data.length > 0) {
+        setMessages(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to load thread messages from database:', error);
+      // 即使加载失败，也继续接收 Kafka 消息
+    }
+
+    // 2. 开始恢复聊天时，取消 loading 状态并设置 responding 状态
+    store.setLoading(false);
+    setResponding(true);
+
+    // 3. 从 Kafka 接收实时消息流（包含所有消息，包括历史和新增的）
+    const stream = chatService.restoreChatStream(thread.uid, {
+      signal: abortController,
+    });
+
+    let updateTimer: ReturnType<typeof setTimeout> | null = null;
+    const pendingMessages: Map<string, StreamMessage[]> = new Map();
+    const scheduleUpdate = () => {
+      if (updateTimer) clearTimeout(updateTimer);
+      updateTimer = setTimeout(() => {
+        updateMessages(pendingMessages);
+        pendingMessages.clear();
+      }, 16); // ~60fps
+    };
+
+    for await (const chunk of stream) {
+      if (signal.aborted) {
+        break;
+      }
+
+      // 处理不同类型的消息
+      switch (chunk.type) {
+        case MESSAGE_TYPE.MESSAGE_CHUNK:
+          // 处理消息块
+          if (pendingMessages.has(chunk.id)) {
+            pendingMessages.get(chunk.id)?.push(chunk);
+          } else {
+            pendingMessages.set(chunk.id, [chunk]);
+          }
+          scheduleUpdate();
+          break;
+
+        case MESSAGE_TYPE.TOOL_CALL_START:
+        case MESSAGE_TYPE.TOOL_CALL_CHUNK:
+        case MESSAGE_TYPE.TOOL_CALL_END:
+        case MESSAGE_TYPE.TOOL_RESULT:
+          // 处理工具调用相关消息
+          if (pendingMessages.has(chunk.id)) {
+            pendingMessages.get(chunk.id)?.push(chunk);
+          } else {
+            pendingMessages.set(chunk.id, [chunk]);
+          }
+          scheduleUpdate();
+          break;
+
+        case MESSAGE_TYPE.ERROR:
+          console.error('Restore chat error:', chunk.data);
+          break;
+
+        case MESSAGE_TYPE.DONE:
+          // 流结束，break 让 for await 循环自然退出
+          // thread 状态会在 finally 块中统一更新
+          break;
+
+        case MESSAGE_TYPE.PING:
+          // 心跳消息，忽略
+          break;
+
+        default:
+          console.warn('Unknown message type:', chunk);
+      }
+    }
+  } catch (error) {
+    console.error('Error restoring chat:', error);
+  } finally {
+    // 无论流如何结束，都获取最新的 thread 状态并更新
+    // 这样可以确保 thread 状态（包括 completing status）被正确反映
+    try {
+      const updatedThread = await getThreadDetail(thread.uid);
+      if (updatedThread.data) {
+        updateThread(updatedThread.data);
+      }
+    } catch (updateError) {
+      console.error('Error updating thread status:', updateError);
+    }
+
+    // 确保 responding 状态被正确重置
+    setResponding(false);
+  }
+}
 /**
  * 设置消息列表
  */

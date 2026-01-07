@@ -1,19 +1,7 @@
-import {
-  Body,
-  Controller,
-  Post,
-  Req,
-  Res,
-  Sse,
-  Get,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Post, Req, Res } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { CreateChatDto, RestoreChatDto } from './dto/create-chat.dto';
 import { Request, Response } from 'express';
-import { Observable } from 'rxjs';
-import { StreamMessage } from './dto/sse-message.dto';
-import { map } from 'rxjs/operators';
 
 @Controller('chat')
 export class ChatController {

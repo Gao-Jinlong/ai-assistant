@@ -51,3 +51,16 @@ model Message {
 
   @@index([threadUid])
 }
+
+model ThreadMessageBuffer {
+  id           Int      @id @default(autoincrement())
+  threadUid    String
+  messageData  Json
+  messageIndex Int
+  deleted      Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@unique([threadUid, messageIndex])
+  @@index([threadUid])
+  @@index([createdAt])
+}
